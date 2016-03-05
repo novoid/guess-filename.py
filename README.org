@@ -1,0 +1,86 @@
+## Time-stamp: <2016-03-05 11:51:45 vk>
+## -*- coding: utf-8 -*-
+## This file is best viewed with GNU Emacs Org-mode: http://orgmode.org/
+
+* guessfilename.py
+
+This Python script tries to come up with a new file name for each
+file from command line argument.
+
+It does this with several methods: first, the current file name is
+analyzed and any [[https://en.wikipedia.org/wiki/Iso_date][ISO date/timestamp]] and [[https://github.com/novoid/filetags/][filetags]] are re-used.
+Secondly, if the parsing of the file name did not lead to any new file
+name, the content of the file is analyzed. Following file types are
+supported by now:
+- PDF files
+
+The script accepts an arbitrary number of files (see your shell for
+possible length limitations).
+
+- *Target group*: users who are able to use command line tools and who
+  are using tags in file names.
+- Hosted on github: https://github.com/novoid/guessfilename
+
+** Why
+
+I do scan almost all paper mail. Many of those documents are sent to
+me regularily. Such documents are bills or insurance informations, for
+example.
+
+Being too lazy to name those files manually with high chances of
+getting many variants for the same document type, I came up with a
+method to derive file names from either the old file name (cues I
+enter without knowing the exact target file name) or the file content.
+
+Analyzing the content enables this script to recognize bills via
+customer numbers or phone numbers, amounts to pay, and so on.
+
+** Usage
+
+: guessfilename.py a_file_name.txt
+... FIXXME
+
+
+For a complete list of parameters, please try:
+: guessfilename.py --help
+
+* Related tools and workflows
+
+This tool is part of a tool-set which I use to manage my digital files
+such as photographs. My work-flows are described in [[http://karl-voit.at/managing-digital-photographs/][this blog posting]]
+you might like to read.
+
+In short:
+
+For *tagging*, please refer to [[https://github.com/novoid/filetags][filetags]] and its documentation.
+
+See [[https://github.com/novoid/date2name][date2name]] for easily adding ISO *time-stamps or date-stamps* to
+files.
+
+For *easily naming and tagging* files within file browsers that allow
+integration of external tools, see [[https://github.com/novoid/appendfilename][appendfilename]] (once more) and
+[[https://github.com/novoid/filetags][filetags]].
+
+Moving to the archive folders is done using [[https://github.com/novoid/move2archive][move2archive]].
+
+Having tagged photographs gives you many advantages. For example, I
+automatically [[https://github.com/novoid/set_desktop_background_according_to_season][choose my *desktop background image* according to the
+current season]].
+
+Files containing an ISO time/date-stamp gets indexed by the
+filename-module of [[https://github.com/novoid/Memacs][Memacs]].
+
+* Contribute!
+
+I am looking for your ideas!
+
+If you want to contribute to this cool project, please fork and
+contribute!
+
+
+* Local Variables                                                  :noexport:
+# Local Variables:
+# mode: auto-fill
+# mode: flyspell
+# eval: (ispell-change-dictionary "en_US")
+# End:
