@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Time-stamp: <2016-03-05 13:16:13 vk>
+# Time-stamp: <2016-03-05 14:51:51 vk>
 
 ## TODO:
 ## * fix parts marked with «FIXXME»
@@ -97,16 +97,19 @@ class GuessFilename(object):
 
     ## file names containing tags matches following regular expression
     ## ( (date(time)?)?(--date(time)?)? )? filename (tags)? (extension)?
-    DAY_REGEX="[12]\d{3}-?[01]\d-?[0123]\d"  ## note: I made the dashes between optional to match simpler format as well
-    TIME_REGEX="T[012]\d.[012345]\d(.[012345]\d)?"
-    DAYTIME_REGEX="(" + DAY_REGEX + "(" + TIME_REGEX + ")?)"
-    DAYTIME_DURATION_REGEX=DAYTIME_REGEX + "(--?" + DAYTIME_REGEX + ")?"
+    DAY_REGEX = "[12]\d{3}-?[01]\d-?[0123]\d"  ## note: I made the dashes between optional to match simpler format as well
+    TIME_REGEX = "T[012]\d.[012345]\d(.[012345]\d)?"
+    DAYTIME_REGEX = "(" + DAY_REGEX + "(" + TIME_REGEX + ")?)"
+    DAYTIME_DURATION_REGEX = DAYTIME_REGEX + "(--?" + DAYTIME_REGEX + ")?"
 
     ISO_NAME_TAGS_EXTENSION_REGEX = re.compile("((" + DAYTIME_DURATION_REGEX + ")[ -_])?(.+?)(" + FILENAME_TAG_SEPARATOR + "((\w+[" + BETWEEN_TAG_SEPARATOR + "]?)+))?(\.(\w+))?$")
-    DAYTIME_DURATION_INDEX=2
-    NAME_INDEX=10
-    TAGS_INDEX=12
-    EXTENSION_INDEX=15
+    DAYTIME_DURATION_INDEX = 2
+    NAME_INDEX = 10
+    TAGS_INDEX = 12
+    EXTENSION_INDEX = 15
+
+    EURO_CHARGE_REGEX = re.compile(u"^(.+[-_ ])?(\d+([,.]\d+)?)[-_ ]?(EUR|€)([-_ ].+)?$")
+    EURO_CHARGE_INDEX = 2
 
     def adding_tag_to_filename(self, filename, tagname):
         """
@@ -150,41 +153,60 @@ class GuessFilename(object):
             else:
                 return os.path.join(os.path.dirname(filename), filename + BETWEEN_TAG_SEPARATOR + tagname)
 
-    def handle_file(self, filename, dryrun):
+    def rename_file(self, oldfilename, newfilename, dryrun=False, quiet=False):
         """
-        @param filename: string containing one file name
+        Renames a file from oldfilename to newfilename.
+
+        Only simulates result if dryrun is True.
+
+        @param oldfilename: string containing the old file name
+        @param newfilename: string containing the new file name
         @param dryrun: boolean which defines if files should be changed (False) or not (True)
-        @param return: error value or new filename
         """
-
-        assert filename.__class__ == str or \
-            filename.__class__ == unicode
-        if dryrun:
-            assert dryrun.__class__ == bool
-
-        if os.path.isdir(filename):
-            logging.warning("Skipping directory \"%s\" because this tool only renames file names." % filename)
-            return
-        elif not os.path.isfile(filename):
-            logging.debug("file type error in folder [%s]: file type: is file? %s  -  is dir? %s  -  is mount? %s" % (os.getcwdu(), str(os.path.isfile(filename)), str(os.path.isdir(filename)), str(os.path.islink(filename))))
-            logging.error("Skipping \"%s\" because this tool only renames existing file names." % filename)
-            return
-
-        new_filename = filename
-
-        pass ## FIXXME: ========================================= marker
 
         if dryrun:
             logging.info(u" ")
-            logging.info(u" renaming \"%s\"" % filename)
-            logging.info(u"      ⤷   \"%s\"" % (new_filename))
+            logging.info(u" renaming \"%s\"" % oldfilename)
+            logging.info(u"      ⤷   \"%s\"" % (newfilename))
         else:
-            if filename != new_filename:
-                if not options.quiet:
-                    print u"   %s  ⤷  %s" % (filename, new_filename)
-                logging.debug(u" renaming \"%s\"" % filename)
-                logging.debug(u"      ⤷   \"%s\"" % (new_filename))
-                os.rename(filename, new_filename)
+            if oldfilename != newfilename:
+                if not quiet:
+                    print u"   %s  ⤷  %s" % (oldfilename, newfilename)
+                logging.debug(u" renaming \"%s\"" % oldfilename)
+                logging.debug(u"      ⤷   \"%s\"" % (newfilename))
+                os.rename(oldfilename, newfilename)
+
+    def derive_new_filename_from_old_filename(oldfilename):
+        pass ## FIXXME
+
+    def handle_file(self, oldfilename, dryrun):
+        """
+        @param oldfilename: string containing one file name
+        @param dryrun: boolean which defines if files should be changed (False) or not (True)
+        @param return: error value or new oldfilename
+        """
+
+        assert oldfilename.__class__ == str or \
+            oldfilename.__class__ == unicode
+        if dryrun:
+            assert dryrun.__class__ == bool
+
+        if os.path.isdir(oldfilename):
+            logging.warning("Skipping directory \"%s\" because this tool only renames file names." % oldfilename)
+            return
+        elif not os.path.isfile(oldfilename):
+            logging.debug("file type error in folder [%s]: file type: is file? %s  -  is dir? %s  -  is mount? %s" %
+                          (os.getcwdu(), str(os.path.isfile(oldfilename)), str(os.path.isdir(oldfilename)), str(os.path.islink(oldfilename))))
+            logging.error("Skipping \"%s\" because this tool only renames existing file names." % oldfilename)
+            return
+
+        new_filename = self.derive_new_filename_from_old_filename(oldfilename)
+        if new_filename:
+            self.rename_file(oldfilename, new_filename, dryrun, options.quiet)
+        #else:
+        #    new_filename = self.derive_new_filename_from_content(oldfilename)
+
+        pass ## FIXXME: ========================================= marker
 
         return new_filename
 
@@ -209,6 +231,36 @@ class GuessFilename(object):
             components.group(self.NAME_INDEX), \
             tags, \
             components.group(self.EXTENSION_INDEX)
+
+    def str_contains_euro_charge(self, string):
+        """
+        Returns true, if the string contains a number with a €-currency
+        """
+
+        assert(type(string) == unicode or type(string) == str)
+        assert(len(string)>0)
+
+        components = re.match(self.EURO_CHARGE_REGEX, string)
+
+        if components:
+            return True
+        else:
+            return False
+
+    def get_euro_charge(self, string):
+        """
+        Returns the included €-currency or False
+        """
+
+        assert(type(string) == unicode or type(string) == str)
+        assert(len(string)>0)
+
+        components = re.match(self.EURO_CHARGE_REGEX, string)
+
+        if components:
+            return components.group(self.EURO_CHARGE_INDEX)
+        else:
+            return False
 
 
 def main():
@@ -244,6 +296,10 @@ def main():
         guess_filename.handle_file(filename, options.dryrun)
 
     logging.debug("successfully finished.")
+
+    if not options.quiet:
+        ## add empty line for better screen output readability
+        print
 
 
 if __name__ == "__main__":

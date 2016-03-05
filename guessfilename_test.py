@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8; mode: python; -*-
-# Time-stamp: <2016-03-05 11:59:59 vk>
+# Time-stamp: <2016-03-05 14:41:50 vk>
 
 import unittest
 from guessfilename import GuessFilename
@@ -16,6 +16,57 @@ class TestGuessFilename(unittest.TestCase):
     def tearDown(self):
         pass
 
+    def test_str_contains_euro_charge(self):
+
+        self.assertTrue(self.guess_filename.str_contains_euro_charge(u"12,34EUR"))
+        self.assertTrue(self.guess_filename.str_contains_euro_charge(u"12.34EUR"))
+        self.assertTrue(self.guess_filename.str_contains_euro_charge(u"12,34 EUR"))
+        self.assertTrue(self.guess_filename.str_contains_euro_charge(u"12.34 EUR"))
+        self.assertTrue(self.guess_filename.str_contains_euro_charge(u"foo bar 12,34 EUR baz"))
+        self.assertTrue(self.guess_filename.str_contains_euro_charge(u"foo bar 12.34 EUR baz"))
+        self.assertTrue(self.guess_filename.str_contains_euro_charge(u"foo bar 12 EUR baz"))
+        self.assertTrue(self.guess_filename.str_contains_euro_charge(u"foo bar 12EUR baz"))
+        self.assertTrue(self.guess_filename.str_contains_euro_charge(u"foo bar 12.34 EUR baz.extension"))
+        self.assertTrue(self.guess_filename.str_contains_euro_charge(u"12,34€"))
+        self.assertTrue(self.guess_filename.str_contains_euro_charge(u"12.34€"))
+        self.assertTrue(self.guess_filename.str_contains_euro_charge(u"12,34 €"))
+        self.assertTrue(self.guess_filename.str_contains_euro_charge(u"12.34 €"))
+        self.assertTrue(self.guess_filename.str_contains_euro_charge(u"foo bar 12,34 € baz"))
+        self.assertTrue(self.guess_filename.str_contains_euro_charge(u"foo bar 12.34 € baz"))
+        self.assertTrue(self.guess_filename.str_contains_euro_charge(u"foo bar 12.34 € baz.extension"))
+        self.assertFalse(self.guess_filename.str_contains_euro_charge(u"1234"))
+        self.assertFalse(self.guess_filename.str_contains_euro_charge(u"foo bar baz"))
+        self.assertFalse(self.guess_filename.str_contains_euro_charge(u"1234eur"))
+        self.assertFalse(self.guess_filename.str_contains_euro_charge(u"foo 12 bar"))
+        self.assertFalse(self.guess_filename.str_contains_euro_charge(u"foo 1234 bar"))
+        self.assertFalse(self.guess_filename.str_contains_euro_charge(u"foo 12,34 bar"))
+        self.assertFalse(self.guess_filename.str_contains_euro_charge(u"foo 12.34 bar"))
+
+    def test_get_euro_charge(self):
+
+        self.assertEquals(self.guess_filename.get_euro_charge(u"12,34EUR"), "12,34")
+        self.assertEquals(self.guess_filename.get_euro_charge(u"12.34EUR"), "12.34")
+        self.assertEquals(self.guess_filename.get_euro_charge(u"12,34 EUR"), "12,34")
+        self.assertEquals(self.guess_filename.get_euro_charge(u"12.34 EUR"), "12.34")
+        self.assertEquals(self.guess_filename.get_euro_charge(u"foo bar 12,34 EUR baz"), "12,34")
+        self.assertEquals(self.guess_filename.get_euro_charge(u"foo bar 12.34 EUR baz"), "12.34")
+        self.assertEquals(self.guess_filename.get_euro_charge(u"foo bar 12 EUR baz"), "12")
+        self.assertEquals(self.guess_filename.get_euro_charge(u"foo bar 12EUR baz"), "12")
+        self.assertEquals(self.guess_filename.get_euro_charge(u"foo bar 12.34 EUR baz.extension"), "12.34")
+        self.assertEquals(self.guess_filename.get_euro_charge(u"12,34€"), "12,34")
+        self.assertEquals(self.guess_filename.get_euro_charge(u"12.34€"), "12.34")
+        self.assertEquals(self.guess_filename.get_euro_charge(u"12,34 €"), "12,34")
+        self.assertEquals(self.guess_filename.get_euro_charge(u"12.34 €"), "12.34")
+        self.assertEquals(self.guess_filename.get_euro_charge(u"foo bar 12,34 € baz"), "12,34")
+        self.assertEquals(self.guess_filename.get_euro_charge(u"foo bar 12.34 € baz"), "12.34")
+        self.assertEquals(self.guess_filename.get_euro_charge(u"foo bar 12.34 € baz.extension"), "12.34")
+        self.assertFalse(self.guess_filename.get_euro_charge(u"1234"))
+        self.assertFalse(self.guess_filename.get_euro_charge(u"foo bar baz"))
+        self.assertFalse(self.guess_filename.get_euro_charge(u"1234eur"))
+        self.assertFalse(self.guess_filename.get_euro_charge(u"foo 12 bar"))
+        self.assertFalse(self.guess_filename.get_euro_charge(u"foo 1234 bar"))
+        self.assertFalse(self.guess_filename.get_euro_charge(u"foo 12,34 bar"))
+        self.assertFalse(self.guess_filename.get_euro_charge(u"foo 12.34 bar"))
 
     def test_split_filename_entities(self):
 
