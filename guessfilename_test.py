@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8; mode: python; -*-
-# Time-stamp: <2016-03-05 11:54:37 vk>
+# Time-stamp: <2016-03-05 11:59:59 vk>
 
 import unittest
 from guessfilename import GuessFilename
@@ -11,9 +11,7 @@ class TestGuessFilename(unittest.TestCase):
     guess_filename = GuessFilename()
 
     def setUp(self):
-        verbose = False
-        quiet = False
-
+        pass
 
     def tearDown(self):
         pass
@@ -23,6 +21,8 @@ class TestGuessFilename(unittest.TestCase):
 
         self.assertEqual(self.guess_filename.split_filename_entities(u"2016-03-05T23.59.42--2017-04-06T12.13.14 foo bar -- eins zwei.extension"),
                          (u"2016-03-05T23.59.42--2017-04-06T12.13.14", u"foo bar", [u"eins", u"zwei"], u"extension"))
+        self.assertEqual(self.guess_filename.split_filename_entities(u"2016-03-05T23.59.42-2017-04-06T12.13.14 foo bar -- eins zwei.extension"),
+                         (u"2016-03-05T23.59.42-2017-04-06T12.13.14", u"foo bar", [u"eins", u"zwei"], u"extension"))
         self.assertEqual(self.guess_filename.split_filename_entities(u"2016-03-05T23.59--2017-04-06T12.13 foo - bar.baz - zum -- eins zwei.extension"),
                          (u"2016-03-05T23.59--2017-04-06T12.13", u"foo - bar.baz - zum", [u"eins", u"zwei"], u"extension"))
         self.assertEqual(self.guess_filename.split_filename_entities(u"2016-03-05T23.59.42 foo - bar.baz - zum -- eins zwei.extension"),

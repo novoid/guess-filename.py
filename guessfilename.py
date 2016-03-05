@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Time-stamp: <2016-03-05 11:48:05 vk>
+# Time-stamp: <2016-03-05 11:59:27 vk>
 
 ## TODO:
 ## * fix parts marked with «FIXXME»
@@ -14,21 +14,14 @@
 import re
 import sys
 import os
-import os.path   # for directory traversal to look for .tagfiles
+import os.path
 import time
 import logging
-#import operator  # for sorting dicts
-#import difflib   # for good enough matching words
-#from sets import Set  # to find out union/intersection of tag sets
-#import readline  # for raw_input() reading from stdin
-import codecs    # for handling Unicode content in .tagfiles
 from optparse import OptionParser
 
 PROG_VERSION_NUMBER = u"0.1"
 PROG_VERSION_DATE = u"2016-03-04"
 INVOCATION_TIME = time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime())
-FILENAME_TAG_SEPARATOR = u' -- '
-BETWEEN_TAG_SEPARATOR = u' '
 
 
 USAGE = u"\n\
@@ -99,14 +92,17 @@ class GuessFilename(object):
     Contains methods of the guess filename domain
     """
 
+    FILENAME_TAG_SEPARATOR = u' -- '
+    BETWEEN_TAG_SEPARATOR = u' '
+
     ## file names containing tags matches following regular expression
     ## ( (date(time)?)?(--date(time)?)? )? filename (tags)? (extension)?
     DAY_REGEX="[12]\d{3}-[01]\d-[0123]\d"
     TIME_REGEX="T[012]\d.[012345]\d(.[012345]\d)?"
     DAYTIME_REGEX="(" + DAY_REGEX + "(" + TIME_REGEX + ")?)"
-    DAYTIME_DURATION_REGEX=DAYTIME_REGEX + "(--" + DAYTIME_REGEX + ")?"
+    DAYTIME_DURATION_REGEX=DAYTIME_REGEX + "(--?" + DAYTIME_REGEX + ")?"
 
-    ISO_NAME_TAGS_EXTENSION_REGEX = re.compile("((" + DAYTIME_DURATION_REGEX + ")[ -_])?(.+?)( -- (\w+[ ]?)+)?(\.(\w+))?$")
+    ISO_NAME_TAGS_EXTENSION_REGEX = re.compile("((" + DAYTIME_DURATION_REGEX + ")[ -_])?(.+?)(" + FILENAME_TAG_SEPARATOR + "(\w+[" + BETWEEN_TAG_SEPARATOR + "]?)+)?(\.(\w+))?$")
     DAYTIME_DURATION_INDEX=2
     NAME_INDEX=10
     TAGS_INDEX=11
