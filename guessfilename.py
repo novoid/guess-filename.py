@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Time-stamp: <2016-03-05 23:06:47 vk>
+# Time-stamp: <2016-03-05 23:43:01 vk>
 
 ## TODO:
 ## * fix parts marked with «FIXXME»
@@ -92,6 +92,8 @@ class GuessFilename(object):
     Contains methods of the guess filename domain
     """
 
+    oldfilename = None
+
     FILENAME_TAG_SEPARATOR = u' -- '
     BETWEEN_TAG_SEPARATOR = u' '
 
@@ -108,7 +110,7 @@ class GuessFilename(object):
     TAGS_INDEX = 12
     EXTENSION_INDEX = 15
 
-    EURO_CHARGE_REGEX = re.compile(u"^(.+[-_ ])?(\d+([,.]\d+)?)[-_ ]?(EUR|€)([-_ ].+)?$")
+    EURO_CHARGE_REGEX = re.compile(u"^(.+[-_ ])?(\d+([,.]\d+)?)[-_ ]?(EUR|€)([-_ .].+)?$")
     EURO_CHARGE_INDEX = 2
 
     def adding_tags(self, tagarray, newtags):
@@ -154,7 +156,7 @@ class GuessFilename(object):
                 logging.debug(u"      ⤷   \"%s\"" % (newfilename))
                 os.rename(oldfilename, newfilename)
 
-    def derive_new_filename_from_old_filename(self, oldfilename):
+    def derive_new_filename_from_old_filename(s, oldfilename):
         """
         Analyses the old filename and returns a new one if feasible.
         If not, False is returned instead.
@@ -163,15 +165,17 @@ class GuessFilename(object):
         @param return: False or new oldfilename
         """
 
-        datetimestr, basefilename, tags, extension = self.split_filename_entities(oldfilename)
+        datetimestr, basefilename, tags, extension = s.split_filename_entities(oldfilename)
 
-        if (" a1 " or " A1 ") in oldfilename and self.has_euro_charge(oldfilename) and datetimestr:
+        if s.contains_one_of(oldfilename, [" A1 ", " a1 "]) and s.has_euro_charge(oldfilename) and datetimestr:
             return datetimestr + \
-                " A1 Festnetz-Internet " + self.get_euro_charge(oldfilename) + \
-                " -- " + ' '.join(adding_tags(tags, ['scan', 'finance', 'bill'])) + \
-                ".pdf"
+                u" A1 Festnetz-Internet " + s.get_euro_charge(oldfilename) + \
+                u" € -- " + ' '.join(s.adding_tags(tags, ['scan', 'finance', 'bill'])) + \
+                u".pdf"
 
         pass ## FIXXME: more cases!
+
+        return False ## no new filename found
 
     def handle_file(self, oldfilename, dryrun):
         """
@@ -194,15 +198,8 @@ class GuessFilename(object):
             logging.error("Skipping \"%s\" because this tool only renames existing file names." % oldfilename)
             return
 
-        new_filename = self.derive_new_filename_from_old_filename(oldfilename)
-        if new_filename:
-            self.rename_file(oldfilename, new_filename, dryrun, options.quiet)
-        #else:
-        #    new_filename = self.derive_new_filename_from_content(oldfilename)
-
-        pass ## FIXXME: ========================================= marker
-
-        return new_filename
+        self.oldfilename = oldfilename
+        
 
     def split_filename_entities(self, filename):
         """
@@ -227,6 +224,22 @@ class GuessFilename(object):
             components.group(self.NAME_INDEX), \
             tags, \
             components.group(self.EXTENSION_INDEX)
+
+    def contains_one_of(self, string, entries):
+        """
+        Returns true, if the string contains one of the strings within entries array
+        """
+
+        assert(type(string) == unicode or type(string) == str)
+        assert(type(entries) == list)
+        assert(len(string)>0)
+        assert(len(entries)>0)
+
+        for entry in entries:
+            if entry in string:
+               return True
+
+        return False
 
     def has_euro_charge(self, string):
         """

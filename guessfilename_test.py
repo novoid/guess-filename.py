@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8; mode: python; -*-
-# Time-stamp: <2016-03-05 23:06:19 vk>
+# Time-stamp: <2016-03-05 23:38:58 vk>
 
 import unittest
 from guessfilename import GuessFilename
@@ -22,11 +22,23 @@ class TestGuessFilename(unittest.TestCase):
 
     def test_derive_new_filename_from_old_filename(self):
 
-#        self.assertEquals(self.guess_filename.derive_new_filename_from_old_filename(u"2016-03-05 a1 12,34 €.pdf"),
-#                          "2016-03-05 A1 Festnetz-Internet 12,34 € -- scan finance bill.pdf")
+        self.assertEquals(self.guess_filename.derive_new_filename_from_old_filename(u"2016-03-05 a1 12,34 €.pdf"),
+                          u"2016-03-05 A1 Festnetz-Internet 12,34 € -- scan finance bill.pdf")
         self.assertEquals(self.guess_filename.derive_new_filename_from_old_filename(u"2016-03-05 A1 12.34 EUR.pdf"),
-                          "2016-03-05 A1 Festnetz-Internet 12.34 € -- scan finance bill.pdf")
+                          u"2016-03-05 A1 Festnetz-Internet 12.34 € -- scan finance bill.pdf")
 
+    def test_contains_one_of(self):
+
+        self.assertTrue(self.guess_filename.contains_one_of(u"foo bar baz", ['foo']))
+        self.assertTrue(self.guess_filename.contains_one_of(u"foo bar baz", [u'foo']))
+        self.assertTrue(self.guess_filename.contains_one_of(u"foo bar baz", [u'bar']))
+        self.assertTrue(self.guess_filename.contains_one_of(u"foo bar baz", [u'ba']))
+        self.assertTrue(self.guess_filename.contains_one_of(u"foo bar baz", [u'x', u'ba', u'yuio']))
+        self.assertFalse(self.guess_filename.contains_one_of(u"foo bar baz", ['xfoo']))
+        self.assertFalse(self.guess_filename.contains_one_of(u"foo bar baz", [u'xfoo']))
+        self.assertFalse(self.guess_filename.contains_one_of(u"foo bar baz", [u'xbar']))
+        self.assertFalse(self.guess_filename.contains_one_of(u"foo bar baz", [u'xba']))
+        self.assertFalse(self.guess_filename.contains_one_of(u"foo bar baz", [u'x', u'xba', u'yuio']))
 
     def test_has_euro_charge(self):
 
@@ -46,6 +58,8 @@ class TestGuessFilename(unittest.TestCase):
         self.assertTrue(self.guess_filename.has_euro_charge(u"foo bar 12,34 € baz"))
         self.assertTrue(self.guess_filename.has_euro_charge(u"foo bar 12.34 € baz"))
         self.assertTrue(self.guess_filename.has_euro_charge(u"foo bar 12.34 € baz.extension"))
+        self.assertTrue(self.guess_filename.has_euro_charge(u"2016-03-05 A1 12.34 EUR.pdf"))
+        self.assertTrue(self.guess_filename.has_euro_charge(u"2016-03-05 A1 Festnetz-Internet 12.34 € -- scan finance bill.pdf"))
         self.assertFalse(self.guess_filename.has_euro_charge(u"1234"))
         self.assertFalse(self.guess_filename.has_euro_charge(u"foo bar baz"))
         self.assertFalse(self.guess_filename.has_euro_charge(u"1234eur"))
