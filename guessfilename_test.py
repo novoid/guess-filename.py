@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8; mode: python; -*-
-# Time-stamp: <2016-03-05 14:41:50 vk>
+# Time-stamp: <2016-03-05 17:35:27 vk>
 
 import unittest
 from guessfilename import GuessFilename

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Time-stamp: <2016-03-05 14:51:51 vk>
+# Time-stamp: <2016-03-05 17:35:05 vk>
 
 ## TODO:
 ## * fix parts marked with «FIXXME»
@@ -111,47 +111,25 @@ class GuessFilename(object):
     EURO_CHARGE_REGEX = re.compile(u"^(.+[-_ ])?(\d+([,.]\d+)?)[-_ ]?(EUR|€)([-_ ].+)?$")
     EURO_CHARGE_INDEX = 2
 
-    def adding_tag_to_filename(self, filename, tagname):
+    def adding_tags(self, tagarray, newtags):
         """
-        Returns string of file name with tagname as additional tag.
+        Returns unique array of tags containing the newtag.
 
-        @param filename: an unicode string containing a file name
-        @param tagname: an unicode string containing a tag name
-        @param return: an unicode string of filename containing tagname
+        @param tagarray: a array of unicode strings containing tags
+        @param newtag: a array of unicode strings containing tags
+        @param return: a array of unicode strings containing tags
         """
 
-        assert filename.__class__ == str or \
-            filename.__class__ == unicode
-        assert tagname.__class__ == str or \
-            tagname.__class__ == unicode
+        assert tagarray.__class__ == list
+        assert newtags.__class__ == list
 
-        if contains_tag(filename) is False:
-            logging.debug(u"adding_tag_to_filename(%s, %s): no tag found so far" % (filename, tagname))
+        resulting_tags = tagarray
 
-            components = re.match(FILE_WITH_EXTENSION_REGEX, os.path.basename(filename))
-            if components:
-                old_filename = components.group(1)
-                extension = components.group(2)
-                return os.path.join(os.path.dirname(filename), old_filename + FILENAME_TAG_SEPARATOR + tagname + u'.' + extension)
-            else:
-                return os.path.join(os.path.dirname(filename), os.path.basename(filename) + FILENAME_TAG_SEPARATOR + tagname)
+        for tag in newtags:
+            if tag not in tagarray:
+                resulting_tags.append(tag)
 
-        elif contains_tag(filename, tagname):
-            logging.debug("adding_tag_to_filename(%s, %s): tag already found in filename" % (filename, tagname))
-
-            return filename
-
-        else:
-            logging.debug("adding_tag_to_filename(%s, %s): add as additional tag to existing list of tags" %
-                          (filename, tagname))
-
-            components = re.match(FILE_WITH_EXTENSION_REGEX, os.path.basename(filename))
-            if components:
-                old_filename = components.group(1)
-                extension = components.group(2)
-                return os.path.join(os.path.dirname(filename), old_filename + BETWEEN_TAG_SEPARATOR + tagname + u'.' + extension)
-            else:
-                return os.path.join(os.path.dirname(filename), filename + BETWEEN_TAG_SEPARATOR + tagname)
+        return resulting_tags
 
     def rename_file(self, oldfilename, newfilename, dryrun=False, quiet=False):
         """
@@ -231,6 +209,8 @@ class GuessFilename(object):
         Takes a filename of format ( (date(time)?)?(--date(time)?)? )? filename (tags)? (extension)?
         and returns a set of (date/time/duration, filename, array of tags, extension).
         """
+
+        ## FIXXME: return directory as well!
 
         assert(type(filename) == unicode or type(filename) == str)
         assert(len(filename)>0)
