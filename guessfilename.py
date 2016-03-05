@@ -176,8 +176,24 @@ class GuessFilename(object):
                 logging.debug(u"      ⤷   \"%s\"" % (newfilename))
                 os.rename(oldfilename, newfilename)
 
-    def derive_new_filename_from_old_filename(oldfilename):
-        pass ## FIXXME
+    def derive_new_filename_from_old_filename(self, oldfilename):
+        """
+        Analyses the old filename and returns a new one if feasible.
+        If not, False is returned instead.
+
+        @param oldfilename: string containing one file name
+        @param return: False or new oldfilename
+        """
+
+        datetimestr, basefilename, tags, extension = self.split_filename_entities(oldfilename)
+
+        if (" a1 " or " A1 ") in oldfilename and self.str_contains_euro_charge(oldfilename) and datetimestr:
+            return datetimestr + \
+                " A1 Festnetz-Internet " + self.get_euro_charge(oldfilename) + \
+                " -- " + ' '.join(adding_tags(tags, ['scan', 'finance', 'bill'])) + \
+                ".pdf"
+
+        pass ## FIXXME: more cases!
 
     def handle_file(self, oldfilename, dryrun):
         """

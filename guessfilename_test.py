@@ -16,6 +16,18 @@ class TestGuessFilename(unittest.TestCase):
     def tearDown(self):
         pass
 
+    def test_adding_tags(self):
+
+        self.assertEquals(self.guess_filename.adding_tags(['foo'], ['bar']), ['foo', 'bar'])
+
+    def test_derive_new_filename_from_old_filename(self):
+
+#        self.assertEquals(self.guess_filename.derive_new_filename_from_old_filename(u"2016-03-05 a1 12,34 €.pdf"),
+#                          "2016-03-05 A1 Festnetz-Internet 12,34 € -- scan finance bill.pdf")
+        self.assertEquals(self.guess_filename.derive_new_filename_from_old_filename(u"2016-03-05 A1 12.34 EUR.pdf"),
+                          "2016-03-05 A1 Festnetz-Internet 12.34 € -- scan finance bill.pdf")
+
+
     def test_str_contains_euro_charge(self):
 
         self.assertTrue(self.guess_filename.str_contains_euro_charge(u"12,34EUR"))
