@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Time-stamp: <2016-03-05 17:35:05 vk>
+# Time-stamp: <2016-03-05 23:06:47 vk>
 
 ## TODO:
 ## * fix parts marked with «FIXXME»
@@ -165,7 +165,7 @@ class GuessFilename(object):
 
         datetimestr, basefilename, tags, extension = self.split_filename_entities(oldfilename)
 
-        if (" a1 " or " A1 ") in oldfilename and self.str_contains_euro_charge(oldfilename) and datetimestr:
+        if (" a1 " or " A1 ") in oldfilename and self.has_euro_charge(oldfilename) and datetimestr:
             return datetimestr + \
                 " A1 Festnetz-Internet " + self.get_euro_charge(oldfilename) + \
                 " -- " + ' '.join(adding_tags(tags, ['scan', 'finance', 'bill'])) + \
@@ -228,7 +228,7 @@ class GuessFilename(object):
             tags, \
             components.group(self.EXTENSION_INDEX)
 
-    def str_contains_euro_charge(self, string):
+    def has_euro_charge(self, string):
         """
         Returns true, if the string contains a number with a €-currency
         """
