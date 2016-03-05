@@ -97,16 +97,16 @@ class GuessFilename(object):
 
     ## file names containing tags matches following regular expression
     ## ( (date(time)?)?(--date(time)?)? )? filename (tags)? (extension)?
-    DAY_REGEX="[12]\d{3}-[01]\d-[0123]\d"
+    DAY_REGEX="[12]\d{3}-?[01]\d-?[0123]\d"  ## note: I made the dashes between optional to match simpler format as well
     TIME_REGEX="T[012]\d.[012345]\d(.[012345]\d)?"
     DAYTIME_REGEX="(" + DAY_REGEX + "(" + TIME_REGEX + ")?)"
     DAYTIME_DURATION_REGEX=DAYTIME_REGEX + "(--?" + DAYTIME_REGEX + ")?"
 
-    ISO_NAME_TAGS_EXTENSION_REGEX = re.compile("((" + DAYTIME_DURATION_REGEX + ")[ -_])?(.+?)(" + FILENAME_TAG_SEPARATOR + "(\w+[" + BETWEEN_TAG_SEPARATOR + "]?)+)?(\.(\w+))?$")
+    ISO_NAME_TAGS_EXTENSION_REGEX = re.compile("((" + DAYTIME_DURATION_REGEX + ")[ -_])?(.+?)(" + FILENAME_TAG_SEPARATOR + "((\w+[" + BETWEEN_TAG_SEPARATOR + "]?)+))?(\.(\w+))?$")
     DAYTIME_DURATION_INDEX=2
     NAME_INDEX=10
-    TAGS_INDEX=11
-    EXTENSION_INDEX=14
+    TAGS_INDEX=12
+    EXTENSION_INDEX=15
 
     def adding_tag_to_filename(self, filename, tagname):
         """
@@ -221,22 +221,18 @@ class GuessFilename(object):
 
         assert(components)
 
-        if components.group(11):
-            tags = components.group(11)[4:].split(' ')
+        if components.group(self.TAGS_INDEX):
+            tags = components.group(self.TAGS_INDEX).split(' ')
         else:
             tags = []
-        return components.group(2), \
-            components.group(10), \
+        return components.group(self.DAYTIME_DURATION_INDEX), \
+            components.group(self.NAME_INDEX), \
             tags, \
-            components.group(14)
+            components.group(self.EXTENSION_INDEX)
 
 
 def main():
     """Main function"""
-
-    guess_filename = GuessFilename()
-
-    sys.exit(0)
 
     if options.version:
         print os.path.basename(sys.argv[0]) + " version " + PROG_VERSION_NUMBER + \
