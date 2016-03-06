@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Time-stamp: <2016-03-06 17:47:13 vk>
+# Time-stamp: <2016-03-06 18:43:17 vk>
 
-## TODO:
-## * fix parts marked with «FIXXME»
+# TODO:
+# * fix parts marked with «FIXXME»
 
 
-## ===================================================================== ##
-##  You might not want to modify anything below this line if you do not  ##
-##  know, what you are doing :-)                                         ##
-## ===================================================================== ##
+# ===================================================================== ##
+#  You might not want to modify anything below this line if you do not  ##
+#  know, what you are doing :-)                                         ##
+# ===================================================================== ##
 
 import re
 import sys
@@ -24,6 +24,7 @@ try:
 except ImportError:
     print "Could not find Python module \"fuzzywuzzy\".\nPlease install it, e.g., with \"sudo pip install fuzzywuzzy\"."
     sys.exit(1)
+
 
 PROG_VERSION_NUMBER = u"0.1"
 PROG_VERSION_DATE = u"2016-03-04"
@@ -49,9 +50,6 @@ Verbose description: FIXXME: http://Karl-Voit.at/managing-digital-photographs/\n
 :URL: https://github.com/novoid/guess-filename.py\n\
 :bugreports: via github or <tools@Karl-Voit.at>\n\
 :version: " + PROG_VERSION_NUMBER + " from " + PROG_VERSION_DATE + "\n"
-
-
-
 
 parser = OptionParser(usage=USAGE)
 
@@ -101,9 +99,9 @@ class GuessFilename(object):
     FILENAME_TAG_SEPARATOR = u' -- '
     BETWEEN_TAG_SEPARATOR = u' '
 
-    ## file names containing tags matches following regular expression
-    ## ( (date(time)?)?(--date(time)?)? )? filename (tags)? (extension)?
-    DAY_REGEX = "[12]\d{3}-?[01]\d-?[0123]\d"  ## note: I made the dashes between optional to match simpler format as well
+    # file names containing tags matches following regular expression
+    # ( (date(time)?)?(--date(time)?)? )? filename (tags)? (extension)?
+    DAY_REGEX = "[12]\d{3}-?[01]\d-?[0123]\d"  # note: I made the dashes between optional to match simpler format as well
     TIME_REGEX = "T[012]\d.[012345]\d(.[012345]\d)?"
     DAYTIME_REGEX = "(" + DAY_REGEX + "(" + TIME_REGEX + ")?)"
     DAYTIME_DURATION_REGEX = DAYTIME_REGEX + "(--?" + DAYTIME_REGEX + ")?"
@@ -118,8 +116,11 @@ class GuessFilename(object):
     EURO_CHARGE_INDEX = 2
 
     logger = None
+    config = None
 
-    def __init__(self, logger):
+    def __init__(self, config, logger):
+        self.FILENAME_TAG_SEPARATOR = config.FILENAME_TAG_SEPARATOR
+        self.BETWEEN_TAG_SEPARATOR = config.BETWEEN_TAG_SEPARATOR
         self.logger = logger
 
     def adding_tags(self, tagarray, newtags):
@@ -148,10 +149,10 @@ class GuessFilename(object):
         and returns a set of (date/time/duration, filename, array of tags, extension).
         """
 
-        ## FIXXME: return directory as well!
+        # FIXXME: return directory as well!
 
         assert(type(filename) == unicode or type(filename) == str)
-        assert(len(filename)>0)
+        assert(len(filename) > 0)
 
         components = re.match(self.ISO_NAME_TAGS_EXTENSION_REGEX, filename)
 
@@ -173,12 +174,12 @@ class GuessFilename(object):
 
         assert(type(string) == unicode or type(string) == str)
         assert(type(entries) == list)
-        assert(len(string)>0)
-        assert(len(entries)>0)
+        assert(len(string) > 0)
+        assert(len(entries) > 0)
 
         for entry in entries:
             if entry in string:
-               return True
+                return True
 
         return False
 
@@ -189,8 +190,8 @@ class GuessFilename(object):
 
         assert(type(string) == unicode or type(string) == str)
         assert(type(entries) == list)
-        assert(len(string)>0)
-        assert(len(entries)>0)
+        assert(len(string) > 0)
+        assert(len(entries) > 0)
 
         for entry in entries:
             similarity = fuzz.partial_ratio(string, entry)
@@ -209,7 +210,7 @@ class GuessFilename(object):
         """
 
         assert(type(string) == unicode or type(string) == str)
-        assert(len(string)>0)
+        assert(len(string) > 0)
 
         components = re.match(self.EURO_CHARGE_REGEX, string)
 
@@ -224,7 +225,7 @@ class GuessFilename(object):
         """
 
         assert(type(string) == unicode or type(string) == str)
-        assert(len(string)>0)
+        assert(len(string) > 0)
 
         components = re.match(self.EURO_CHARGE_REGEX, string)
 
@@ -280,30 +281,23 @@ class GuessFilename(object):
         logging.debug("derive_new_filename_from_old_filename called")
         datetimestr, basefilename, tags, extension = s.split_filename_entities(oldfilename)
 
-        ## 2015-11-24 Rechnung A1 Festnetz-Internet 12,34€ -- scan finance.pdf
+        # 2015-11-24 Rechnung A1 Festnetz-Internet 12,34€ -- scan finance.pdf
         if s.contains_one_of(oldfilename, [" A1 ", " a1 "]) and s.has_euro_charge(oldfilename) and datetimestr:
             return datetimestr + \
                 u" A1 Festnetz-Internet " + s.get_euro_charge(oldfilename) + \
                 u"€ -- " + ' '.join(s.adding_tags(tags, ['scan', 'finance', 'bill'])) + \
                 u".pdf"
 
-        ## 2016-01-19--2016-02-12 benutzter GVB 10er Block -- scan transportation graz.pdf
+        # 2016-01-19--2016-02-12 benutzter GVB 10er Block -- scan transportation graz.pdf
         if s.contains_one_of(oldfilename, ["10er"]) and datetimestr:
             return datetimestr + \
                 u" benutzter GVB 10er Block" + \
                 u" -- " + ' '.join(s.adding_tags(tags, ['scan', 'transportation', 'graz'])) + \
                 u".pdf"
 
-        ##
-        #if s.contains_one_of(oldfilename, ["Gehalt"]) and s.has_euro_charge(oldfilename) and datetimestr:
-        #    return datetimestr + \
-        #        u" A1 Festnetz-Internet " + s.get_euro_charge(oldfilename) + \
-        #        u"€ -- " + ' '.join(s.adding_tags(tags, ['scan', 'finance', 'bill'])) + \
-        #        u".pdf"
+        # FIXXME: more cases!
 
-        ## FIXXME: more cases!
-
-        return False ## no new filename found
+        return False  # no new filename found
 
     def handle_file(self, oldfilename, dryrun):
         """
@@ -338,7 +332,7 @@ class GuessFilename(object):
             self.rename_file(dirname, basename, newfilename, dryrun)
             return newfilename
 
-        ## FIXXME: try to derive new filename from content
+        # FIXXME: try to derive new filename from content
 
 
 def main():
@@ -363,7 +357,13 @@ def main():
 
     logging.debug("%s filenames found: [%s]" % (str(len(files)), '], ['.join(files)))
 
-    guess_filename = GuessFilename(logging.getLogger())
+    try:
+        import guessfilenameconfig
+    except ImportError:
+        print "Could not find \"guessfilenameconfig.py\".\nPlease take a look at \"guessfilenameconfig-TEMPLATE.py\" and configure accordingly."
+        sys.exit(1)
+
+    guess_filename = GuessFilename(guessfilenameconfig, logging.getLogger())
 
     if len(args) < 1:
         error_exit(5, "Please add at least one file name as argument")
@@ -377,7 +377,7 @@ def main():
     logging.debug("successfully finished.")
 
     if not options.quiet:
-        ## add empty line for better screen output readability
+        # add empty line for better screen output readability
         print
 
 
@@ -388,6 +388,4 @@ if __name__ == "__main__":
 
         logging.info("Received KeyboardInterrupt")
 
-## END OF FILE #################################################################
-
-#end
+# END OF FILE #################################################################
