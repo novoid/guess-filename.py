@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Time-stamp: <2016-03-06 17:43:45 vk>
+# Time-stamp: <2016-03-06 17:47:13 vk>
 
 ## TODO:
 ## * fix parts marked with «FIXXME»
@@ -142,6 +142,97 @@ class GuessFilename(object):
 
         return resulting_tags
 
+    def split_filename_entities(self, filename):
+        """
+        Takes a filename of format ( (date(time)?)?(--date(time)?)? )? filename (tags)? (extension)?
+        and returns a set of (date/time/duration, filename, array of tags, extension).
+        """
+
+        ## FIXXME: return directory as well!
+
+        assert(type(filename) == unicode or type(filename) == str)
+        assert(len(filename)>0)
+
+        components = re.match(self.ISO_NAME_TAGS_EXTENSION_REGEX, filename)
+
+        assert(components)
+
+        if components.group(self.TAGS_INDEX):
+            tags = components.group(self.TAGS_INDEX).split(' ')
+        else:
+            tags = []
+        return components.group(self.DAYTIME_DURATION_INDEX), \
+            components.group(self.NAME_INDEX), \
+            tags, \
+            components.group(self.EXTENSION_INDEX)
+
+    def contains_one_of(self, string, entries):
+        """
+        Returns true, if the string contains one of the strings within entries array
+        """
+
+        assert(type(string) == unicode or type(string) == str)
+        assert(type(entries) == list)
+        assert(len(string)>0)
+        assert(len(entries)>0)
+
+        for entry in entries:
+            if entry in string:
+               return True
+
+        return False
+
+    def fuzzy_contains_one_of(self, string, entries):
+        """
+        Returns true, if the string contains a similar one of the strings within entries array
+        """
+
+        assert(type(string) == unicode or type(string) == str)
+        assert(type(entries) == list)
+        assert(len(string)>0)
+        assert(len(entries)>0)
+
+        for entry in entries:
+            similarity = fuzz.partial_ratio(string, entry)
+            if similarity > 64:
+                #logging.debug(u"MATCH   fuzzy_contains_one_of(%s, %s) == %i" % (string, str(entry), similarity))
+                return True
+            else:
+                #logging.debug(u"¬ MATCH fuzzy_contains_one_of(%s, %s) == %i" % (string, str(entry), similarity))
+                pass
+
+        return False
+
+    def has_euro_charge(self, string):
+        """
+        Returns true, if the string contains a number with a €-currency
+        """
+
+        assert(type(string) == unicode or type(string) == str)
+        assert(len(string)>0)
+
+        components = re.match(self.EURO_CHARGE_REGEX, string)
+
+        if components:
+            return True
+        else:
+            return False
+
+    def get_euro_charge(self, string):
+        """
+        Returns the included €-currency or False
+        """
+
+        assert(type(string) == unicode or type(string) == str)
+        assert(len(string)>0)
+
+        components = re.match(self.EURO_CHARGE_REGEX, string)
+
+        if components:
+            return components.group(self.EURO_CHARGE_INDEX)
+        else:
+            return False
+
     def rename_file(self, dirname, oldbasename, newbasename, dryrun=False, quiet=False):
         """
         Renames a file from oldbasename to newbasename in dirname.
@@ -248,97 +339,6 @@ class GuessFilename(object):
             return newfilename
 
         ## FIXXME: try to derive new filename from content
-
-    def split_filename_entities(self, filename):
-        """
-        Takes a filename of format ( (date(time)?)?(--date(time)?)? )? filename (tags)? (extension)?
-        and returns a set of (date/time/duration, filename, array of tags, extension).
-        """
-
-        ## FIXXME: return directory as well!
-
-        assert(type(filename) == unicode or type(filename) == str)
-        assert(len(filename)>0)
-
-        components = re.match(self.ISO_NAME_TAGS_EXTENSION_REGEX, filename)
-
-        assert(components)
-
-        if components.group(self.TAGS_INDEX):
-            tags = components.group(self.TAGS_INDEX).split(' ')
-        else:
-            tags = []
-        return components.group(self.DAYTIME_DURATION_INDEX), \
-            components.group(self.NAME_INDEX), \
-            tags, \
-            components.group(self.EXTENSION_INDEX)
-
-    def contains_one_of(self, string, entries):
-        """
-        Returns true, if the string contains one of the strings within entries array
-        """
-
-        assert(type(string) == unicode or type(string) == str)
-        assert(type(entries) == list)
-        assert(len(string)>0)
-        assert(len(entries)>0)
-
-        for entry in entries:
-            if entry in string:
-               return True
-
-        return False
-
-    def fuzzy_contains_one_of(self, string, entries):
-        """
-        Returns true, if the string contains a similar one of the strings within entries array
-        """
-
-        assert(type(string) == unicode or type(string) == str)
-        assert(type(entries) == list)
-        assert(len(string)>0)
-        assert(len(entries)>0)
-
-        for entry in entries:
-            similarity = fuzz.partial_ratio(string, entry)
-            if similarity > 64:
-                #logging.debug(u"MATCH   fuzzy_contains_one_of(%s, %s) == %i" % (string, str(entry), similarity))
-                return True
-            else:
-                #logging.debug(u"¬ MATCH fuzzy_contains_one_of(%s, %s) == %i" % (string, str(entry), similarity))
-                pass
-
-        return False
-
-    def has_euro_charge(self, string):
-        """
-        Returns true, if the string contains a number with a €-currency
-        """
-
-        assert(type(string) == unicode or type(string) == str)
-        assert(len(string)>0)
-
-        components = re.match(self.EURO_CHARGE_REGEX, string)
-
-        if components:
-            return True
-        else:
-            return False
-
-    def get_euro_charge(self, string):
-        """
-        Returns the included €-currency or False
-        """
-
-        assert(type(string) == unicode or type(string) == str)
-        assert(len(string)>0)
-
-        components = re.match(self.EURO_CHARGE_REGEX, string)
-
-        if components:
-            return components.group(self.EURO_CHARGE_INDEX)
-        else:
-            return False
 
 
 def main():
