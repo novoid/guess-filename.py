@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Time-stamp: <2016-03-06 12:12:53 vk>
+# Time-stamp: <2016-03-06 15:30:41 vk>
 
 ## TODO:
 ## * fix parts marked with «FIXXME»
@@ -93,8 +93,6 @@ class GuessFilename(object):
     Contains methods of the guess filename domain
     """
 
-    oldfilename = None
-
     FILENAME_TAG_SEPARATOR = u' -- '
     BETWEEN_TAG_SEPARATOR = u' '
 
@@ -113,6 +111,11 @@ class GuessFilename(object):
 
     EURO_CHARGE_REGEX = re.compile(u"^(.+[-_ ])?(\d+([,.]\d+)?)[-_ ]?(EUR|€)([-_ .].+)?$")
     EURO_CHARGE_INDEX = 2
+
+    logger = None
+
+    def __init__(self, logger):
+        self.logger = logger
 
     def adding_tags(self, tagarray, newtags):
         """
@@ -134,28 +137,40 @@ class GuessFilename(object):
 
         return resulting_tags
 
-    def rename_file(self, oldfilename, newfilename, dryrun=False, quiet=False):
+    def rename_file(self, dirname, oldbasename, newbasename, dryrun=False, quiet=False):
         """
-        Renames a file from oldfilename to newfilename.
+        Renames a file from oldbasename to newbasename in dirname.
 
         Only simulates result if dryrun is True.
 
-        @param oldfilename: string containing the old file name
-        @param newfilename: string containing the new file name
+        @param dirname: string containing the directory of the file
+        @param oldbasename: string containing the old file name (oldbasename)
+        @param newbasename: string containing the new file name (oldbasename)
         @param dryrun: boolean which defines if files should be changed (False) or not (True)
         """
 
-        if dryrun:
-            logging.info(u" ")
-            logging.info(u" renaming \"%s\"" % oldfilename)
-            logging.info(u"      ⤷   \"%s\"" % (newfilename))
-        else:
-            if oldfilename != newfilename:
-                if not quiet:
-                    print u"   %s  ⤷  %s" % (oldfilename, newfilename)
-                logging.debug(u" renaming \"%s\"" % oldfilename)
-                logging.debug(u"      ⤷   \"%s\"" % (newfilename))
-                os.rename(oldfilename, newfilename)
+        if oldbasename == newbasename:
+            logging.debug("old filename is same as new filename [%s]. Doing nothing." % oldbasename)
+            return False
+
+        oldfile = os.path.join(dirname, oldbasename)
+        newfile = os.path.join(dirname, newbasename)
+
+        if not os.path.isfile(oldfile):
+            logging.error("file to rename does not exist: [%s]" % oldfile)
+            return False
+
+        if os.path.isfile(newfile):
+            logging.error("file can't be renamed since new file name already exists: [%s]" % newfile)
+            return False
+
+        if not quiet:
+            print u"   %s  →  %s" % (oldbasename, newbasename)
+        logging.debug(u" renaming \"%s\"" % oldfile)
+        logging.debug(u"      ⤷   \"%s\"" % newfile)
+        if not dryrun:
+            os.rename(oldfile, newfile)
+        return True
 
     def derive_new_filename_from_old_filename(s, oldfilename):
         """
@@ -166,6 +181,7 @@ class GuessFilename(object):
         @param return: False or new oldfilename
         """
 
+        logging.debug("derive_new_filename_from_old_filename called")
         datetimestr, basefilename, tags, extension = s.split_filename_entities(oldfilename)
 
         if s.contains_one_of(oldfilename, [" A1 ", " a1 "]) and s.has_euro_charge(oldfilename) and datetimestr:
@@ -199,8 +215,21 @@ class GuessFilename(object):
             logging.error("Skipping \"%s\" because this tool only renames existing file names." % oldfilename)
             return
 
-        self.oldfilename = oldfilename
+        dirname = os.path.abspath(os.path.dirname(oldfilename))
+        logging.debug(u"————→ dirname  [%s]" % dirname)
+        basename = os.path.basename(oldfilename)
+        logging.debug(u"————→ basename [%s]" % basename)
 
+        ## FIXXME: separate directory from filename
+
+        newfilename = self.derive_new_filename_from_old_filename(basename)
+
+        if newfilename:
+            logging.debug("derive_new_filename_from_old_filename returned new filename: %s" % newfilename)
+            self.rename_file(dirname, basename, newfilename, dryrun)
+            return newfilename
+
+        ## FIXXME: try to derive new filename from content
 
     def split_filename_entities(self, filename):
         """
@@ -254,9 +283,12 @@ class GuessFilename(object):
 
         for entry in entries:
             similarity = fuzz.partial_ratio(string, entry)
-            if similarity > 65:
-                logging.debug("fuzzy_contains_one_of(%s, %s) == %i" % (string, str(entries), similarity))
+            if similarity > 64:
+                #logging.debug(u"MATCH   fuzzy_contains_one_of(%s, %s) == %i" % (string, str(entry), similarity))
                 return True
+            else:
+                #logging.debug(u"¬ MATCH fuzzy_contains_one_of(%s, %s) == %i" % (string, str(entry), similarity))
+                pass
 
         return False
 
@@ -305,19 +337,20 @@ def main():
         error_exit(1, "Options \"--verbose\" and \"--quiet\" found. " +
                    "This does not make any sense, you silly fool :-)")
 
+    if options.dryrun:
+        logging.debug("DRYRUN active, not changing any files")
     logging.debug("extracting list of files ...")
-    logging.debug("len(args) [%s]" % str(len(args)))
 
     files = args
 
     logging.debug("%s filenames found: [%s]" % (str(len(files)), '], ['.join(files)))
 
-    guess_filename = GuessFilename()
+    guess_filename = GuessFilename(logging.getLogger())
 
     if len(args) < 1:
         error_exit(5, "Please add at least one file name as argument")
 
-    logging.debug("iterate over files ...")
+    logging.debug("iterating over files ...\n" + "=" * 80)
     for filename in files:
         if filename.__class__ == str:
             filename = unicode(filename, "UTF-8")
