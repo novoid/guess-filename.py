@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Time-stamp: <2016-03-06 19:33:06 vk>
+# Time-stamp: <2016-03-06 19:41:42 vk>
 
 # TODO:
 # * fix parts marked with «FIXXME»
@@ -32,7 +32,7 @@ except ImportError:
     sys.exit(1)
 
 PROG_VERSION_NUMBER = u"0.1"
-PROG_VERSION_DATE = u"2016-03-04"
+PROG_VERSION_DATE = u"2016-03-06"
 INVOCATION_TIME = time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime())
 
 USAGE = u"\n\
@@ -47,7 +47,7 @@ Example usages:\n\
 \n\
 \n\
 \n\
-Verbose description: FIXXME: http://Karl-Voit.at/managing-digital-photographs/\n\
+Verbose description: FIXXME: http://Karl-Voit.at/FIXXME/\n\
 \n\
 :copyright: (c) by Karl Voit <tools@Karl-Voit.at>\n\
 :license: GPL v3 or any later version\n\

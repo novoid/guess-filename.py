@@ -1,4 +1,4 @@
-## Time-stamp: <2016-03-05 11:51:45 vk>
+## Time-stamp: <2016-03-06 19:41:02 vk>
 ## -*- coding: utf-8 -*-
 ## This file is best viewed with GNU Emacs Org-mode: http://orgmode.org/
 
@@ -19,7 +19,7 @@ possible length limitations).
 
 - *Target group*: users who are able to use command line tools and who
   are using tags in file names.
-- Hosted on github: https://github.com/novoid/guessfilename
+- Hosted on github: https://github.com/novoid/guess-filename.py
 
 ** Why
 
