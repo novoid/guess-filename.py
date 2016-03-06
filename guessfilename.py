@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Time-stamp: <2016-03-06 18:57:59 vk>
+# Time-stamp: <2016-03-06 19:00:59 vk>
 
 # TODO:
 # * fix parts marked with «FIXXME»
@@ -118,8 +118,6 @@ class GuessFilename(object):
     config = None
 
     def __init__(self, config, logger):
-        self.FILENAME_TAG_SEPARATOR = config.FILENAME_TAG_SEPARATOR
-        self.BETWEEN_TAG_SEPARATOR = config.BETWEEN_TAG_SEPARATOR
         self.logger = logger
 
     def adding_tags(self, tagarray, newtags):
