@@ -10,6 +10,6 @@ myexit() {
 
 echo
 
-./guessfilename.py -d testdata/2016-02-24\ A1\ Rechnung\ 02-2016\ -\ 12,12\ EUR\ --\ scan\ finance.pdf
+./guessfilename.py --verbose --dryrun testdata/2016-02-24\ A1\ Rechnung\ 02-2016\ -\ 12,12\ EUR\ --\ scan\ finance.pdf
 
 ##end
