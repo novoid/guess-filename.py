@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8; mode: python; -*-
-# Time-stamp: <2016-03-06 16:30:00 vk>
+# Time-stamp: <2016-03-06 16:41:22 vk>
 
 import unittest
 import logging
@@ -83,9 +83,17 @@ class TestGuessFilename(unittest.TestCase):
     def test_derive_new_filename_from_old_filename(self):
 
         self.assertEquals(self.guess_filename.derive_new_filename_from_old_filename(u"2016-03-05 a1 12,34 €.pdf"),
-                          u"2016-03-05 A1 Festnetz-Internet 12,34 € -- scan finance bill.pdf")
+                          u"2016-03-05 A1 Festnetz-Internet 12,34€ -- scan finance bill.pdf")
         self.assertEquals(self.guess_filename.derive_new_filename_from_old_filename(u"2016-03-05 A1 12.34 EUR.pdf"),
-                          u"2016-03-05 A1 Festnetz-Internet 12.34 € -- scan finance bill.pdf")
+                          u"2016-03-05 A1 Festnetz-Internet 12.34€ -- scan finance bill.pdf")
+
+        ## 2016-01-19--2016-02-12 benutzter GVB 10er Block -- scan transportation graz.pdf
+        self.assertEquals(self.guess_filename.derive_new_filename_from_old_filename(u"2016-03-05 10er.pdf"),
+                          u"2016-03-05 benutzter GVB 10er Block -- scan transportation graz.pdf")
+        self.assertEquals(self.guess_filename.derive_new_filename_from_old_filename(u"2016-01-19--2016-02-12 10er GVB.pdf"),
+                          u"2016-01-19--2016-02-12 benutzter GVB 10er Block -- scan transportation graz.pdf")
+        self.assertEquals(self.guess_filename.derive_new_filename_from_old_filename(u"2016-01-19--2016-02-12 10er GVB -- foobar.pdf"),
+                          u"2016-01-19--2016-02-12 benutzter GVB 10er Block -- foobar scan transportation graz.pdf")
 
     def test_contains_one_of(self):
 

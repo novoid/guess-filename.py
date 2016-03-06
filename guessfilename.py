@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Time-stamp: <2016-03-06 16:08:04 vk>
+# Time-stamp: <2016-03-06 17:43:45 vk>
 
 ## TODO:
 ## * fix parts marked with «FIXXME»
@@ -18,7 +18,12 @@ import os.path
 import time
 import logging
 from optparse import OptionParser
-from fuzzywuzzy import fuzz  # for fuzzy comparison of strings
+
+try:
+    from fuzzywuzzy import fuzz  # for fuzzy comparison of strings
+except ImportError:
+    print "Could not find Python module \"fuzzywuzzy\".\nPlease install it, e.g., with \"sudo pip install fuzzywuzzy\"."
+    sys.exit(1)
 
 PROG_VERSION_NUMBER = u"0.1"
 PROG_VERSION_DATE = u"2016-03-04"
@@ -184,13 +189,28 @@ class GuessFilename(object):
         logging.debug("derive_new_filename_from_old_filename called")
         datetimestr, basefilename, tags, extension = s.split_filename_entities(oldfilename)
 
+        ## 2015-11-24 Rechnung A1 Festnetz-Internet 12,34€ -- scan finance.pdf
         if s.contains_one_of(oldfilename, [" A1 ", " a1 "]) and s.has_euro_charge(oldfilename) and datetimestr:
             return datetimestr + \
                 u" A1 Festnetz-Internet " + s.get_euro_charge(oldfilename) + \
-                u" € -- " + ' '.join(s.adding_tags(tags, ['scan', 'finance', 'bill'])) + \
+                u"€ -- " + ' '.join(s.adding_tags(tags, ['scan', 'finance', 'bill'])) + \
                 u".pdf"
 
-        pass ## FIXXME: more cases!
+        ## 2016-01-19--2016-02-12 benutzter GVB 10er Block -- scan transportation graz.pdf
+        if s.contains_one_of(oldfilename, ["10er"]) and datetimestr:
+            return datetimestr + \
+                u" benutzter GVB 10er Block" + \
+                u" -- " + ' '.join(s.adding_tags(tags, ['scan', 'transportation', 'graz'])) + \
+                u".pdf"
+
+        ##
+        #if s.contains_one_of(oldfilename, ["Gehalt"]) and s.has_euro_charge(oldfilename) and datetimestr:
+        #    return datetimestr + \
+        #        u" A1 Festnetz-Internet " + s.get_euro_charge(oldfilename) + \
+        #        u"€ -- " + ' '.join(s.adding_tags(tags, ['scan', 'finance', 'bill'])) + \
+        #        u".pdf"
+
+        ## FIXXME: more cases!
 
         return False ## no new filename found
 
