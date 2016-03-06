@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Time-stamp: <2016-03-06 19:00:59 vk>
+# Time-stamp: <2016-03-06 19:33:06 vk>
 
 # TODO:
 # * fix parts marked with «FIXXME»
@@ -25,6 +25,11 @@ except ImportError:
     print "Could not find Python module \"fuzzywuzzy\".\nPlease install it, e.g., with \"sudo pip install fuzzywuzzy\"."
     sys.exit(1)
 
+try:
+    import PyPDF2
+except ImportError:
+    print "Could not find Python module \"PyPDF2\".\nPlease install it, e.g., with \"sudo pip install PyPDF2\"."
+    sys.exit(1)
 
 PROG_VERSION_NUMBER = u"0.1"
 PROG_VERSION_DATE = u"2016-03-04"
@@ -238,8 +243,8 @@ class GuessFilename(object):
         Only simulates result if dryrun is True.
 
         @param dirname: string containing the directory of the file
-        @param oldbasename: string containing the old file name (oldbasename)
-        @param newbasename: string containing the new file name (oldbasename)
+        @param oldbasename: string containing the old file name (basename)
+        @param newbasename: string containing the new file name (basename)
         @param dryrun: boolean which defines if files should be changed (False) or not (True)
         """
 
@@ -272,7 +277,7 @@ class GuessFilename(object):
         If not, False is returned instead.
 
         @param oldfilename: string containing one file name
-        @param return: False or new oldfilename
+        @param return: False or new filename
         """
 
         logging.debug("derive_new_filename_from_old_filename called")
@@ -296,11 +301,46 @@ class GuessFilename(object):
 
         return False  # no new filename found
 
+    def derive_new_filename_from_content(self, dirname, basename):
+        """
+        Analyses the content of basename and returns a new file name if feasible.
+        If not, False is returned instead.
+
+        @param dirname: string containing the directory of file within basename
+        @param basename: string containing one file name
+        @param return: False or new filename
+        """
+
+        filename = os.path.join(dirname, basename)
+        assert os.path.isfile(filename)
+
+        pdffile = PyPDF2.PdfFileReader(open(filename, "rb"))
+        content = pdffile.pages[0].extractText()
+        datetimestr, basefilename, tags, extension = self.split_filename_entities(basename)
+
+        if extension.lower() != 'pdf':
+            logging.debug("File is not a PDF file and thus can't be parsed by this script: %s" % filename)
+            return False
+
+        # 2010-06-08 easybank - neue TAN-Liste -- scan private finance.pdf
+        if self.fuzzy_contains_one_of(content, ["Transaktionsnummern (TANs)"]) and \
+           self.fuzzy_contains_one_of(content, ["Ihre TAN-Liste in Verlust geraten"]) and \
+           datetimestr:
+            return datetimestr + \
+                u" easybank - neue TAN-Liste -- " + \
+                ' '.join(self.adding_tags(tags, ['scan', 'finance', 'private'])) + \
+                u".pdf"
+
+        # FIXXME: more file documents
+        import pdb; pdb.set_trace()
+
+        return False
+
     def handle_file(self, oldfilename, dryrun):
         """
         @param oldfilename: string containing one file name
         @param dryrun: boolean which defines if files should be changed (False) or not (True)
-        @param return: error value or new oldfilename
+        @param return: error value or new filename
         """
 
         assert oldfilename.__class__ == str or \
@@ -323,14 +363,18 @@ class GuessFilename(object):
         logging.debug(u"————→ basename [%s]" % basename)
 
         newfilename = self.derive_new_filename_from_old_filename(basename)
+        logging.debug("derive_new_filename_from_old_filename returned new filename: %s" % str(newfilename))
+
+        if not newfilename:
+            newfilename = self.derive_new_filename_from_content(dirname, basename)
+            logging.debug("derive_new_filename_from_content returned new filename: %s" % str(newfilename))
 
         if newfilename:
-            logging.debug("derive_new_filename_from_old_filename returned new filename: %s" % newfilename)
             self.rename_file(dirname, basename, newfilename, dryrun)
             return newfilename
-
-        # FIXXME: try to derive new filename from content
-
+        else:
+            logging.debug("FAILED to derive new filename: not enough cues in file name or PDF file content")
+            return False
 
 def main():
     """Main function"""
