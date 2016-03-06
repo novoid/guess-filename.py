@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8; mode: python; -*-
-# Time-stamp: <2016-03-05 23:38:58 vk>
+# Time-stamp: <2016-03-06 12:28:12 vk>
 
 import unittest
 from guessfilename import GuessFilename
@@ -8,10 +8,13 @@ from guessfilename import GuessFilename
 class TestGuessFilename(unittest.TestCase):
 
     logging = None
-    guess_filename = GuessFilename()
+    guess_filename = None
 
     def setUp(self):
-        pass
+        verbose = True
+        quiet = False
+        self.guess_filename = GuessFilename()
+        self.guess_filename.verbose = verbose
 
     def tearDown(self):
         pass
@@ -39,6 +42,34 @@ class TestGuessFilename(unittest.TestCase):
         self.assertFalse(self.guess_filename.contains_one_of(u"foo bar baz", [u'xbar']))
         self.assertFalse(self.guess_filename.contains_one_of(u"foo bar baz", [u'xba']))
         self.assertFalse(self.guess_filename.contains_one_of(u"foo bar baz", [u'x', u'xba', u'yuio']))
+
+    def test_fuzzy_contains_one_of(self):
+
+        ## comparing exact strings:
+        self.assertTrue(self.guess_filename.fuzzy_contains_one_of(u"foo bar baz", ['foo']))
+        self.assertTrue(self.guess_filename.fuzzy_contains_one_of(u"foo bar baz", [u'foo']))
+        self.assertTrue(self.guess_filename.fuzzy_contains_one_of(u"foo bar baz", [u'bar']))
+        self.assertTrue(self.guess_filename.fuzzy_contains_one_of(u"foo bar baz", [u'ba']))
+        self.assertTrue(self.guess_filename.fuzzy_contains_one_of(u"foo bar baz", [u'x', u'ba', u'yuio']))
+        self.assertTrue(self.guess_filename.fuzzy_contains_one_of(u"Kundennummer 1234567890", [u'12345']))
+
+        ## fuzzy similarities:
+        self.assertTrue(self.guess_filename.fuzzy_contains_one_of(u"foo bar baz", ['xfoo']))
+        self.assertTrue(self.guess_filename.fuzzy_contains_one_of(u"foo bar baz", [u'xfoo']))
+        self.assertTrue(self.guess_filename.fuzzy_contains_one_of(u"foo bar baz", [u'xbar']))
+        self.assertTrue(self.guess_filename.fuzzy_contains_one_of(u"foo bar baz", [u'xba']))
+        self.assertTrue(self.guess_filename.fuzzy_contains_one_of(u"foo bar baz", [u'x', u'xba', u'yuio']))
+        #self.assertTrue(self.guess_filename.fuzzy_contains_one_of(u"Kundennummer 1234567890", [u'1234581388']))
+        #self.assertTrue(self.guess_filename.fuzzy_contains_one_of(u"Rundemummer 1234567890", [u'Rundemummer 1234581388']))
+        #self.assertTrue(self.guess_filename.fuzzy_contains_one_of(u"Rundemummer 1234567890", [u'Rumdemummer  1234581388']))
+
+        ## fuzzy non-matches:
+        self.assertFalse(self.guess_filename.fuzzy_contains_one_of(u"foo bar baz", [u'xyz']))
+        self.assertFalse(self.guess_filename.fuzzy_contains_one_of(u"foo bar baz", [u'111']))
+        self.assertFalse(self.guess_filename.fuzzy_contains_one_of(u"foo bar baz", [u'xby']))
+        self.assertFalse(self.guess_filename.fuzzy_contains_one_of(u"foo bar baz", [u'x', u'yyy', u'yuio']))
+        #self.assertFalse(self.guess_filename.fuzzy_contains_one_of(u"Kundennummer 1234567890", [u'12345', u' 345 ', u'0987654321']))
+        #self.assertFalse(self.guess_filename.fuzzy_contains_one_of(u"Kundennummer 1234567890", [u'12345']))
 
     def test_has_euro_charge(self):
 

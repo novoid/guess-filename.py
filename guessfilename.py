@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Time-stamp: <2016-03-05 23:43:01 vk>
+# Time-stamp: <2016-03-06 12:12:53 vk>
 
 ## TODO:
 ## * fix parts marked with «FIXXME»
@@ -18,6 +18,7 @@ import os.path
 import time
 import logging
 from optparse import OptionParser
+from fuzzywuzzy import fuzz  # for fuzzy comparison of strings
 
 PROG_VERSION_NUMBER = u"0.1"
 PROG_VERSION_DATE = u"2016-03-04"
@@ -199,7 +200,7 @@ class GuessFilename(object):
             return
 
         self.oldfilename = oldfilename
-        
+
 
     def split_filename_entities(self, filename):
         """
@@ -238,6 +239,24 @@ class GuessFilename(object):
         for entry in entries:
             if entry in string:
                return True
+
+        return False
+
+    def fuzzy_contains_one_of(self, string, entries):
+        """
+        Returns true, if the string contains a similar one of the strings within entries array
+        """
+
+        assert(type(string) == unicode or type(string) == str)
+        assert(type(entries) == list)
+        assert(len(string)>0)
+        assert(len(entries)>0)
+
+        for entry in entries:
+            similarity = fuzz.partial_ratio(string, entry)
+            if similarity > 65:
+                logging.debug("fuzzy_contains_one_of(%s, %s) == %i" % (string, str(entries), similarity))
+                return True
 
         return False
 
