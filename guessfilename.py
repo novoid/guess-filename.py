@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Time-stamp: <2016-03-06 15:30:41 vk>
+# Time-stamp: <2016-03-06 16:08:04 vk>
 
 ## TODO:
 ## * fix parts marked with «FIXXME»
@@ -219,8 +219,6 @@ class GuessFilename(object):
         logging.debug(u"————→ dirname  [%s]" % dirname)
         basename = os.path.basename(oldfilename)
         logging.debug(u"————→ basename [%s]" % basename)
-
-        ## FIXXME: separate directory from filename
 
         newfilename = self.derive_new_filename_from_old_filename(basename)
 

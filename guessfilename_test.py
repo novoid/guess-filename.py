@@ -1,14 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8; mode: python; -*-
-# Time-stamp: <2016-03-06 15:30:27 vk>
+# Time-stamp: <2016-03-06 16:30:00 vk>
 
 import unittest
 import logging
+import tempfile
+import os
+import os.path
 from guessfilename import GuessFilename
 
 class TestGuessFilename(unittest.TestCase):
 
-    logging = None
     guess_filename = None
 
     def handle_logging(self, verbose=False, quiet=False):
@@ -34,9 +36,49 @@ class TestGuessFilename(unittest.TestCase):
     def tearDown(self):
         pass
 
+    def test_rename_file(self):
+
+        tmp_oldfile1 = tempfile.mkstemp()[1]
+        oldbasename = os.path.basename(tmp_oldfile1)
+        dirname = os.path.abspath(os.path.dirname(tmp_oldfile1))
+        newbasename = u'test_rename_file'
+        newfilename = os.path.join(dirname, newbasename)
+
+
+        self.assertTrue(os.path.isfile(tmp_oldfile1))
+        self.assertFalse(os.path.isfile(newfilename))
+
+        ## return False if files are identical
+        self.assertFalse(self.guess_filename.rename_file(dirname, oldbasename, oldbasename, dryrun=True, quiet=True))
+
+        ## return False if original file does not exist
+        self.assertFalse(self.guess_filename.rename_file(dirname, "test_rename_file_this-is-a-non-existing-file", oldbasename, dryrun=True, quiet=True))
+
+        ## return False if target filename does exist
+        tmp_oldfile2 = tempfile.mkstemp()[1]
+        self.assertTrue(os.path.isfile(tmp_oldfile2))
+        oldbasename2 = os.path.basename(tmp_oldfile2)
+        self.assertFalse(self.guess_filename.rename_file(dirname, oldbasename, oldbasename2, dryrun=True, quiet=True))
+        os.remove(tmp_oldfile2)
+
+        ## no change with dryrun set:
+        self.assertTrue(self.guess_filename.rename_file(dirname, oldbasename, newbasename, dryrun=True, quiet=True))
+        self.assertTrue(os.path.isfile(tmp_oldfile1))
+        self.assertFalse(os.path.isfile(newfilename))
+
+        ## do rename:
+        self.assertTrue(self.guess_filename.rename_file(dirname, oldbasename, newbasename, dryrun=False, quiet=True))
+        self.assertFalse(os.path.isfile(tmp_oldfile1))
+        self.assertTrue(os.path.isfile(newfilename))
+
+        os.remove(newfilename)
+
     def test_adding_tags(self):
 
         self.assertEquals(self.guess_filename.adding_tags(['foo'], ['bar']), ['foo', 'bar'])
+        self.assertEquals(self.guess_filename.adding_tags([], ['bar']), ['bar'])
+        self.assertEquals(self.guess_filename.adding_tags(['foo'], ['bar', u'baz']), ['foo', 'bar', 'baz'])
+        self.assertEquals(self.guess_filename.adding_tags(['foo'], [42]), ['foo', 42])
 
     def test_derive_new_filename_from_old_filename(self):
 
