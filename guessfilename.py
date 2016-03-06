@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Time-stamp: <2016-03-06 18:43:17 vk>
+# Time-stamp: <2016-03-06 18:57:59 vk>
 
 # TODO:
 # * fix parts marked with «FIXXME»
@@ -29,7 +29,6 @@ except ImportError:
 PROG_VERSION_NUMBER = u"0.1"
 PROG_VERSION_DATE = u"2016-03-04"
 INVOCATION_TIME = time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime())
-
 
 USAGE = u"\n\
     " + sys.argv[0] + u" [<options>] <list of files>\n\
@@ -357,10 +356,12 @@ def main():
 
     logging.debug("%s filenames found: [%s]" % (str(len(files)), '], ['.join(files)))
 
+    CONFIGDIR = os.path.join(os.path.expanduser("~"), ".config/guessfilename")
+    sys.path.insert(0, CONFIGDIR)  # add CONFIGDIR to Python path in order to find config file
     try:
         import guessfilenameconfig
     except ImportError:
-        print "Could not find \"guessfilenameconfig.py\".\nPlease take a look at \"guessfilenameconfig-TEMPLATE.py\" and configure accordingly."
+        print "Could not find \"guessfilenameconfig.py\" in directory \"" + CONFIGDIR + "\".\nPlease take a look at \"guessfilenameconfig-TEMPLATE.py\", copy it, and configure accordingly."
         sys.exit(1)
 
     guess_filename = GuessFilename(guessfilenameconfig, logging.getLogger())

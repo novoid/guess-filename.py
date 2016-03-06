@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8; mode: python; -*-
-# Time-stamp: <2016-03-06 18:37:15 vk>
+# Time-stamp: <2016-03-06 18:58:52 vk>
 
 import unittest
 import logging
 import tempfile
 import os
 import os.path
+import sys
 from guessfilename import GuessFilename
 
 
@@ -30,7 +31,15 @@ class TestGuessFilename(unittest.TestCase):
     def setUp(self):
         verbose = True
         quiet = False
-        import guessfilenameconfig
+
+        CONFIGDIR = os.path.join(os.path.expanduser("~"), ".config/guessfilename")
+        sys.path.insert(0, CONFIGDIR)  # add CONFIGDIR to Python path in order to find config file
+        try:
+            import guessfilenameconfig
+        except ImportError:
+            print "Could not find \"guessfilenameconfig.py\" in directory \"" + CONFIGDIR + "\".\nPlease take a look at \"guessfilenameconfig-TEMPLATE.py\", copy it, and configure accordingly."
+            sys.exit(1)
+
         self.handle_logging(verbose, quiet)
         self.guess_filename = GuessFilename(guessfilenameconfig, logging)
 
