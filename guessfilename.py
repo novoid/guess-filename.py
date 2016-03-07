@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Time-stamp: <2016-03-07 13:47:31 vk>
+# Time-stamp: <2016-03-07 14:50:14 vk>
 
 # TODO:
 # * fix parts marked with «FIXXME»
@@ -116,7 +116,8 @@ class GuessFilename(object):
     TAGS_INDEX = 12
     EXTENSION_INDEX = 15
 
-    EURO_CHARGE_REGEX = re.compile(u"^(.+[-_ ])?(\d+([,.]\d+)?)[-_ ]?(EUR|€)([-_ .].+)?$")
+    RAW_EURO_CHARGE_REGEX = u"(\d+([,.]\d+)?)[-_ ]?(EUR|€)"
+    EURO_CHARGE_REGEX = re.compile(u"^(.+[-_ ])?" + RAW_EURO_CHARGE_REGEX + "([-_ .].+)?$")
     EURO_CHARGE_INDEX = 2
 
     logger = None
@@ -244,7 +245,7 @@ class GuessFilename(object):
 
     def get_euro_charge(self, string):
         """
-        Returns the included €-currency or False
+        Returns the first included €-currency or False
         """
 
         assert(type(string) == unicode or type(string) == str)
@@ -255,6 +256,27 @@ class GuessFilename(object):
         if components:
             return components.group(self.EURO_CHARGE_INDEX)
         else:
+            return False
+
+    def get_euro_charge_from_context(self, string, before, after):
+        """
+        Returns the included €-currency which is between before and after strings or False
+        """
+
+        assert(type(string) == unicode or type(string) == str)
+        assert(type(before) == unicode or type(before) == str)
+        assert(type(after) == unicode or type(after) == str)
+        assert(len(string) > 0)
+
+        context_range = '5'  # range of characters where before/after is valid
+        components = re.match(before + r"\D{0," + context_range + "}((\d{1,6})[,.](\d{2}))\D{0," + context_range + "}" + after, string)
+
+        if components:
+            floatstring = components.group(2) + ',' + components.group(3)
+            #logging.debug("get_euro_charge_from_context extracted float: [%s]" % floatstring)
+            return floatstring
+        else:
+            logging.debug("get_euro_charge_from_context was not able to extract a float: [%s] + [%s] + [%s]" % (before, string[:30] + u"...", after))
             return False
 
     def rename_file(self, dirname, oldbasename, newbasename, dryrun=False, quiet=False):
@@ -344,8 +366,7 @@ class GuessFilename(object):
             return False
 
         # 2010-06-08 easybank - neue TAN-Liste -- scan private finance.pdf
-        if self.fuzzy_contains_one_of(content, ["Transaktionsnummern (TANs)"]) and \
-           self.fuzzy_contains_one_of(content, ["Ihre TAN-Liste in Verlust geraten"]) and \
+        if self.fuzzy_contains_all_of(content, ["Transaktionsnummern (TANs)", "Ihre TAN-Liste in Verlust geraten"]) and \
            datetimestr:
             return datetimestr + \
                 u" easybank - neue TAN-Liste -- " + \
@@ -353,13 +374,15 @@ class GuessFilename(object):
                 u".pdf"
 
         # 2015-11-20 Kirchenbeitrag 12,34 EUR -- scan taxes bill.pdf
-        if self.fuzzy_contains_one_of(content, ["4294-0208"]) and \
-           self.fuzzy_contains_one_of(content, ["AT086000000007042401"]) and \
-           self.fuzzy_contains_one_of(content, ["Kontonachricht"]) and \
+        if self.fuzzy_contains_one_of(content, ["4294-0208", "AT086000000007042401", "Kontonachricht"]) and \
            datetimestr:
+            floatstr = self.get_euro_charge_from_context(content, "Offen", "Zahlungen")
+            if not floatstr:
+                floatstr = 'FIXXME'
+                logging.warning(u"Could not parse the charge from file %s - please fix manually" % basename)
             return datetimestr + \
-                u" easybank - neue TAN-Liste -- " + \
-                ' '.join(self.adding_tags(tags, ['scan', 'finance', 'private'])) + \
+                u" Kirchenbeitrag " + floatstr + "€ -- " + \
+                ' '.join(self.adding_tags(tags, ['scan', 'taxes', 'bill'])) + \
                 u".pdf"
 
         # FIXXME: more file documents
