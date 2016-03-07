@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8; mode: python; -*-
-# Time-stamp: <2016-03-06 18:58:52 vk>
+# Time-stamp: <2016-03-07 13:52:10 vk>
 
 import unittest
 import logging
@@ -116,6 +116,20 @@ class TestGuessFilename(unittest.TestCase):
         self.assertFalse(self.guess_filename.contains_one_of(u"foo bar baz", [u'xbar']))
         self.assertFalse(self.guess_filename.contains_one_of(u"foo bar baz", [u'xba']))
         self.assertFalse(self.guess_filename.contains_one_of(u"foo bar baz", [u'x', u'xba', u'yuio']))
+
+    def test_fuzzy_contains_all_of(self):
+
+        self.assertTrue(self.guess_filename.fuzzy_contains_all_of(u"foo bar baz", ['foo']))
+        self.assertTrue(self.guess_filename.fuzzy_contains_all_of(u"foo bar baz", [u'foo']))
+        self.assertTrue(self.guess_filename.fuzzy_contains_all_of(u"foo bar baz", [u'bar']))
+        self.assertTrue(self.guess_filename.fuzzy_contains_all_of(u"foo bar baz", [u'ba']))
+        self.assertTrue(self.guess_filename.fuzzy_contains_all_of(u"foo bar baz", [u'foo', u"bar", u"baz"]))
+        self.assertFalse(self.guess_filename.fuzzy_contains_all_of(u"foo bar baz", [u'x', u'ba', u'yuio']))
+        self.assertTrue(self.guess_filename.fuzzy_contains_all_of(u"foo bar baz", ['xfoo']))
+        self.assertTrue(self.guess_filename.fuzzy_contains_all_of(u"foo bar baz", [u'xfoo']))
+        self.assertTrue(self.guess_filename.fuzzy_contains_all_of(u"foo bar baz", [u'xbar']))
+        self.assertFalse(self.guess_filename.fuzzy_contains_all_of(u"foo bar baz", [u'xba', u"12345"]))
+        self.assertFalse(self.guess_filename.fuzzy_contains_all_of(u"foo bar baz", [u'x', u'xba', u'yuio']))
 
     def test_fuzzy_contains_one_of(self):
 

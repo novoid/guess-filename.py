@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Time-stamp: <2016-03-06 19:41:42 vk>
+# Time-stamp: <2016-03-07 13:47:31 vk>
 
 # TODO:
 # * fix parts marked with «FIXXME»
@@ -206,6 +206,27 @@ class GuessFilename(object):
 
         return False
 
+    def fuzzy_contains_all_of(self, string, entries):
+        """
+        Returns true, if the string contains all similar ones of the strings within the entries array
+        """
+
+        assert(type(string) == unicode or type(string) == str)
+        assert(type(entries) == list)
+        assert(len(string) > 0)
+        assert(len(entries) > 0)
+
+        for entry in entries:
+            similarity = fuzz.partial_ratio(string, entry)
+            if similarity > 64:
+                #logging.debug(u"MATCH   fuzzy_contains_all_of(%s, %s) == %i" % (string, str(entry), similarity))
+                pass
+            else:
+                #logging.debug(u"¬ MATCH fuzzy_contains_all_of(%s, %s) == %i" % (string, str(entry), similarity))
+                return False
+
+        return True
+
     def has_euro_charge(self, string):
         """
         Returns true, if the string contains a number with a €-currency
@@ -325,6 +346,16 @@ class GuessFilename(object):
         # 2010-06-08 easybank - neue TAN-Liste -- scan private finance.pdf
         if self.fuzzy_contains_one_of(content, ["Transaktionsnummern (TANs)"]) and \
            self.fuzzy_contains_one_of(content, ["Ihre TAN-Liste in Verlust geraten"]) and \
+           datetimestr:
+            return datetimestr + \
+                u" easybank - neue TAN-Liste -- " + \
+                ' '.join(self.adding_tags(tags, ['scan', 'finance', 'private'])) + \
+                u".pdf"
+
+        # 2015-11-20 Kirchenbeitrag 12,34 EUR -- scan taxes bill.pdf
+        if self.fuzzy_contains_one_of(content, ["4294-0208"]) and \
+           self.fuzzy_contains_one_of(content, ["AT086000000007042401"]) and \
+           self.fuzzy_contains_one_of(content, ["Kontonachricht"]) and \
            datetimestr:
             return datetimestr + \
                 u" easybank - neue TAN-Liste -- " + \
