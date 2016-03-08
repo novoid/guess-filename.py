@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8; mode: python; -*-
-# Time-stamp: <2016-03-07 14:58:28 vk>
+# Time-stamp: <2016-03-08 17:14:48 vk>
 
 import unittest
 import logging
@@ -130,6 +130,8 @@ class TestGuessFilename(unittest.TestCase):
         self.assertTrue(self.guess_filename.fuzzy_contains_all_of(u"foo bar baz", [u'xbar']))
         self.assertFalse(self.guess_filename.fuzzy_contains_all_of(u"foo bar baz", [u'xba', u"12345"]))
         self.assertFalse(self.guess_filename.fuzzy_contains_all_of(u"foo bar baz", [u'x', u'xba', u'yuio']))
+        self.assertTrue(self.guess_filename.fuzzy_contains_all_of(u"foo\nbar\nbaz42", ['baz42']))
+        self.assertTrue(self.guess_filename.fuzzy_contains_all_of(u"foo€\nbar\nbaz€42", [u'baz€42']))
 
     def test_fuzzy_contains_one_of(self):
 

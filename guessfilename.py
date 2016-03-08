@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Time-stamp: <2016-03-08 16:50:42 vk>
+# Time-stamp: <2016-03-08 17:33:13 vk>
 
 # TODO:
 # * fix parts marked with «FIXXME»
@@ -125,6 +125,7 @@ class GuessFilename(object):
 
     def __init__(self, config, logger):
         self.logger = logger
+        self.config = config
 
     def adding_tags(self, tagarray, newtags):
         """
@@ -218,6 +219,8 @@ class GuessFilename(object):
         assert(len(entries) > 0)
 
         for entry in entries:
+            assert(type(entry) == unicode or type(entry) == str)
+            #logging.debug(u"fuzzy_contains_all_of(%s, %s) ... " % (string[:30], str(entry[:30])))
             similarity = fuzz.partial_ratio(string, entry)
             if similarity > 64:
                 #logging.debug(u"MATCH   fuzzy_contains_all_of(%s, %s) == %i" % (string, str(entry), similarity))
@@ -279,6 +282,7 @@ class GuessFilename(object):
             return floatstring
         else:
             logging.debug(u"get_euro_charge_from_context was not able to extract a float: [%s] + [%s] + [%s]" % (before, string[:30] + u"...", after))
+            import pdb; pdb.set_trace()
             return False
 
     def rename_file(self, dirname, oldbasename, newbasename, dryrun=False, quiet=False):
@@ -376,7 +380,7 @@ class GuessFilename(object):
                 u".pdf"
 
         # 2015-11-20 Kirchenbeitrag 12,34 EUR -- scan taxes bill.pdf
-        if self.fuzzy_contains_one_of(content, ["4294-0208", "AT086000000007042401", "Kontonachricht"]) and \
+        if self.fuzzy_contains_all_of(content, ["4294-0208", "AT086000000007042401", "Kontonachricht"]) and \
            datetimestr:
             floatstr = self.get_euro_charge_from_context(content, "Offen", "Zahlungen")
             if not floatstr:
@@ -386,6 +390,26 @@ class GuessFilename(object):
                 u" Kirchenbeitrag " + floatstr + u"€ -- " + \
                 ' '.join(self.adding_tags(tags, ['scan', 'taxes', 'bill'])) + \
                 u".pdf"
+
+        # 2015-11-24 Generali Erhoehung Dynamikklausel - Praemie nun 12,34 - Polizze 12345 -- scan finance.pdf
+        if self.config.GENERALI1_POLIZZE_NUMBER in content and \
+           self.fuzzy_contains_all_of(content, [u"ImHinblickaufdievereinbarteDynamikklauseltritteineWertsteigerunginKraft",
+                                                u"IhreangepasstePrämiebeträgtdahermonatlich",
+                                                u"AT44ZZZ00000002054"]) and \
+            datetimestr:
+            floatstr = self.get_euro_charge_from_context(content,
+                                                         "IndiesemBetragistauchdiegesetzlicheVersicherungssteuerenthalten.EUR",
+                                                         "Wird")
+            if not floatstr:
+                floatstr = 'FIXXME'
+                logging.warning(u"Could not parse the charge from file %s - please fix manually" % basename)
+            return datetimestr + \
+                u" Generali Erhoehung Dynamikklausel - Praemie nun " + floatstr + \
+                u"€ - Polizze " + self.config.GENERALI1_POLIZZE_NUMBER + " -- " + \
+                ' '.join(self.adding_tags(tags, ['scan', 'bill'])) + \
+                u".pdf"
+
+
 
         # FIXXME: more file documents
         import pdb; pdb.set_trace()
