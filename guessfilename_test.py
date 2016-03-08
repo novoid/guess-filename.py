@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8; mode: python; -*-
-# Time-stamp: <2016-03-07 14:49:04 vk>
+# Time-stamp: <2016-03-07 14:58:28 vk>
 
 import unittest
 import logging
@@ -194,6 +194,7 @@ class TestGuessFilename(unittest.TestCase):
 
     def test_get_euro_charge_from_context(self):
 
+        self.assertEquals(self.guess_filename.get_euro_charge_from_context(u"xyz foo12,34EURbar xyz", "foo", "bar"), u"12,34")
         self.assertEquals(self.guess_filename.get_euro_charge_from_context(u"foo12,34EURbar", "foo", "bar"), u"12,34")
         self.assertEquals(self.guess_filename.get_euro_charge_from_context(u"foo12.34EURbar", "foo", "bar"), u"12,34")
         self.assertEquals(self.guess_filename.get_euro_charge_from_context(u"foo12,34€bar", "foo", "bar"), u"12,34")
@@ -219,6 +220,9 @@ class TestGuessFilename(unittest.TestCase):
         self.assertEquals(self.guess_filename.get_euro_charge_from_context(u"foo ba  12,34  ba bar", "foo", "bar"), u"12,34")
         self.assertEquals(self.guess_filename.get_euro_charge_from_context(u"foo xxx 12.34 xxx bar", "foo", "bar"), u"12,34")
         self.assertFalse(self.guess_filename.get_euro_charge_from_context(u"foo xxxx 12.34 xxxx bar", "foo", "bar"))
+        self.assertEquals(self.guess_filename.get_euro_charge_from_context(u"DasinsteinTest2015:EURJahresbeitrag123,45Offen678,90Zahlungenbis03.11.2015sindber",
+                                                                           "Offen", "Zahlungen"), u"678,90")
+
 
     def test_get_euro_charge(self):
 

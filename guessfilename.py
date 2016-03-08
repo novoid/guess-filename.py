@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Time-stamp: <2016-03-07 14:50:14 vk>
+# Time-stamp: <2016-03-08 16:50:42 vk>
 
 # TODO:
 # * fix parts marked with «FIXXME»
@@ -230,7 +230,7 @@ class GuessFilename(object):
 
     def has_euro_charge(self, string):
         """
-        Returns true, if the string contains a number with a €-currency
+        Returns true, if the single-line string contains a number with a €-currency
         """
 
         assert(type(string) == unicode or type(string) == str)
@@ -245,7 +245,7 @@ class GuessFilename(object):
 
     def get_euro_charge(self, string):
         """
-        Returns the first included €-currency or False
+        Returns the first included €-currency within single-line "string" or False
         """
 
         assert(type(string) == unicode or type(string) == str)
@@ -269,14 +269,16 @@ class GuessFilename(object):
         assert(len(string) > 0)
 
         context_range = '5'  # range of characters where before/after is valid
-        components = re.match(before + r"\D{0," + context_range + "}((\d{1,6})[,.](\d{2}))\D{0," + context_range + "}" + after, string)
+
+        # for testing: re.search(".*" + before + r"\D{0,6}(\d{1,6}[,.]\d{2})\D{0,6}" + after + ".*", string).groups()
+        components = re.search(".*" + before + r"\D{0," + context_range + "}((\d{1,6})[,.](\d{2}))\D{0," + context_range + "}" + after + ".*", string)
 
         if components:
             floatstring = components.group(2) + ',' + components.group(3)
             #logging.debug("get_euro_charge_from_context extracted float: [%s]" % floatstring)
             return floatstring
         else:
-            logging.debug("get_euro_charge_from_context was not able to extract a float: [%s] + [%s] + [%s]" % (before, string[:30] + u"...", after))
+            logging.debug(u"get_euro_charge_from_context was not able to extract a float: [%s] + [%s] + [%s]" % (before, string[:30] + u"...", after))
             return False
 
     def rename_file(self, dirname, oldbasename, newbasename, dryrun=False, quiet=False):
@@ -381,7 +383,7 @@ class GuessFilename(object):
                 floatstr = 'FIXXME'
                 logging.warning(u"Could not parse the charge from file %s - please fix manually" % basename)
             return datetimestr + \
-                u" Kirchenbeitrag " + floatstr + "€ -- " + \
+                u" Kirchenbeitrag " + floatstr + u"€ -- " + \
                 ' '.join(self.adding_tags(tags, ['scan', 'taxes', 'bill'])) + \
                 u".pdf"
 
@@ -421,13 +423,13 @@ class GuessFilename(object):
 
         if not newfilename:
             newfilename = self.derive_new_filename_from_content(dirname, basename)
-            logging.debug("derive_new_filename_from_content returned new filename: %s" % str(newfilename))
+            logging.debug(u"derive_new_filename_from_content returned new filename: %s" % newfilename)
 
         if newfilename:
             self.rename_file(dirname, basename, newfilename, dryrun)
             return newfilename
         else:
-            logging.debug("FAILED to derive new filename: not enough cues in file name or PDF file content")
+            logging.debug(u"FAILED to derive new filename: not enough cues in file name or PDF file content")
             return False
 
 def main():
