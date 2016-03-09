@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Time-stamp: <2016-03-09 18:33:30 vk>
+# Time-stamp: <2016-03-09 18:44:54 vk>
 
 # TODO:
 # * fix parts marked with «FIXXME»
@@ -284,8 +284,9 @@ class GuessFilename(object):
             #logging.debug("get_euro_charge_from_context extracted float: [%s]" % floatstring)
             return floatstring
         else:
+            logging.warning(u"Sorry, I was not able to extract a charge for this file, please fix manually")
             logging.debug(u"get_euro_charge_from_context was not able to extract a float: between [%s] and [%s] within [%s]" % (before, after, string[:30] + u"..."))
-            import pdb; pdb.set_trace()
+            #import pdb; pdb.set_trace()
             return False
 
     def rename_file(self, dirname, oldbasename, newbasename, dryrun=False, quiet=False):
@@ -301,7 +302,7 @@ class GuessFilename(object):
         """
 
         if oldbasename == newbasename:
-            logging.info("Old filename is same as new filename: skipping file %s" % oldbasename)
+            logging.info("Old filename is same as new filename: skipping file")
             return False
 
         oldfile = os.path.join(dirname, oldbasename)
@@ -316,7 +317,7 @@ class GuessFilename(object):
             return False
 
         if not quiet:
-            print u"   %s  →  %s" % (oldbasename, newbasename)
+            print u"       →  %s" % (newbasename)
         logging.debug(u" renaming \"%s\"" % oldfile)
         logging.debug(u"      ⤷   \"%s\"" % newfile)
         if not dryrun:
@@ -388,7 +389,6 @@ class GuessFilename(object):
             floatstr = self.get_euro_charge_from_context(content, "Offen", "Zahlungen")
             if not floatstr:
                 floatstr = 'FIXXME'
-                logging.warning(u"Could not parse the charge from file %s - please fix manually" % basename)
             return datetimestr + \
                 u" Kirchenbeitrag " + floatstr + u"€ -- " + \
                 ' '.join(self.adding_tags(tags, ['scan', 'taxes', 'bill'])) + \
@@ -405,7 +405,6 @@ class GuessFilename(object):
                                                          "Wird")
             if not floatstr:
                 floatstr = 'FIXXME'
-                logging.warning(u"Could not parse the charge from file %s - please fix manually" % basename)
             return datetimestr + \
                 u" Generali Erhoehung Dynamikklausel - Praemie nun " + floatstr + \
                 u"€ - Polizze " + self.config.GENERALI1_POLIZZE_NUMBER + " -- " + \
@@ -422,7 +421,6 @@ class GuessFilename(object):
                                                          "Gesundheit ist ein kostbares Gut")
             if not floatstr:
                 floatstr = 'FIXXME'
-                logging.warning(u"Could not parse the charge from file %s - please fix manually" % basename)
             return datetimestr + \
                 u" Merkur Lebensversicherung " + self.config.MERKUR_GESUNDHEITSVORSORGE_NUMBER + \
                 u" - Praemienzahlungsaufforderung " + floatstr + \
@@ -446,7 +444,6 @@ class GuessFilename(object):
                                                          "Bei Online Zahlungen geben Sie")
             if not floatstr:
                 floatstr = 'FIXXME'
-                logging.warning(u"Could not parse the charge from file %s - please fix manually" % basename)
             return datetimestr + \
                 u" A1 Festnetz-Internet " + floatstr + \
                 u"€ -- " + ' '.join(self.adding_tags(tags, ['scan', 'finance', 'bill'])) + \
@@ -455,7 +452,7 @@ class GuessFilename(object):
 
 
         # FIXXME: more file documents
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
 
         return False
 
@@ -480,6 +477,7 @@ class GuessFilename(object):
             logging.error("Skipping \"%s\" because this tool only renames existing file names." % oldfilename)
             return
 
+        print '\n   ' + oldfilename + '  ...'
         dirname = os.path.abspath(os.path.dirname(oldfilename))
         logging.debug(u"————→ dirname  [%s]" % dirname)
         basename = os.path.basename(oldfilename)
@@ -487,9 +485,9 @@ class GuessFilename(object):
 
         newfilename = self.derive_new_filename_from_old_filename(basename)
         if newfilename:
-            logging.debug("derive_new_filename_from_old_filename returned new filename: %s" % str(newfilename))
+            logging.debug(u"derive_new_filename_from_old_filename returned new filename: %s" % newfilename)
         else:
-            logging.debug("derive_new_filename_from_old_filename could not derive a new filename for %s" % str(basename))
+            logging.debug(u"derive_new_filename_from_old_filename could not derive a new filename for %s" % basename)
 
         if not newfilename:
             newfilename = self.derive_new_filename_from_content(dirname, basename)
@@ -499,7 +497,7 @@ class GuessFilename(object):
             self.rename_file(dirname, basename, newfilename, dryrun)
             return newfilename
         else:
-            logging.debug(u"FAILED to derive new filename: not enough cues in file name or PDF file content")
+            logging.warning(u"I failed to derive new filename: not enough cues in file name or PDF file content")
             return False
 
 def main():
