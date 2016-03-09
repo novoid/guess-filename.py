@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Time-stamp: <2016-03-08 17:33:13 vk>
+# Time-stamp: <2016-03-09 18:22:48 vk>
 
 # TODO:
 # * fix parts marked with «FIXXME»
@@ -229,7 +229,7 @@ class GuessFilename(object):
                     #logging.debug(u"MATCH   fuzzy_contains_all_of(%s..., %s) == %i" % (string[:30], str(entry), similarity))
                     pass
                 else:
-                    logging.debug(u"¬ MATCH fuzzy_contains_all_of(%s..., %s) == %i" % (string[:30], str(entry), similarity))
+                    #logging.debug(u"¬ MATCH fuzzy_contains_all_of(%s..., %s) == %i" % (string[:30], str(entry), similarity))
                     return False
 
         return True
@@ -301,7 +301,7 @@ class GuessFilename(object):
         """
 
         if oldbasename == newbasename:
-            logging.debug("old filename is same as new filename [%s]. Doing nothing." % oldbasename)
+            logging.info("Old filename is same as new filename: skipping file %s" % oldbasename)
             return False
 
         oldfile = os.path.join(dirname, oldbasename)
@@ -430,6 +430,14 @@ class GuessFilename(object):
                 ' '.join(self.adding_tags(tags, ['scan', 'bill'])) + \
                 u".pdf"
 
+        # 2016-02-22 BANK - Darlehnen - Kontomitteilung -- finance scan taxes.pdf
+        if self.fuzzy_contains_all_of(content, [self.config.LOAN_INSTITUTE, self.config.LOAN_ID]) and \
+            datetimestr:
+            return datetimestr + \
+                u" " + self.config.LOAN_INSTITUTE + " - Darlehnen - Kontomitteilung -- " + \
+                ' '.join(self.adding_tags(tags, ['scan', 'taxes'])) + \
+                u".pdf"
+
 
 
         # FIXXME: more file documents
@@ -464,7 +472,10 @@ class GuessFilename(object):
         logging.debug(u"————→ basename [%s]" % basename)
 
         newfilename = self.derive_new_filename_from_old_filename(basename)
-        logging.debug("derive_new_filename_from_old_filename returned new filename: %s" % str(newfilename))
+        if newfilename:
+            logging.debug("derive_new_filename_from_old_filename returned new filename: %s" % str(newfilename))
+        else:
+            logging.debug("derive_new_filename_from_old_filename could not derive a new filename for %s" % str(basename))
 
         if not newfilename:
             newfilename = self.derive_new_filename_from_content(dirname, basename)
