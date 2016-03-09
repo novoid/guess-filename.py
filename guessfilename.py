@@ -412,6 +412,24 @@ class GuessFilename(object):
                 ' '.join(self.adding_tags(tags, ['scan', 'bill'])) + \
                 u".pdf"
 
+        # 2015-11-30 Merkur Lebensversicherung 123456 - Praemienzahlungsaufforderung 12,34€ -- scan financ.pdf
+        if self.config.MERKUR_GESUNDHEITSVORSORGE_NUMBER in content and \
+           self.fuzzy_contains_all_of(content, [u"Prämienvorschreibung",
+                                                self.config.MERKUR_GESUNDHEITSVORSORGE_ZAHLUNGSREFERENZ]) and \
+            datetimestr:
+            floatstr = self.get_euro_charge_from_context(content,
+                                                         "EUR",
+                                                         "Gesundheit ist ein kostbares Gut")
+            if not floatstr:
+                floatstr = 'FIXXME'
+                logging.warning(u"Could not parse the charge from file %s - please fix manually" % basename)
+            return datetimestr + \
+                u" Merkur Lebensversicherung " + self.config.MERKUR_GESUNDHEITSVORSORGE_NUMBER + \
+                u" - Praemienzahlungsaufforderung " + floatstr + \
+                u"€ -- " + \
+                ' '.join(self.adding_tags(tags, ['scan', 'bill'])) + \
+                u".pdf"
+
 
 
         # FIXXME: more file documents
