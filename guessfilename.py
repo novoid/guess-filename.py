@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Time-stamp: <2016-03-09 18:22:48 vk>
+# Time-stamp: <2016-03-09 18:33:30 vk>
 
 # TODO:
 # * fix parts marked with «FIXXME»
@@ -436,6 +436,20 @@ class GuessFilename(object):
             return datetimestr + \
                 u" " + self.config.LOAN_INSTITUTE + " - Darlehnen - Kontomitteilung -- " + \
                 ' '.join(self.adding_tags(tags, ['scan', 'taxes'])) + \
+                u".pdf"
+
+        # 2015-11-24 Rechnung A1 Festnetz-Internet 12,34€ -- scan finance.pdf
+        if self.fuzzy_contains_all_of(content, [self.config.PROVIDER_CONTRACT, self.config.PROVIDER_CUE]) and \
+            datetimestr:
+            floatstr = self.get_euro_charge_from_context(content,
+                                                         u"\u2022",
+                                                         "Bei Online Zahlungen geben Sie")
+            if not floatstr:
+                floatstr = 'FIXXME'
+                logging.warning(u"Could not parse the charge from file %s - please fix manually" % basename)
+            return datetimestr + \
+                u" A1 Festnetz-Internet " + floatstr + \
+                u"€ -- " + ' '.join(self.adding_tags(tags, ['scan', 'finance', 'bill'])) + \
                 u".pdf"
 
 
