@@ -220,14 +220,17 @@ class GuessFilename(object):
 
         for entry in entries:
             assert(type(entry) == unicode or type(entry) == str)
-            #logging.debug(u"fuzzy_contains_all_of(%s, %s) ... " % (string[:30], str(entry[:30])))
-            similarity = fuzz.partial_ratio(string, entry)
-            if similarity > 64:
-                #logging.debug(u"MATCH   fuzzy_contains_all_of(%s, %s) == %i" % (string, str(entry), similarity))
-                pass
-            else:
-                #logging.debug(u"¬ MATCH fuzzy_contains_all_of(%s, %s) == %i" % (string, str(entry), similarity))
-                return False
+            #logging.debug(u"fuzzy_contains_all_of(%s..., %s...) ... " % (string[:30], str(entry[:30])))
+            if not entry in string:
+                ## if entry is found in string (exactly), try with fuzzy search:
+
+                similarity = fuzz.partial_ratio(string, entry)
+                if similarity > 64:
+                    #logging.debug(u"MATCH   fuzzy_contains_all_of(%s..., %s) == %i" % (string[:30], str(entry), similarity))
+                    pass
+                else:
+                    logging.debug(u"¬ MATCH fuzzy_contains_all_of(%s..., %s) == %i" % (string[:30], str(entry), similarity))
+                    return False
 
         return True
 
@@ -281,7 +284,7 @@ class GuessFilename(object):
             #logging.debug("get_euro_charge_from_context extracted float: [%s]" % floatstring)
             return floatstring
         else:
-            logging.debug(u"get_euro_charge_from_context was not able to extract a float: [%s] + [%s] + [%s]" % (before, string[:30] + u"...", after))
+            logging.debug(u"get_euro_charge_from_context was not able to extract a float: between [%s] and [%s] within [%s]" % (before, after, string[:30] + u"..."))
             import pdb; pdb.set_trace()
             return False
 
