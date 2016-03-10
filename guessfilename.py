@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Time-stamp: <2016-03-10 16:43:10 vk>
+# Time-stamp: <2016-03-10 17:03:46 vk>
 
 # TODO:
 # * fix parts marked with «FIXXME»
@@ -54,6 +54,8 @@ Verbose description: FIXXME: http://Karl-Voit.at/FIXXME/\n\
 :URL: https://github.com/novoid/guess-filename.py\n\
 :bugreports: via github or <tools@Karl-Voit.at>\n\
 :version: " + PROG_VERSION_NUMBER + " from " + PROG_VERSION_DATE + "\n"
+
+ERROR_DIR = 'guessfilename_fails'
 
 parser = OptionParser(usage=USAGE)
 
@@ -518,6 +520,10 @@ class GuessFilename(object):
             return newfilename
         else:
             logging.warning(u"I failed to derive new filename: not enough cues in file name or PDF file content")
+            if os.path.isdir(ERROR_DIR):
+                ## hidden feature: if a folder named like content of ERROR_DIR exists, move failed files in it:
+                os.rename(os.path.join(dirname, basename), os.path.join(dirname, ERROR_DIR, basename))
+                logging.info('moved file to sub-directory "' + ERROR_DIR + '"')
             return False
 
 def main():
