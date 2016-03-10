@@ -503,8 +503,11 @@ class GuessFilename(object):
             logging.debug(u"derive_new_filename_from_old_filename could not derive a new filename for %s" % basename)
 
         if not newfilename:
-            newfilename = self.derive_new_filename_from_content(dirname, basename)
-            logging.debug(u"derive_new_filename_from_content returned new filename: %s" % newfilename)
+            if basename[-4:].lower() == '.pdf':
+                newfilename = self.derive_new_filename_from_content(dirname, basename)
+                logging.debug(u"derive_new_filename_from_content returned new filename: %s" % newfilename)
+            else:
+                logging.debug(u"file extension is not PDF and therefore I skip analyzing file content")
 
         if newfilename:
             self.rename_file(dirname, basename, newfilename, dryrun)
