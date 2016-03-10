@@ -374,7 +374,11 @@ class GuessFilename(object):
         filename = os.path.join(dirname, basename)
         assert os.path.isfile(filename)
 
-        pdffile = PyPDF2.PdfFileReader(open(filename, "rb"))
+        try:
+            pdffile = PyPDF2.PdfFileReader(open(filename, "rb"))
+        except:
+            logging.error('Could not read PDF file content. Skipping its content.')
+            return False
         ## use first and second page of content only:
         if pdffile.getNumPages() > 1:
             content = pdffile.pages[0].extractText() + pdffile.pages[1].extractText()
