@@ -336,11 +336,11 @@ class GuessFilename(object):
         logging.debug("derive_new_filename_from_old_filename called")
         datetimestr, basefilename, tags, extension = s.split_filename_entities(oldfilename)
 
-        # 2015-11-24 Rechnung A1 Festnetz-Internet 12,34€ -- scan finance.pdf
+        # 2015-11-24 Rechnung A1 Festnetz-Internet 12,34€ -- scan bill.pdf
         if s.contains_one_of(oldfilename, [" A1 ", " a1 "]) and s.has_euro_charge(oldfilename) and datetimestr:
             return datetimestr + \
                 u" A1 Festnetz-Internet " + s.get_euro_charge(oldfilename) + \
-                u"€ -- " + ' '.join(s.adding_tags(tags, ['scan', 'finance', 'bill'])) + \
+                u"€ -- " + ' '.join(s.adding_tags(tags, ['scan', 'bill'])) + \
                 u".pdf"
 
         # 2016-01-19--2016-02-12 benutzter GVB 10er Block -- scan transportation graz.pdf
@@ -348,6 +348,13 @@ class GuessFilename(object):
             return datetimestr + \
                 u" benutzter GVB 10er Block" + \
                 u" -- " + ' '.join(s.adding_tags(tags, ['scan', 'transportation', 'graz'])) + \
+                u".pdf"
+
+        # 2016-01-19 bill foobar baz 12,12EUR.pdf -> 2016-01-19 foobar baz 12,12€ -- scan bill.pdf
+        if u'bill' in oldfilename and datetimestr and s.has_euro_charge(oldfilename):
+            return datetimestr + \
+                basefilename.replace(' bill', ' ').replace('bill ', ' ').replace('  ', ' ').replace(u'EUR', u'€') + \
+                u" -- " + ' '.join(s.adding_tags(tags, ['scan', 'bill'])) + \
                 u".pdf"
 
         # FIXXME: more cases!
@@ -368,19 +375,27 @@ class GuessFilename(object):
         assert os.path.isfile(filename)
 
         pdffile = PyPDF2.PdfFileReader(open(filename, "rb"))
-        content = pdffile.pages[0].extractText()
+        ## use first and second page of content only:
+        if pdffile.getNumPages() > 1:
+            content = pdffile.pages[0].extractText() + pdffile.pages[1].extractText()
+        elif pdffile.getNumPages() == 1:
+            content = pdffile.pages[0].extractText()
+        else:
+            logging.error('Could not determine number of pages of PDF content! (skipping content analysis)')
+            return False
+
         datetimestr, basefilename, tags, extension = self.split_filename_entities(basename)
 
         if extension.lower() != 'pdf':
             logging.debug("File is not a PDF file and thus can't be parsed by this script: %s" % filename)
             return False
 
-        # 2010-06-08 easybank - neue TAN-Liste -- scan private finance.pdf
+        # 2010-06-08 easybank - neue TAN-Liste -- scan private.pdf
         if self.fuzzy_contains_all_of(content, ["Transaktionsnummern (TANs)", "Ihre TAN-Liste in Verlust geraten"]) and \
            datetimestr:
             return datetimestr + \
                 u" easybank - neue TAN-Liste -- " + \
-                ' '.join(self.adding_tags(tags, ['scan', 'finance', 'private'])) + \
+                ' '.join(self.adding_tags(tags, ['scan', 'private'])) + \
                 u".pdf"
 
         # 2015-11-20 Kirchenbeitrag 12,34 EUR -- scan taxes bill.pdf
@@ -394,7 +409,7 @@ class GuessFilename(object):
                 ' '.join(self.adding_tags(tags, ['scan', 'taxes', 'bill'])) + \
                 u".pdf"
 
-        # 2015-11-24 Generali Erhoehung Dynamikklausel - Praemie nun 12,34 - Polizze 12345 -- scan finance.pdf
+        # 2015-11-24 Generali Erhoehung Dynamikklausel - Praemie nun 12,34 - Polizze 12345 -- scan bill.pdf
         if self.config.GENERALI1_POLIZZE_NUMBER in content and \
            self.fuzzy_contains_all_of(content, [u"ImHinblickaufdievereinbarteDynamikklauseltritteineWertsteigerunginKraft",
                                                 u"IhreangepasstePrämiebeträgtdahermonatlich",
@@ -411,7 +426,7 @@ class GuessFilename(object):
                 ' '.join(self.adding_tags(tags, ['scan', 'bill'])) + \
                 u".pdf"
 
-        # 2015-11-30 Merkur Lebensversicherung 123456 - Praemienzahlungsaufforderung 12,34€ -- scan financ.pdf
+        # 2015-11-30 Merkur Lebensversicherung 123456 - Praemienzahlungsaufforderung 12,34€ -- scan bill.pdf
         if self.config.MERKUR_GESUNDHEITSVORSORGE_NUMBER in content and \
            self.fuzzy_contains_all_of(content, [u"Prämienvorschreibung",
                                                 self.config.MERKUR_GESUNDHEITSVORSORGE_ZAHLUNGSREFERENZ]) and \
@@ -428,7 +443,7 @@ class GuessFilename(object):
                 ' '.join(self.adding_tags(tags, ['scan', 'bill'])) + \
                 u".pdf"
 
-        # 2016-02-22 BANK - Darlehnen - Kontomitteilung -- finance scan taxes.pdf
+        # 2016-02-22 BANK - Darlehnen - Kontomitteilung -- scan taxes.pdf
         if self.fuzzy_contains_all_of(content, [self.config.LOAN_INSTITUTE, self.config.LOAN_ID]) and \
             datetimestr:
             return datetimestr + \
@@ -436,7 +451,7 @@ class GuessFilename(object):
                 ' '.join(self.adding_tags(tags, ['scan', 'taxes'])) + \
                 u".pdf"
 
-        # 2015-11-24 Rechnung A1 Festnetz-Internet 12,34€ -- scan finance.pdf
+        # 2015-11-24 Rechnung A1 Festnetz-Internet 12,34€ -- scan bill.pdf
         if self.fuzzy_contains_all_of(content, [self.config.PROVIDER_CONTRACT, self.config.PROVIDER_CUE]) and \
             datetimestr:
             floatstr = self.get_euro_charge_from_context(content,
@@ -446,10 +461,8 @@ class GuessFilename(object):
                 floatstr = 'FIXXME'
             return datetimestr + \
                 u" A1 Festnetz-Internet " + floatstr + \
-                u"€ -- " + ' '.join(self.adding_tags(tags, ['scan', 'finance', 'bill'])) + \
+                u"€ -- " + ' '.join(self.adding_tags(tags, ['scan', 'bill'])) + \
                 u".pdf"
-
-
 
         # FIXXME: more file documents
         #import pdb; pdb.set_trace()
