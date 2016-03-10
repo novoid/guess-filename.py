@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Time-stamp: <2016-03-09 18:44:54 vk>
+# Time-stamp: <2016-03-10 16:43:10 vk>
 
 # TODO:
 # * fix parts marked with «FIXXME»
@@ -551,17 +551,23 @@ def main():
     if len(args) < 1:
         error_exit(5, "Please add at least one file name as argument")
 
+    filenames_could_not_be_found = 0
     logging.debug("iterating over files ...\n" + "=" * 80)
     for filename in files:
         if filename.__class__ == str:
             filename = unicode(filename, "UTF-8")
-        guess_filename.handle_file(filename, options.dryrun)
-
-    logging.debug("successfully finished.")
+        if not guess_filename.handle_file(filename, options.dryrun):
+            filenames_could_not_be_found += 1
 
     if not options.quiet:
         # add empty line for better screen output readability
         print
+
+    if filenames_could_not_be_found == 0:
+        logging.debug('successfully finished.')
+    else:
+        logging.debug("finished with %i filename(s) that could not be derived" % filenames_could_not_be_found)
+        sys.exit(1)
 
 
 if __name__ == "__main__":
