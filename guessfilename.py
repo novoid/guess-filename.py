@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Time-stamp: <2016-03-12 22:05:40 vk>
+# Time-stamp: <2016-03-12 22:09:58 vk>
 
 # TODO:
 # * add -i (interactive) where user gets asked if renaming should be done (per file)
@@ -358,7 +358,7 @@ class GuessFilename(object):
             os.rename(oldfile, newfile)
         return True
 
-    def derive_new_filename_from_old_filename(s, oldfilename):
+    def derive_new_filename_from_old_filename(self, oldfilename):
         """
         Analyses the old filename and returns a new one if feasible.
         If not, False is returned instead.
@@ -368,34 +368,41 @@ class GuessFilename(object):
         """
 
         logging.debug("derive_new_filename_from_old_filename called")
-        datetimestr, basefilename, tags, extension = s.split_filename_entities(oldfilename)
+        datetimestr, basefilename, tags, extension = self.split_filename_entities(oldfilename)
 
         # 2015-11-24 Rechnung A1 Festnetz-Internet 12,34€ -- scan bill.pdf
-        if s.contains_one_of(oldfilename, [" A1 ", " a1 "]) and s.has_euro_charge(oldfilename) and datetimestr:
+        if self.contains_one_of(oldfilename, [" A1 ", " a1 "]) and self.has_euro_charge(oldfilename) and datetimestr:
             return datetimestr + \
-                u" A1 Festnetz-Internet " + s.get_euro_charge(oldfilename) + \
-                u"€ -- " + ' '.join(s.adding_tags(tags, ['scan', 'bill'])) + \
+                u" A1 Festnetz-Internet " + self.get_euro_charge(oldfilename) + \
+                u"€ -- " + ' '.join(self.adding_tags(tags, ['scan', 'bill'])) + \
                 u".pdf"
 
         # 2016-01-19--2016-02-12 benutzter GVB 10er Block -- scan transportation graz.pdf
-        if s.contains_one_of(oldfilename, ["10er"]) and datetimestr:
+        if self.contains_one_of(oldfilename, ["10er"]) and datetimestr:
             return datetimestr + \
                 u" benutzter GVB 10er Block" + \
-                u" -- " + ' '.join(s.adding_tags(tags, ['scan', 'transportation', 'graz'])) + \
+                u" -- " + ' '.join(self.adding_tags(tags, ['scan', 'transportation', 'graz'])) + \
                 u".pdf"
 
         # 2016-01-19 bill foobar baz 12,12EUR.pdf -> 2016-01-19 foobar baz 12,12€ -- scan bill.pdf
-        if u'bill' in oldfilename and datetimestr and s.has_euro_charge(oldfilename):
+        if u'bill' in oldfilename and datetimestr and self.has_euro_charge(oldfilename):
             return datetimestr + ' ' + \
                 basefilename.replace(' bill', ' ').replace('bill ', ' ').replace('  ', ' ').replace(u'EUR', u'€').strip() + \
-                u" -- " + ' '.join(s.adding_tags(tags, ['scan', 'bill'])) + \
+                u" -- " + ' '.join(self.adding_tags(tags, ['scan', 'bill'])) + \
                 u".pdf"
 
         # 2015-04-30 FH St.Poelten - Abrechnungsbeleg 12,34 EUR - Honorar -- scan fhstp.pdf
-        if s.contains_all_of(oldfilename, [" FH ", "Abrechnungsbeleg"]) and s.has_euro_charge(oldfilename) and datetimestr:
+        if self.contains_all_of(oldfilename, [" FH ", "Abrechnungsbeleg"]) and self.has_euro_charge(oldfilename) and datetimestr:
             return datetimestr + \
-                u" FH St.Poelten - Abrechnungsbeleg " + s.get_euro_charge(oldfilename) + \
-                u"€ Honorar -- " + ' '.join(s.adding_tags(tags, ['scan', 'fhstp'])) + \
+                u" FH St.Poelten - Abrechnungsbeleg " + self.get_euro_charge(oldfilename) + \
+                u"€ Honorar -- " + ' '.join(self.adding_tags(tags, ['scan', 'fhstp'])) + \
+                u".pdf"
+
+        # 2016-02-26 Gehaltszettel Februar 12,34 EUR -- scan infonova.pdf
+        if self.contains_all_of(oldfilename, ["Gehalt", "infonova"]) and self.has_euro_charge(oldfilename) and datetimestr:
+            return datetimestr + \
+                u" Gehaltszettel Februar " + self.get_euro_charge(oldfilename) + \
+                u"€ -- " + ' '.join(self.adding_tags(tags, ['scan', 'infonova'])) + \
                 u".pdf"
 
         # FIXXME: more cases!
