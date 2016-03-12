@@ -190,6 +190,22 @@ class GuessFilename(object):
 
         return False
 
+    def contains_all_of(self, string, entries):
+        """
+        Returns true, if the string contains all of the strings within entries array
+        """
+
+        assert(type(string) == unicode or type(string) == str)
+        assert(type(entries) == list)
+        assert(len(string) > 0)
+        assert(len(entries) > 0)
+
+        for entry in entries:
+            if entry not in string:
+                return False
+
+        return True
+
     def fuzzy_contains_one_of(self, string, entries):
         """
         Returns true, if the string contains a similar one of the strings within entries array
