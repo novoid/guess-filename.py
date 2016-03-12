@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Time-stamp: <2016-03-12 13:12:26 vk>
+# Time-stamp: <2016-03-12 13:44:51 vk>
 
 # TODO:
 # * fix parts marked with «FIXXME»
@@ -308,8 +308,8 @@ class GuessFilename(object):
             logging.info("Old filename is same as new filename: skipping file")
             return False
 
-        oldfile = os.path.join(dirname, oldbasename)
-        newfile = os.path.join(dirname, newbasename)
+        oldfile = os.path.join(dirname, oldbasename).encode('utf-8')
+        newfile = os.path.join(dirname, newbasename).encode('utf-8')
 
         if not os.path.isfile(oldfile):
             logging.error("file to rename does not exist: [%s]" % oldfile)
@@ -320,9 +320,9 @@ class GuessFilename(object):
             return False
 
         if not quiet:
-            print u"       →  %s" % (newbasename)
-        logging.debug(u" renaming \"%s\"" % oldfile)
-        logging.debug(u"      ⤷   \"%s\"" % newfile)
+            print u'       →  '.encode('utf-8') + newbasename.encode('utf-8')
+        logging.debug(u" renaming \"%s\"".encode('utf-8') % oldfile)
+        logging.debug(u"      ⤷   \"%s\"".encode('utf-8') % newfile)
         if not dryrun:
             os.rename(oldfile, newfile)
         return True
@@ -489,7 +489,7 @@ class GuessFilename(object):
             assert dryrun.__class__ == bool
 
         if os.path.isdir(oldfilename):
-            logging.warning("Skipping directory \"%s\" because this tool only renames file names." % oldfilename)
+            logging.debug("Skipping directory \"%s\" because this tool only renames file names." % oldfilename)
             return
         elif not os.path.isfile(oldfilename):
             logging.debug("file type error in folder [%s]: file type: is file? %s  -  is dir? %s  -  is mount? %s" %
