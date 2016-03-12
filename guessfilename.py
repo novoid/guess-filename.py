@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Time-stamp: <2016-03-12 13:44:51 vk>
+# Time-stamp: <2016-03-12 13:58:53 vk>
 
 # TODO:
 # * fix parts marked with «FIXXME»
@@ -55,7 +55,7 @@ Verbose description: FIXXME: http://Karl-Voit.at/FIXXME/\n\
 :bugreports: via github or <tools@Karl-Voit.at>\n\
 :version: " + PROG_VERSION_NUMBER + " from " + PROG_VERSION_DATE + "\n"
 
-ERROR_DIR = 'guessfilename_fails'
+ERROR_DIR = 'guess-filename_fails'
 SUCCESS_DIR = 'guess-target-folder'
 
 parser = OptionParser(usage=USAGE)
@@ -518,18 +518,36 @@ class GuessFilename(object):
 
         if newfilename:
             self.rename_file(dirname, basename, newfilename, dryrun)
-            if os.path.isdir(SUCCESS_DIR):
-                logging.debug('using hidden feature: if a folder named \"' + SUCCESS_DIR + '\" exists, move renamed files into it')
-                os.rename(os.path.join(dirname, newfilename), os.path.join(dirname, SUCCESS_DIR, newfilename))
-                logging.info('moved file to sub-directory "' + SUCCESS_DIR + '"')
+            move_to_success_dir(dirname, newfilename)
             return newfilename
         else:
             logging.warning(u"I failed to derive new filename: not enough cues in file name or PDF file content")
-            if os.path.isdir(ERROR_DIR):
-                logging.debug('using hidden feature: if a folder named \"' + ERROR_DIR + '\" exists, move failed files into it')
-                os.rename(os.path.join(dirname, basename), os.path.join(dirname, ERROR_DIR, basename))
-                logging.info('moved file to sub-directory "' + ERROR_DIR + '"')
+            move_to_error_dir(dirname, basename)
             return False
+
+
+def move_to_success_dir(dirname, newfilename):
+    """
+    Moves a file to SUCCESS_DIR
+    """
+    if os.path.isdir(SUCCESS_DIR):
+        logging.debug('using hidden feature: if a folder named \"' + SUCCESS_DIR +
+                      '\" exists, move renamed files into it')
+        os.rename(os.path.join(dirname, newfilename), os.path.join(dirname, SUCCESS_DIR,
+                                                                   newfilename))
+        logging.info('moved file to sub-directory "' + SUCCESS_DIR + '"')
+
+
+def move_to_error_dir(dirname, basename):
+    """
+    Moves a file to SUCCESS_DIR
+    """
+    if os.path.isdir(ERROR_DIR):
+        logging.debug('using hidden feature: if a folder named \"' + ERROR_DIR +
+                      '\" exists, move failed files into it')
+        os.rename(os.path.join(dirname, basename),
+                  os.path.join(dirname, ERROR_DIR, basename))
+        logging.info('moved file to sub-directory "' + ERROR_DIR + '"')
 
 def main():
     """Main function"""
