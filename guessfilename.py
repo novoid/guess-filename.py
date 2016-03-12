@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Time-stamp: <2016-03-12 13:58:53 vk>
+# Time-stamp: <2016-03-12 14:20:18 vk>
 
 # TODO:
 # * fix parts marked with «FIXXME»
@@ -56,7 +56,7 @@ Verbose description: FIXXME: http://Karl-Voit.at/FIXXME/\n\
 :version: " + PROG_VERSION_NUMBER + " from " + PROG_VERSION_DATE + "\n"
 
 ERROR_DIR = 'guess-filename_fails'
-SUCCESS_DIR = 'guess-target-folder'
+SUCCESS_DIR = 'guess-filename_success'
 
 parser = OptionParser(usage=USAGE)
 
@@ -355,7 +355,7 @@ class GuessFilename(object):
 
         # 2016-01-19 bill foobar baz 12,12EUR.pdf -> 2016-01-19 foobar baz 12,12€ -- scan bill.pdf
         if u'bill' in oldfilename and datetimestr and s.has_euro_charge(oldfilename):
-            return datetimestr + \
+            return datetimestr + ' ' + \
                 basefilename.replace(' bill', ' ').replace('bill ', ' ').replace('  ', ' ').replace(u'EUR', u'€') + \
                 u" -- " + ' '.join(s.adding_tags(tags, ['scan', 'bill'])) + \
                 u".pdf"
