@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Time-stamp: <2016-03-10 17:03:46 vk>
+# Time-stamp: <2016-03-12 13:12:26 vk>
 
 # TODO:
 # * fix parts marked with «FIXXME»
@@ -56,6 +56,7 @@ Verbose description: FIXXME: http://Karl-Voit.at/FIXXME/\n\
 :version: " + PROG_VERSION_NUMBER + " from " + PROG_VERSION_DATE + "\n"
 
 ERROR_DIR = 'guessfilename_fails'
+SUCCESS_DIR = 'guess-target-folder'
 
 parser = OptionParser(usage=USAGE)
 
@@ -517,11 +518,15 @@ class GuessFilename(object):
 
         if newfilename:
             self.rename_file(dirname, basename, newfilename, dryrun)
+            if os.path.isdir(SUCCESS_DIR):
+                logging.debug('using hidden feature: if a folder named \"' + SUCCESS_DIR + '\" exists, move renamed files into it')
+                os.rename(os.path.join(dirname, newfilename), os.path.join(dirname, SUCCESS_DIR, newfilename))
+                logging.info('moved file to sub-directory "' + SUCCESS_DIR + '"')
             return newfilename
         else:
             logging.warning(u"I failed to derive new filename: not enough cues in file name or PDF file content")
             if os.path.isdir(ERROR_DIR):
-                ## hidden feature: if a folder named like content of ERROR_DIR exists, move failed files in it:
+                logging.debug('using hidden feature: if a folder named \"' + ERROR_DIR + '\" exists, move failed files into it')
                 os.rename(os.path.join(dirname, basename), os.path.join(dirname, ERROR_DIR, basename))
                 logging.info('moved file to sub-directory "' + ERROR_DIR + '"')
             return False
