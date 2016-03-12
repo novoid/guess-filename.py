@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Time-stamp: <2016-03-12 14:20:18 vk>
+# Time-stamp: <2016-03-12 14:32:54 vk>
 
 # TODO:
+# * add -i (interactive) where user gets asked if renaming should be done (per file)
 # * fix parts marked with «FIXXME»
 
 
@@ -374,6 +375,13 @@ class GuessFilename(object):
             return datetimestr + ' ' + \
                 basefilename.replace(' bill', ' ').replace('bill ', ' ').replace('  ', ' ').replace(u'EUR', u'€') + \
                 u" -- " + ' '.join(s.adding_tags(tags, ['scan', 'bill'])) + \
+                u".pdf"
+
+        # 2015-04-30 FH St.Poelten - Abrechnungsbeleg 12,34 EUR - Honorar -- scan finance.pdf
+        if s.contains_all_of(oldfilename, [" FH ", "Abrechnungsbeleg"]) and s.has_euro_charge(oldfilename) and datetimestr:
+            return datetimestr + \
+                u" FH St.Poelten - Abrechnungsbeleg " + s.get_euro_charge(oldfilename) + \
+                u"€ Honorar -- " + ' '.join(s.adding_tags(tags, ['scan'])) + \
                 u".pdf"
 
         # FIXXME: more cases!
