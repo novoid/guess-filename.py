@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Time-stamp: <2016-03-12 14:32:54 vk>
+# Time-stamp: <2016-03-12 15:20:56 vk>
 
 # TODO:
 # * add -i (interactive) where user gets asked if renaming should be done (per file)
@@ -284,6 +284,20 @@ class GuessFilename(object):
         else:
             return False
 
+    def get_euro_charge_from_context_or_basename(self, string, before, after, basename):
+        """
+        Returns the included €-currency which is between before and after
+        strings or within the basename or return 'FIXXME'
+        """
+
+        charge = self.get_euro_charge_from_context(string, before, after)
+        if not charge:
+            charge = self.get_euro_charge(basename)
+            if not charge:
+                return 'FIXXME'
+
+        return charge
+
     def get_euro_charge_from_context(self, string, before, after):
         """
         Returns the included €-currency which is between before and after strings or False
@@ -373,15 +387,15 @@ class GuessFilename(object):
         # 2016-01-19 bill foobar baz 12,12EUR.pdf -> 2016-01-19 foobar baz 12,12€ -- scan bill.pdf
         if u'bill' in oldfilename and datetimestr and s.has_euro_charge(oldfilename):
             return datetimestr + ' ' + \
-                basefilename.replace(' bill', ' ').replace('bill ', ' ').replace('  ', ' ').replace(u'EUR', u'€') + \
+                basefilename.replace(' bill', ' ').replace('bill ', ' ').replace('  ', ' ').replace(u'EUR', u'€').strip() + \
                 u" -- " + ' '.join(s.adding_tags(tags, ['scan', 'bill'])) + \
                 u".pdf"
 
-        # 2015-04-30 FH St.Poelten - Abrechnungsbeleg 12,34 EUR - Honorar -- scan finance.pdf
+        # 2015-04-30 FH St.Poelten - Abrechnungsbeleg 12,34 EUR - Honorar -- scan fhstp.pdf
         if s.contains_all_of(oldfilename, [" FH ", "Abrechnungsbeleg"]) and s.has_euro_charge(oldfilename) and datetimestr:
             return datetimestr + \
                 u" FH St.Poelten - Abrechnungsbeleg " + s.get_euro_charge(oldfilename) + \
-                u"€ Honorar -- " + ' '.join(s.adding_tags(tags, ['scan'])) + \
+                u"€ Honorar -- " + ' '.join(s.adding_tags(tags, ['scan', 'fhstp'])) + \
                 u".pdf"
 
         # FIXXME: more cases!
@@ -430,11 +444,9 @@ class GuessFilename(object):
                 u".pdf"
 
         # 2015-11-20 Kirchenbeitrag 12,34 EUR -- scan taxes bill.pdf
-        if self.fuzzy_contains_all_of(content, ["4294-0208", "AT086000000007042401", "Kontonachricht"]) and \
+        if self.fuzzy_contains_all_of(content, ["4294-0208", "AT086000000007042401"]) and \
            datetimestr:
-            floatstr = self.get_euro_charge_from_context(content, "Offen", "Zahlungen")
-            if not floatstr:
-                floatstr = 'FIXXME'
+            floatstr = self.get_euro_charge_from_context_or_basename(content, "Offen", "Zahlungen", basename)
             return datetimestr + \
                 u" Kirchenbeitrag " + floatstr + u"€ -- " + \
                 ' '.join(self.adding_tags(tags, ['scan', 'taxes', 'bill'])) + \
@@ -446,11 +458,10 @@ class GuessFilename(object):
                                                 u"IhreangepasstePrämiebeträgtdahermonatlich",
                                                 u"AT44ZZZ00000002054"]) and \
             datetimestr:
-            floatstr = self.get_euro_charge_from_context(content,
-                                                         "IndiesemBetragistauchdiegesetzlicheVersicherungssteuerenthalten.EUR",
-                                                         "Wird")
-            if not floatstr:
-                floatstr = 'FIXXME'
+            floatstr = self.get_euro_charge_from_context_or_basename(content,
+                                                                     "IndiesemBetragistauchdiegesetzlicheVersicherungssteuerenthalten.EUR",
+                                                                     "Wird",
+                                                                     basename)
             return datetimestr + \
                 u" Generali Erhoehung Dynamikklausel - Praemie nun " + floatstr + \
                 u"€ - Polizze " + self.config.GENERALI1_POLIZZE_NUMBER + " -- " + \
@@ -462,11 +473,10 @@ class GuessFilename(object):
            self.fuzzy_contains_all_of(content, [u"Prämienvorschreibung",
                                                 self.config.MERKUR_GESUNDHEITSVORSORGE_ZAHLUNGSREFERENZ]) and \
             datetimestr:
-            floatstr = self.get_euro_charge_from_context(content,
-                                                         "EUR",
-                                                         "Gesundheit ist ein kostbares Gut")
-            if not floatstr:
-                floatstr = 'FIXXME'
+            floatstr = self.get_euro_charge_from_context_or_basename(content,
+                                                                     "EUR",
+                                                                     "Gesundheit ist ein kostbares Gut",
+                                                                     basename)
             return datetimestr + \
                 u" Merkur Lebensversicherung " + self.config.MERKUR_GESUNDHEITSVORSORGE_NUMBER + \
                 u" - Praemienzahlungsaufforderung " + floatstr + \
@@ -485,11 +495,10 @@ class GuessFilename(object):
         # 2015-11-24 Rechnung A1 Festnetz-Internet 12,34€ -- scan bill.pdf
         if self.fuzzy_contains_all_of(content, [self.config.PROVIDER_CONTRACT, self.config.PROVIDER_CUE]) and \
             datetimestr:
-            floatstr = self.get_euro_charge_from_context(content,
-                                                         u"\u2022",
-                                                         "Bei Online Zahlungen geben Sie")
-            if not floatstr:
-                floatstr = 'FIXXME'
+            floatstr = self.get_euro_charge_from_context_or_basename(content,
+                                                                     u"\u2022",
+                                                                     "Bei Online Zahlungen geben Sie",
+                                                                     basename)
             return datetimestr + \
                 u" A1 Festnetz-Internet " + floatstr + \
                 u"€ -- " + ' '.join(self.adding_tags(tags, ['scan', 'bill'])) + \
