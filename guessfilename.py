@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Time-stamp: <2016-03-12 15:20:56 vk>
+# Time-stamp: <2016-03-12 22:05:40 vk>
 
 # TODO:
 # * add -i (interactive) where user gets asked if renaming should be done (per file)
@@ -427,6 +427,10 @@ class GuessFilename(object):
             content = pdffile.pages[0].extractText()
         else:
             logging.error('Could not determine number of pages of PDF content! (skipping content analysis)')
+            return False
+
+        if len(content) == 0:
+            logging.warning('Could read PDF file content but it is empty (skipping content analysis)')
             return False
 
         datetimestr, basefilename, tags, extension = self.split_filename_entities(basename)
