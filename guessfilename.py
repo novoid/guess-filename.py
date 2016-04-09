@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Time-stamp: <2016-03-12 22:09:58 vk>
+# Time-stamp: <2016-04-08 16:32:33 vk>
 
 # TODO:
 # * add -i (interactive) where user gets asked if renaming should be done (per file)
@@ -403,6 +403,27 @@ class GuessFilename(object):
             return datetimestr + \
                 u" Gehaltszettel Februar " + self.get_euro_charge(oldfilename) + \
                 u"€ -- " + ' '.join(self.adding_tags(tags, ['scan', 'infonova'])) + \
+                u".pdf"
+
+        # 2012-05-26T22.25.12_IMAG0861 Rage Ergebnis - MITSPIELER -- games.jpg
+        if self.contains_one_of(basefilename, ["Hive", "Rage", "Stratego"]) and \
+           extension.lower() == 'jpg' and not self.has_euro_charge(oldfilename):
+            return datetimestr + basefilename + \
+                u" - Ergebnis -- games" + \
+                u".jpg"
+
+        # 2015-03-11 VBV Kontoinformation 123 EUR -- scan finance infonova.pdf
+        if self.contains_all_of(oldfilename, ["VBV", "Kontoinformation"]) and self.has_euro_charge(oldfilename) and datetimestr:
+            return datetimestr + \
+                u" VBV Kontoinformation " + self.get_euro_charge(oldfilename) + \
+                u"€ -- " + ' '.join(self.adding_tags(tags, ['scan', 'finance', 'infonova'])) + \
+                u".pdf"
+
+        # 2015-03-11 Verbrauchsablesung Wasser - Holding Graz -- scan bwg.pdf
+        if self.contains_all_of(oldfilename, ["Verbrauchsablesung", "Wasser"]) and datetimestr:
+            return datetimestr + \
+                u" Verbrauchsablesung Wasser - Holding Graz -- " + \
+                ' '.join(self.adding_tags(tags, ['scan', 'bwg'])) + \
                 u".pdf"
 
         # FIXXME: more cases!
