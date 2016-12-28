@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Time-stamp: <2016-12-28 14:10:43 vk>
+# Time-stamp: <2016-12-28 14:31:59 vk>
 
 # TODO:
 # * add -i (interactive) where user gets asked if renaming should be done (per file)
@@ -128,6 +128,12 @@ class GuessFilename(object):
     ANDROID_SCREENSHOT_REGEX = 'Screenshot_([12]\d{3})-?([01]\d)-?([0123]\d)' + '-?' + \
                                '([012]\d).?([012345]\d)(.?([012345]\d))?' + '( .*)?.png'
     ANDROID_SCREENSHOT_INDEXGROUPS = [1, '-', 2, '-', 3, 'T', 4, '.', 5, '.', 7, 8, ' -- screenshots android.png']
+
+    OSMTRACKS_DELIMITERS = '[.;:]?'
+    OSMTRACKS_REGEX = '([12]\d{3})-?([01]\d)-?([0123]\d)' + 'T?' + \
+                      '([012]\d)' + OSMTRACKS_DELIMITERS + '([012345]\d)(' + OSMTRACKS_DELIMITERS + \
+                      '([012345]\d))?' + '(_.*)?.gpx'
+    OSMTRACKS_INDEXGROUPS = [1, '-', 2, '-', 3, 'T', 4, '.', 5, ['.', 7], 8, '.gpx']
 
     logger = None
     config = None
@@ -325,7 +331,6 @@ class GuessFilename(object):
         else:
             logging.warning(u"Sorry, I was not able to extract a charge for this file, please fix manually")
             logging.debug(u"get_euro_charge_from_context was not able to extract a float: between [%s] and [%s] within [%s]" % (before, after, string[:30] + u"..."))
-            #import pdb; pdb.set_trace()
             return False
 
     def rename_file(self, dirname, oldbasename, newbasename, dryrun=False, quiet=False):
@@ -383,7 +388,8 @@ class GuessFilename(object):
         """
 
         if not regex_match:
-            return "ERROR: no re.match object found"
+            logging.error('no re.match object found; please check before calling build_string_via_indexgroups()')
+            return "ERROR"
 
         def append_element(string, indexgroups):
             result = string
@@ -418,10 +424,10 @@ class GuessFilename(object):
                         #    '   -> not changed because one or more elements of sub-list were not found'
             return result
 
-        #print 'DEBUG: ' + 'v' * 50 + '\n' + 'DEBUG: FILE: ' + str(regex_match.group(0))
-        #print 'DEBUG: GROUPS: ' + str(regex_match.groups())
+        logging.debug('build_string_via_indexgroups: FILENAME: ' + str(regex_match.group(0)))
+        logging.debug('build_string_via_indexgroups: GROUPS: ' + str(regex_match.groups()))
         result = append_element(u'', indexgroups)
-        #print 'DEBUG: ' + '^' * 50
+        logging.debug('build_string_via_indexgroups: RESULT:   ' + result)
         return result
 
     def derive_new_filename_from_old_filename(self, oldfilename):
@@ -436,10 +442,17 @@ class GuessFilename(object):
         logging.debug("derive_new_filename_from_old_filename called")
         datetimestr, basefilename, tags, extension = self.split_filename_entities(oldfilename)
 
+        # Android screenshots:
         # Screenshot_2013-03-05-08-14-09.png -> 2013-03-05T08-14-09 -- android screenshots.png
         regex_match = re.match(self.ANDROID_SCREENSHOT_REGEX, oldfilename)
         if regex_match:
             return self.build_string_via_indexgroups(regex_match, self.ANDROID_SCREENSHOT_INDEXGROUPS)
+
+        # Android OSMTracker GPS track files:
+        # 2015-05-27T09;00;15_foo_bar.gpx -> 2015-05-27T09.00.15 foo bar.gpx
+        regex_match = re.match(self.OSMTRACKS_REGEX, oldfilename)
+        if regex_match:
+            return self.build_string_via_indexgroups(regex_match, self.OSMTRACKS_INDEXGROUPS).replace('_', ' ')
 
         # 2015-11-24 Rechnung A1 Festnetz-Internet 12,34€ -- scan bill.pdf
         if self.contains_one_of(oldfilename, [" A1 ", " a1 "]) and self.has_euro_charge(oldfilename) and datetimestr:
