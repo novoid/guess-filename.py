@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Time-stamp: <2016-04-08 16:32:33 vk>
+# Time-stamp: <2016-12-28 14:10:43 vk>
 
 # TODO:
 # * add -i (interactive) where user gets asked if renaming should be done (per file)
@@ -109,20 +109,25 @@ class GuessFilename(object):
 
     # file names containing tags matches following regular expression
     # ( (date(time)?)?(--date(time)?)? )? filename (tags)? (extension)?
-    DAY_REGEX = "[12]\d{3}-?[01]\d-?[0123]\d"  # note: I made the dashes between optional to match simpler format as well
-    TIME_REGEX = "T[012]\d.[012345]\d(.[012345]\d)?"
-    DAYTIME_REGEX = "(" + DAY_REGEX + "(" + TIME_REGEX + ")?)"
-    DAYTIME_DURATION_REGEX = DAYTIME_REGEX + "(--?" + DAYTIME_REGEX + ")?"
+    DAY_REGEX = '[12]\d{3}-?[01]\d-?[0123]\d'  # note: I made the dashes between optional to match simpler format as well
+    TIME_REGEX = 'T[012]\d.[012345]\d(.[012345]\d)?'
 
-    ISO_NAME_TAGS_EXTENSION_REGEX = re.compile("((" + DAYTIME_DURATION_REGEX + ")[ -_])?(.+?)(" + FILENAME_TAG_SEPARATOR + "((\w+[" + BETWEEN_TAG_SEPARATOR + "]?)+))?(\.(\w+))?$")
+    DAYTIME_REGEX = '(' + DAY_REGEX + '(' + TIME_REGEX + ')?)'
+    DAYTIME_DURATION_REGEX = DAYTIME_REGEX + '(--?' + DAYTIME_REGEX + ')?'
+
+    ISO_NAME_TAGS_EXTENSION_REGEX = re.compile('((' + DAYTIME_DURATION_REGEX + ')[ -_])?(.+?)(' + FILENAME_TAG_SEPARATOR + '((\w+[' + BETWEEN_TAG_SEPARATOR + ']?)+))?(\.(\w+))?$')
     DAYTIME_DURATION_INDEX = 2
     NAME_INDEX = 10
     TAGS_INDEX = 12
     EXTENSION_INDEX = 15
 
-    RAW_EURO_CHARGE_REGEX = u"(\d+([,.]\d+)?)[-_ ]?(EUR|€)"
-    EURO_CHARGE_REGEX = re.compile(u"^(.+[-_ ])?" + RAW_EURO_CHARGE_REGEX + "([-_ .].+)?$")
+    RAW_EURO_CHARGE_REGEX = u'(\d+([,.]\d+)?)[-_ ]?(EUR|€)'
+    EURO_CHARGE_REGEX = re.compile(u'^(.+[-_ ])?' + RAW_EURO_CHARGE_REGEX + '([-_ .].+)?$')
     EURO_CHARGE_INDEX = 2
+
+    ANDROID_SCREENSHOT_REGEX = 'Screenshot_([12]\d{3})-?([01]\d)-?([0123]\d)' + '-?' + \
+                               '([012]\d).?([012345]\d)(.?([012345]\d))?' + '( .*)?.png'
+    ANDROID_SCREENSHOT_INDEXGROUPS = [1, '-', 2, '-', 3, 'T', 4, '.', 5, '.', 7, 8, ' -- screenshots android.png']
 
     logger = None
     config = None
@@ -358,6 +363,67 @@ class GuessFilename(object):
             os.rename(oldfile, newfile)
         return True
 
+    def build_string_via_indexgroups(self, regex_match, indexgroups):
+        """This function takes a regex_match object and concatenates its
+        groups. It does this by traversing the list of indexgroups. If
+        the list item is an integer, the corresponding
+        regex_match.group() is appended to the result string. If the
+        list item is a string, the string is appended to the result
+        string.
+
+        When a list item is a list, its elements are appended as well as
+        long as all list items exist.
+
+        match-groups that are in the indexgroups but are None are ignored.
+
+        @param regex_match: a regex match object from re.match(REGEX, STRING)
+        @param indexgroups: list of strings and integers like [1, '-', 2, '-', 3, 'T', 4, '.', 5, ' foo .png']
+        @param return: string containing the concatenated string
+
+        """
+
+        if not regex_match:
+            return "ERROR: no re.match object found"
+
+        def append_element(string, indexgroups):
+            result = string
+            for element in indexgroups:
+                if type(element) ==  str:
+                    result += element
+                    #print 'DEBUG: result after element [' + str(element)  + '] =  [' + str(result) + ']'
+                elif type(element) == int:
+                    potential_element = regex_match.group(element)
+                    # ignore None matches
+                    if potential_element:
+                        result += regex_match.group(element)
+                        #print 'DEBUG: result after element [' + str(element)  + '] =  [' + str(result) + ']'
+                    else:
+                        #print 'DEBUG: match-group element ' + str(element) + ' is None'
+                        pass
+                elif type(element) == list:
+                    # recursive: if a list element is a list, process if all elements exists:
+                    #print 'DEBUG: found list item = ' + str(element)
+                    #print 'DEBUG:   result before = [' + str(result) + ']'
+                    all_found = True
+                    for listelement in element:
+                        if type(listelement) == int and (regex_match.group(listelement) is None or
+                                                         len(regex_match.group(listelement)) <1):
+                            all_found = False
+                    if all_found:
+                        result = append_element(result, element)
+                        #print 'DEBUG:   result after =  [' + str(result) + ']'
+                    else:
+                        pass
+                        #print 'DEBUG:   result after =  [' + str(result) + ']' + \
+                        #    '   -> not changed because one or more elements of sub-list were not found'
+            return result
+
+        #print 'DEBUG: ' + 'v' * 50 + '\n' + 'DEBUG: FILE: ' + str(regex_match.group(0))
+        #print 'DEBUG: GROUPS: ' + str(regex_match.groups())
+        result = append_element(u'', indexgroups)
+        #print 'DEBUG: ' + '^' * 50
+        return result
+
     def derive_new_filename_from_old_filename(self, oldfilename):
         """
         Analyses the old filename and returns a new one if feasible.
@@ -369,6 +435,11 @@ class GuessFilename(object):
 
         logging.debug("derive_new_filename_from_old_filename called")
         datetimestr, basefilename, tags, extension = self.split_filename_entities(oldfilename)
+
+        # Screenshot_2013-03-05-08-14-09.png -> 2013-03-05T08-14-09 -- android screenshots.png
+        regex_match = re.match(self.ANDROID_SCREENSHOT_REGEX, oldfilename)
+        if regex_match:
+            return self.build_string_via_indexgroups(regex_match, self.ANDROID_SCREENSHOT_INDEXGROUPS)
 
         # 2015-11-24 Rechnung A1 Festnetz-Internet 12,34€ -- scan bill.pdf
         if self.contains_one_of(oldfilename, [" A1 ", " a1 "]) and self.has_euro_charge(oldfilename) and datetimestr:
@@ -401,7 +472,7 @@ class GuessFilename(object):
         # 2016-02-26 Gehaltszettel Februar 12,34 EUR -- scan infonova.pdf
         if self.contains_all_of(oldfilename, ["Gehalt", "infonova"]) and self.has_euro_charge(oldfilename) and datetimestr:
             return datetimestr + \
-                u" Gehaltszettel Februar " + self.get_euro_charge(oldfilename) + \
+                u" Gehaltszettel " + self.get_euro_charge(oldfilename) + \
                 u"€ -- " + ' '.join(self.adding_tags(tags, ['scan', 'infonova'])) + \
                 u".pdf"
 
