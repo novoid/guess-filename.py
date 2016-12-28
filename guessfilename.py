@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Time-stamp: <2016-12-28 14:31:59 vk>
+# Time-stamp: <2016-12-28 16:56:59 vk>
 
 # TODO:
 # * add -i (interactive) where user gets asked if renaming should be done (per file)
@@ -129,11 +129,21 @@ class GuessFilename(object):
                                '([012]\d).?([012345]\d)(.?([012345]\d))?' + '( .*)?.png'
     ANDROID_SCREENSHOT_INDEXGROUPS = [1, '-', 2, '-', 3, 'T', 4, '.', 5, '.', 7, 8, ' -- screenshots android.png']
 
-    OSMTRACKS_DELIMITERS = '[.;:]?'
+    TIMESTAMP_DELIMITERS = '[.;:]?'
+
     OSMTRACKS_REGEX = '([12]\d{3})-?([01]\d)-?([0123]\d)' + 'T?' + \
-                      '([012]\d)' + OSMTRACKS_DELIMITERS + '([012345]\d)(' + OSMTRACKS_DELIMITERS + \
+                      '([012]\d)' + TIMESTAMP_DELIMITERS + '([012345]\d)(' + TIMESTAMP_DELIMITERS + \
                       '([012345]\d))?' + '(_.*)?.gpx'
     OSMTRACKS_INDEXGROUPS = [1, '-', 2, '-', 3, 'T', 4, '.', 5, ['.', 7], 8, '.gpx']
+
+    # MediathekView: Settings > modify Set > Targetfilename: "%DT%d h%i %s %t - %T - %N.mp4"
+    # results in files like:
+    #   20161227T201500 h115421 ORF Das Sacher. In bester Gesellschaft 1.mp4
+    #   20161227T193000 l119684 ORF ZIB 1 - Auswirkungen der _Panama-Papers_ - 2016-12-27_1930_tl_02_ZIB-1_Auswirkungen-de__.mp4
+    MEDIATHEKVIEW_REGEX = '([12]\d{3})-?([01]\d)-?([0123]\d)' + 'T?' + \
+                      '([012]\d)' + TIMESTAMP_DELIMITERS + '([012345]\d)(' + TIMESTAMP_DELIMITERS + \
+                      '([012345]\d))?' + '(.+?)( - [12]\d{3}-?[01]\d-?[0123]\d_.+)?.mp4'
+    MEDIATHEKVIEW_INDEXGROUPS = [1, '-', 2, '-', 3, 'T', 4, '.', 5, ['.', 7], 8, '.mp4']
 
     logger = None
     config = None
@@ -447,6 +457,16 @@ class GuessFilename(object):
         regex_match = re.match(self.ANDROID_SCREENSHOT_REGEX, oldfilename)
         if regex_match:
             return self.build_string_via_indexgroups(regex_match, self.ANDROID_SCREENSHOT_INDEXGROUPS)
+
+        # MediathekView: Settings > modify Set > Targetfilename: "%DT%d h%i %s %t - %T - %N.mp4"
+        # results in files like:
+        #   20161227T201500 h115421 ORF Das Sacher. In bester Gesellschaft 1.mp4
+        #     -> 2016-12-27T20.15.00 h115421 ORF Das Sacher. In bester Gesellschaft 1.mp4
+        #   20161227T193000 l119684 ORF ZIB 1 - Auswirkungen der _Panama-Papers_ - 2016-12-27_1930_tl_02_ZIB-1_Auswirkungen-de__.mp4
+        #     -> 2016-12-27T19.30.00 l119684 ORF ZIB 1 - Auswirkungen der _Panama-Papers_.mp4
+        regex_match = re.match(self.MEDIATHEKVIEW_REGEX, oldfilename)
+        if regex_match:
+            return self.build_string_via_indexgroups(regex_match, self.MEDIATHEKVIEW_INDEXGROUPS).replace('_', ' ')
 
         # Android OSMTracker GPS track files:
         # 2015-05-27T09;00;15_foo_bar.gpx -> 2015-05-27T09.00.15 foo bar.gpx
