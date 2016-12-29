@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Time-stamp: <2016-12-28 16:56:59 vk>
+# Time-stamp: <2016-12-29 14:58:09 vk>
 
 # TODO:
 # * add -i (interactive) where user gets asked if renaming should be done (per file)
@@ -129,20 +129,20 @@ class GuessFilename(object):
                                '([012]\d).?([012345]\d)(.?([012345]\d))?' + '( .*)?.png'
     ANDROID_SCREENSHOT_INDEXGROUPS = [1, '-', 2, '-', 3, 'T', 4, '.', 5, '.', 7, 8, ' -- screenshots android.png']
 
-    TIMESTAMP_DELIMITERS = '[.;:]?'
+    TIMESTAMP_DELIMITERS = '[.;:-]?'
+    DATESTAMP_REGEX = '([12]\d{3})' + TIMESTAMP_DELIMITERS + '([01]\d)' + TIMESTAMP_DELIMITERS + '([0123]\d)'
+    TIMESTAMP_REGEX = '([012]\d)' + TIMESTAMP_DELIMITERS + '([012345]\d)(' + TIMESTAMP_DELIMITERS + '([012345]\d))?'
 
-    OSMTRACKS_REGEX = '([12]\d{3})-?([01]\d)-?([0123]\d)' + 'T?' + \
-                      '([012]\d)' + TIMESTAMP_DELIMITERS + '([012345]\d)(' + TIMESTAMP_DELIMITERS + \
-                      '([012345]\d))?' + '(_.*)?.gpx'
+    OSMTRACKS_REGEX = DATESTAMP_REGEX + 'T?' + TIMESTAMP_REGEX + '(_.*)?.gpx'
     OSMTRACKS_INDEXGROUPS = [1, '-', 2, '-', 3, 'T', 4, '.', 5, ['.', 7], 8, '.gpx']
 
     # MediathekView: Settings > modify Set > Targetfilename: "%DT%d h%i %s %t - %T - %N.mp4"
     # results in files like:
     #   20161227T201500 h115421 ORF Das Sacher. In bester Gesellschaft 1.mp4
     #   20161227T193000 l119684 ORF ZIB 1 - Auswirkungen der _Panama-Papers_ - 2016-12-27_1930_tl_02_ZIB-1_Auswirkungen-de__.mp4
-    MEDIATHEKVIEW_REGEX = '([12]\d{3})-?([01]\d)-?([0123]\d)' + 'T?' + \
-                      '([012]\d)' + TIMESTAMP_DELIMITERS + '([012345]\d)(' + TIMESTAMP_DELIMITERS + \
-                      '([012345]\d))?' + '(.+?)( - [12]\d{3}-?[01]\d-?[0123]\d_.+)?.mp4'
+    MEDIATHEKVIEW_REGEX = DATESTAMP_REGEX + 'T?' + TIMESTAMP_REGEX + \
+                          '(.+?)( - [12]\d{3}' + TIMESTAMP_DELIMITERS + '[01]\d' + TIMESTAMP_DELIMITERS + \
+                          '[0123]\d_.+)?.mp4'
     MEDIATHEKVIEW_INDEXGROUPS = [1, '-', 2, '-', 3, 'T', 4, '.', 5, ['.', 7], 8, '.mp4']
 
     logger = None
