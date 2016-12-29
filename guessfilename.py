@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Time-stamp: <2016-12-29 14:58:09 vk>
+# Time-stamp: <2016-12-29 15:04:26 vk>
 
 # TODO:
 # * add -i (interactive) where user gets asked if renaming should be done (per file)
@@ -135,6 +135,9 @@ class GuessFilename(object):
 
     OSMTRACKS_REGEX = DATESTAMP_REGEX + 'T?' + TIMESTAMP_REGEX + '(_.*)?.gpx'
     OSMTRACKS_INDEXGROUPS = [1, '-', 2, '-', 3, 'T', 4, '.', 5, ['.', 7], 8, '.gpx']
+
+    IMG_REGEX = 'IMG_' + DATESTAMP_REGEX + '_' + TIMESTAMP_REGEX + '(.+)?.jpg'
+    IMG_INDEXGROUPS = [1, '-', 2, '-', 3, 'T', 4, '.', 5, ['.', 7], 8, '.jpg']
 
     # MediathekView: Settings > modify Set > Targetfilename: "%DT%d h%i %s %t - %T - %N.mp4"
     # results in files like:
@@ -473,6 +476,11 @@ class GuessFilename(object):
         regex_match = re.match(self.OSMTRACKS_REGEX, oldfilename)
         if regex_match:
             return self.build_string_via_indexgroups(regex_match, self.OSMTRACKS_INDEXGROUPS).replace('_', ' ')
+
+        # digital camera images: IMG_20161014_214404 foo bar.jpg -> 2016-10-14T21.44.04 foo bar.jpg
+        regex_match = re.match(self.IMG_REGEX, oldfilename)
+        if regex_match:
+            return self.build_string_via_indexgroups(regex_match, self.IMG_INDEXGROUPS)
 
         # 2015-11-24 Rechnung A1 Festnetz-Internet 12,34€ -- scan bill.pdf
         if self.contains_one_of(oldfilename, [" A1 ", " a1 "]) and self.has_euro_charge(oldfilename) and datetimestr:
