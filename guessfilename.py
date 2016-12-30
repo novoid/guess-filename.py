@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Time-stamp: <2016-12-29 15:04:26 vk>
+# Time-stamp: <2016-12-30 11:52:48 vk>
 
 # TODO:
 # * add -i (interactive) where user gets asked if renaming should be done (per file)
@@ -115,37 +115,37 @@ class GuessFilename(object):
     DAYTIME_REGEX = '(' + DAY_REGEX + '(' + TIME_REGEX + ')?)'
     DAYTIME_DURATION_REGEX = DAYTIME_REGEX + '(--?' + DAYTIME_REGEX + ')?'
 
-    ISO_NAME_TAGS_EXTENSION_REGEX = re.compile('((' + DAYTIME_DURATION_REGEX + ')[ -_])?(.+?)(' + FILENAME_TAG_SEPARATOR + '((\w+[' + BETWEEN_TAG_SEPARATOR + ']?)+))?(\.(\w+))?$')
+    ISO_NAME_TAGS_EXTENSION_REGEX = re.compile('((' + DAYTIME_DURATION_REGEX + ')[ -_])?(.+?)(' + FILENAME_TAG_SEPARATOR + '((\w+[' + BETWEEN_TAG_SEPARATOR + ']?)+))?(\.(\w+))?$', re.UNICODE)
     DAYTIME_DURATION_INDEX = 2
     NAME_INDEX = 10
     TAGS_INDEX = 12
     EXTENSION_INDEX = 15
 
     RAW_EURO_CHARGE_REGEX = u'(\d+([,.]\d+)?)[-_ ]?(EUR|€)'
-    EURO_CHARGE_REGEX = re.compile(u'^(.+[-_ ])?' + RAW_EURO_CHARGE_REGEX + '([-_ .].+)?$')
+    EURO_CHARGE_REGEX = re.compile(u'^(.+[-_ ])?' + RAW_EURO_CHARGE_REGEX + '([-_ .].+)?$', re.UNICODE)
     EURO_CHARGE_INDEX = 2
 
-    ANDROID_SCREENSHOT_REGEX = 'Screenshot_([12]\d{3})-?([01]\d)-?([0123]\d)' + '-?' + \
-                               '([012]\d).?([012345]\d)(.?([012345]\d))?' + '( .*)?.png'
+    ANDROID_SCREENSHOT_REGEX = re.compile(u'Screenshot_([12]\d{3})-?([01]\d)-?([0123]\d)' + '-?' + \
+                               '([012]\d).?([012345]\d)(.?([012345]\d))?' + '( .*)?.png', re.UNICODE)
     ANDROID_SCREENSHOT_INDEXGROUPS = [1, '-', 2, '-', 3, 'T', 4, '.', 5, '.', 7, 8, ' -- screenshots android.png']
 
     TIMESTAMP_DELIMITERS = '[.;:-]?'
     DATESTAMP_REGEX = '([12]\d{3})' + TIMESTAMP_DELIMITERS + '([01]\d)' + TIMESTAMP_DELIMITERS + '([0123]\d)'
     TIMESTAMP_REGEX = '([012]\d)' + TIMESTAMP_DELIMITERS + '([012345]\d)(' + TIMESTAMP_DELIMITERS + '([012345]\d))?'
 
-    OSMTRACKS_REGEX = DATESTAMP_REGEX + 'T?' + TIMESTAMP_REGEX + '(_.*)?.gpx'
+    OSMTRACKS_REGEX = re.compile(DATESTAMP_REGEX + 'T?' + TIMESTAMP_REGEX + '(_.*)?.gpx', re.UNICODE)
     OSMTRACKS_INDEXGROUPS = [1, '-', 2, '-', 3, 'T', 4, '.', 5, ['.', 7], 8, '.gpx']
 
-    IMG_REGEX = 'IMG_' + DATESTAMP_REGEX + '_' + TIMESTAMP_REGEX + '(.+)?.jpg'
+    IMG_REGEX = re.compile(u'IMG_' + DATESTAMP_REGEX + '_' + TIMESTAMP_REGEX + '(.+)?.jpg', re.UNICODE)
     IMG_INDEXGROUPS = [1, '-', 2, '-', 3, 'T', 4, '.', 5, ['.', 7], 8, '.jpg']
 
     # MediathekView: Settings > modify Set > Targetfilename: "%DT%d h%i %s %t - %T - %N.mp4"
     # results in files like:
     #   20161227T201500 h115421 ORF Das Sacher. In bester Gesellschaft 1.mp4
     #   20161227T193000 l119684 ORF ZIB 1 - Auswirkungen der _Panama-Papers_ - 2016-12-27_1930_tl_02_ZIB-1_Auswirkungen-de__.mp4
-    MEDIATHEKVIEW_REGEX = DATESTAMP_REGEX + 'T?' + TIMESTAMP_REGEX + \
+    MEDIATHEKVIEW_REGEX = re.compile(DATESTAMP_REGEX + 'T?' + TIMESTAMP_REGEX + \
                           '(.+?)( - [12]\d{3}' + TIMESTAMP_DELIMITERS + '[01]\d' + TIMESTAMP_DELIMITERS + \
-                          '[0123]\d_.+)?.mp4'
+                          '[0123]\d_.+)?.mp4', re.UNICODE)
     MEDIATHEKVIEW_INDEXGROUPS = [1, '-', 2, '-', 3, 'T', 4, '.', 5, ['.', 7], 8, '.mp4']
 
     logger = None
@@ -437,7 +437,7 @@ class GuessFilename(object):
                         #    '   -> not changed because one or more elements of sub-list were not found'
             return result
 
-        logging.debug('build_string_via_indexgroups: FILENAME: ' + str(regex_match.group(0)))
+        logging.debug('build_string_via_indexgroups: FILENAME: ' + str(regex_match.group(0).encode('utf-8')))
         logging.debug('build_string_via_indexgroups: GROUPS: ' + str(regex_match.groups()))
         result = append_element(u'', indexgroups)
         logging.debug('build_string_via_indexgroups: RESULT:   ' + result)
