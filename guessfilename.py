@@ -1,6 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
-# Time-stamp: <2017-01-06 14:44:59 vk>
+# Time-stamp: <2017-02-12 17:36:33 vk>
 
 # TODO:
 # * add -i (interactive) where user gets asked if renaming should be done (per file)
