@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2017-08-22 12:28:59 vk>"
+PROG_VERSION = u"Time-stamp: <2017-08-22 12:47:24 vk>"
 
 
 # TODO:
@@ -33,6 +33,7 @@ except ImportError:
     print("Could not find Python module \"PyPDF2\".\nPlease install it, e.g., with \"sudo pip install PyPDF2\".")
     sys.exit(1)
 
+PROG_VERSION_DATE = PROG_VERSION[13:23]
 INVOCATION_TIME = time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime())
 
 USAGE = "\n\
@@ -53,7 +54,7 @@ Verbose description: FIXXME: http://Karl-Voit.at/FIXXME/\n\
 :license: GPL v3 or any later version\n\
 :URL: https://github.com/novoid/guess-filename.py\n\
 :bugreports: via github or <tools@Karl-Voit.at>\n\
-:version: " + PROG_VERSION + "\n"
+:version: " + PROG_VERSION_DATE + "\n"
 
 ERROR_DIR = 'guess-filename_fails'
 SUCCESS_DIR = 'guess-filename_success'
@@ -731,7 +732,7 @@ def main():
     """Main function"""
 
     if options.version:
-        print(os.path.basename(sys.argv[0]) + " version " + PROG_VERSION)
+        print(os.path.basename(sys.argv[0]) + " version " + PROG_VERSION_DATE)
         sys.exit(0)
 
     handle_logging()
