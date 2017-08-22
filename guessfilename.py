@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2017-08-22 12:26:00 vk>"
+PROG_VERSION = u"Time-stamp: <2017-08-22 12:28:59 vk>"
 
 
 # TODO:
@@ -245,10 +245,10 @@ class GuessFilename(object):
         for entry in entries:
             similarity = fuzz.partial_ratio(string, entry)
             if similarity > 64:
-                #logging.debug(u"MATCH   fuzzy_contains_one_of(%s, %s) == %i" % (string, str(entry), similarity))
+                # logging.debug(u"MATCH   fuzzy_contains_one_of(%s, %s) == %i" % (string, str(entry), similarity))
                 return True
             else:
-                #logging.debug(u"¬ MATCH fuzzy_contains_one_of(%s, %s) == %i" % (string, str(entry), similarity))
+                # logging.debug(u"¬ MATCH fuzzy_contains_one_of(%s, %s) == %i" % (string, str(entry), similarity))
                 pass
 
         return False
@@ -265,16 +265,16 @@ class GuessFilename(object):
 
         for entry in entries:
             assert(type(entry) == str or type(entry) == str)
-            #logging.debug(u"fuzzy_contains_all_of(%s..., %s...) ... " % (string[:30], str(entry[:30])))
-            if not entry in string:
-                ## if entry is found in string (exactly), try with fuzzy search:
+            # logging.debug(u"fuzzy_contains_all_of(%s..., %s...) ... " % (string[:30], str(entry[:30])))
+            if entry not in string:
+                # if entry is found in string (exactly), try with fuzzy search:
 
                 similarity = fuzz.partial_ratio(string, entry)
                 if similarity > 64:
-                    #logging.debug(u"MATCH   fuzzy_contains_all_of(%s..., %s) == %i" % (string[:30], str(entry), similarity))
+                    # logging.debug(u"MATCH   fuzzy_contains_all_of(%s..., %s) == %i" % (string[:30], str(entry), similarity))
                     pass
                 else:
-                    #logging.debug(u"¬ MATCH fuzzy_contains_all_of(%s..., %s) == %i" % (string[:30], str(entry), similarity))
+                    # logging.debug(u"¬ MATCH fuzzy_contains_all_of(%s..., %s) == %i" % (string[:30], str(entry), similarity))
                     return False
 
         return True
@@ -340,7 +340,7 @@ class GuessFilename(object):
 
         if components:
             floatstring = components.group(2) + ',' + components.group(3)
-            #logging.debug("get_euro_charge_from_context extracted float: [%s]" % floatstring)
+            # logging.debug("get_euro_charge_from_context extracted float: [%s]" % floatstring)
             return floatstring
         else:
             logging.warning("Sorry, I was not able to extract a charge for this file, please fix manually")
@@ -408,33 +408,33 @@ class GuessFilename(object):
         def append_element(string, indexgroups):
             result = string
             for element in indexgroups:
-                if type(element) ==  str:
+                if type(element) == str:
                     result += element
-                    #print 'DEBUG: result after element [' + str(element)  + '] =  [' + str(result) + ']'
+                    # print 'DEBUG: result after element [' + str(element)  + '] =  [' + str(result) + ']'
                 elif type(element) == int:
                     potential_element = regex_match.group(element)
                     # ignore None matches
                     if potential_element:
                         result += regex_match.group(element)
-                        #print 'DEBUG: result after element [' + str(element)  + '] =  [' + str(result) + ']'
+                        # print 'DEBUG: result after element [' + str(element)  + '] =  [' + str(result) + ']'
                     else:
-                        #print 'DEBUG: match-group element ' + str(element) + ' is None'
+                        # print 'DEBUG: match-group element ' + str(element) + ' is None'
                         pass
                 elif type(element) == list:
                     # recursive: if a list element is a list, process if all elements exists:
-                    #print 'DEBUG: found list item = ' + str(element)
-                    #print 'DEBUG:   result before = [' + str(result) + ']'
+                    # print 'DEBUG: found list item = ' + str(element)
+                    # print 'DEBUG:   result before = [' + str(result) + ']'
                     all_found = True
                     for listelement in element:
                         if type(listelement) == int and (regex_match.group(listelement) is None or
-                                                         len(regex_match.group(listelement)) <1):
+                                                         len(regex_match.group(listelement)) < 1):
                             all_found = False
                     if all_found:
                         result = append_element(result, element)
-                        #print 'DEBUG:   result after =  [' + str(result) + ']'
+                        # print 'DEBUG:   result after =  [' + str(result) + ']'
                     else:
                         pass
-                        #print 'DEBUG:   result after =  [' + str(result) + ']' + \
+                        # print 'DEBUG:   result after =  [' + str(result) + ']' + \
                         #    '   -> not changed because one or more elements of sub-list were not found'
             return result
 
@@ -565,7 +565,7 @@ class GuessFilename(object):
         except:
             logging.error('Could not read PDF file content. Skipping its content.')
             return False
-        ## use first and second page of content only:
+        # use first and second page of content only:
         if pdffile.getNumPages() > 1:
             content = pdffile.pages[0].extractText() + pdffile.pages[1].extractText()
         elif pdffile.getNumPages() == 1:
@@ -605,8 +605,7 @@ class GuessFilename(object):
         if self.config.GENERALI1_POLIZZE_NUMBER in content and \
            self.fuzzy_contains_all_of(content, ["ImHinblickaufdievereinbarteDynamikklauseltritteineWertsteigerunginKraft",
                                                 "IhreangepasstePrämiebeträgtdahermonatlich",
-                                                "AT44ZZZ00000002054"]) and \
-            datetimestr:
+                                                "AT44ZZZ00000002054"]) and datetimestr:
             floatstr = self.get_euro_charge_from_context_or_basename(content,
                                                                      "IndiesemBetragistauchdiegesetzlicheVersicherungssteuerenthalten.EUR",
                                                                      "Wird",
@@ -620,8 +619,7 @@ class GuessFilename(object):
         # 2015-11-30 Merkur Lebensversicherung 123456 - Praemienzahlungsaufforderung 12,34€ -- scan bill.pdf
         if self.config.MERKUR_GESUNDHEITSVORSORGE_NUMBER in content and \
            self.fuzzy_contains_all_of(content, ["Prämienvorschreibung",
-                                                self.config.MERKUR_GESUNDHEITSVORSORGE_ZAHLUNGSREFERENZ]) and \
-            datetimestr:
+                                                self.config.MERKUR_GESUNDHEITSVORSORGE_ZAHLUNGSREFERENZ]) and datetimestr:
             floatstr = self.get_euro_charge_from_context_or_basename(content,
                                                                      "EUR",
                                                                      "Gesundheit ist ein kostbares Gut",
@@ -634,16 +632,14 @@ class GuessFilename(object):
                 ".pdf"
 
         # 2016-02-22 BANK - Darlehnen - Kontomitteilung -- scan taxes.pdf
-        if self.fuzzy_contains_all_of(content, [self.config.LOAN_INSTITUTE, self.config.LOAN_ID]) and \
-            datetimestr:
+        if self.fuzzy_contains_all_of(content, [self.config.LOAN_INSTITUTE, self.config.LOAN_ID]) and datetimestr:
             return datetimestr + \
                 " " + self.config.LOAN_INSTITUTE + " - Darlehnen - Kontomitteilung -- " + \
                 ' '.join(self.adding_tags(tags, ['scan', 'taxes'])) + \
                 ".pdf"
 
         # 2015-11-24 Rechnung A1 Festnetz-Internet 12,34€ -- scan bill.pdf
-        if self.fuzzy_contains_all_of(content, [self.config.PROVIDER_CONTRACT, self.config.PROVIDER_CUE]) and \
-            datetimestr:
+        if self.fuzzy_contains_all_of(content, [self.config.PROVIDER_CONTRACT, self.config.PROVIDER_CUE]) and datetimestr:
             floatstr = self.get_euro_charge_from_context_or_basename(content,
                                                                      "\u2022",
                                                                      "Bei Online Zahlungen geben Sie",
@@ -654,7 +650,6 @@ class GuessFilename(object):
                 ".pdf"
 
         # FIXXME: more file documents
-        #import pdb; pdb.set_trace()
 
         return False
 
