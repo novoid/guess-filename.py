@@ -1,6 +1,7 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# Time-stamp: <2017-02-12 17:36:33 vk>
+PROG_VERSION = u"Time-stamp: <2017-08-22 12:26:00 vk>"
+
 
 # TODO:
 # * add -i (interactive) where user gets asked if renaming should be done (per file)
@@ -23,27 +24,25 @@ from optparse import OptionParser
 try:
     from fuzzywuzzy import fuzz  # for fuzzy comparison of strings
 except ImportError:
-    print "Could not find Python module \"fuzzywuzzy\".\nPlease install it, e.g., with \"sudo pip install fuzzywuzzy\"."
+    print("Could not find Python module \"fuzzywuzzy\".\nPlease install it, e.g., with \"sudo pip install fuzzywuzzy\".")
     sys.exit(1)
 
 try:
     import PyPDF2
 except ImportError:
-    print "Could not find Python module \"PyPDF2\".\nPlease install it, e.g., with \"sudo pip install PyPDF2\"."
+    print("Could not find Python module \"PyPDF2\".\nPlease install it, e.g., with \"sudo pip install PyPDF2\".")
     sys.exit(1)
 
-PROG_VERSION_NUMBER = u"0.1"
-PROG_VERSION_DATE = u"2016-03-06"
 INVOCATION_TIME = time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime())
 
-USAGE = u"\n\
-    " + sys.argv[0] + u" [<options>] <list of files>\n\
+USAGE = "\n\
+    " + sys.argv[0] + " [<options>] <list of files>\n\
 \n\
 FIXXME\n\
 \n\
 \n\
 Example usages:\n\
-  " + sys.argv[0] + u" --tags=\"presentation projectA\" *.pptx\n\
+  " + sys.argv[0] + " --tags=\"presentation projectA\" *.pptx\n\
       ... FIXXME\n\
 \n\
 \n\
@@ -54,7 +53,7 @@ Verbose description: FIXXME: http://Karl-Voit.at/FIXXME/\n\
 :license: GPL v3 or any later version\n\
 :URL: https://github.com/novoid/guess-filename.py\n\
 :bugreports: via github or <tools@Karl-Voit.at>\n\
-:version: " + PROG_VERSION_NUMBER + " from " + PROG_VERSION_DATE + "\n"
+:version: " + PROG_VERSION + "\n"
 
 ERROR_DIR = 'guess-filename_fails'
 SUCCESS_DIR = 'guess-filename_success'
@@ -104,8 +103,8 @@ class GuessFilename(object):
     Contains methods of the guess filename domain
     """
 
-    FILENAME_TAG_SEPARATOR = u' -- '
-    BETWEEN_TAG_SEPARATOR = u' '
+    FILENAME_TAG_SEPARATOR = ' -- '
+    BETWEEN_TAG_SEPARATOR = ' '
 
     # file names containing tags matches following regular expression
     # ( (date(time)?)?(--date(time)?)? )? filename (tags)? (extension)?
@@ -121,12 +120,12 @@ class GuessFilename(object):
     TAGS_INDEX = 12
     EXTENSION_INDEX = 15
 
-    RAW_EURO_CHARGE_REGEX = u'(\d+([,.]\d+)?)[-_ ]?(EUR|€)'
-    EURO_CHARGE_REGEX = re.compile(u'^(.+[-_ ])?' + RAW_EURO_CHARGE_REGEX + '([-_ .].+)?$', re.UNICODE)
+    RAW_EURO_CHARGE_REGEX = '(\d+([,.]\d+)?)[-_ ]?(EUR|€)'
+    EURO_CHARGE_REGEX = re.compile('^(.+[-_ ])?' + RAW_EURO_CHARGE_REGEX + '([-_ .].+)?$', re.UNICODE)
     EURO_CHARGE_INDEX = 2
 
-    ANDROID_SCREENSHOT_REGEX = re.compile(u'Screenshot_([12]\d{3})-?([01]\d)-?([0123]\d)' + '-?' + \
-                               '([012]\d).?([012345]\d)(.?([012345]\d))?' + '( .*)?.png', re.UNICODE)
+    ANDROID_SCREENSHOT_REGEX = re.compile('Screenshot_([12]\d{3})-?([01]\d)-?([0123]\d)' + '-?' +
+                                          '([012]\d).?([012345]\d)(.?([012345]\d))?' + '( .*)?.png', re.UNICODE)
     ANDROID_SCREENSHOT_INDEXGROUPS = [1, '-', 2, '-', 3, 'T', 4, '.', 5, '.', 7, 8, ' -- screenshots android.png']
 
     TIMESTAMP_DELIMITERS = '[.;:-]?'
@@ -136,18 +135,18 @@ class GuessFilename(object):
     OSMTRACKS_REGEX = re.compile(DATESTAMP_REGEX + 'T?' + TIMESTAMP_REGEX + '(_.*)?.gpx', re.UNICODE)
     OSMTRACKS_INDEXGROUPS = [1, '-', 2, '-', 3, 'T', 4, '.', 5, ['.', 7], 8, '.gpx']
 
-    IMG_REGEX = re.compile(u'IMG_' + DATESTAMP_REGEX + '_' + TIMESTAMP_REGEX + '(.+)?.jpg', re.UNICODE)
+    IMG_REGEX = re.compile('IMG_' + DATESTAMP_REGEX + '_' + TIMESTAMP_REGEX + '(.+)?.jpg', re.UNICODE)
     IMG_INDEXGROUPS = [1, '-', 2, '-', 3, 'T', 4, '.', 5, ['.', 7], 8, '.jpg']
-    VID_REGEX = re.compile(u'VID_' + DATESTAMP_REGEX + '_' + TIMESTAMP_REGEX + '(.+)?.mp4', re.UNICODE)
+    VID_REGEX = re.compile('VID_' + DATESTAMP_REGEX + '_' + TIMESTAMP_REGEX + '(.+)?.mp4', re.UNICODE)
     VID_INDEXGROUPS = [1, '-', 2, '-', 3, 'T', 4, '.', 5, ['.', 7], 8, '.mp4']
 
     # MediathekView: Settings > modify Set > Targetfilename: "%DT%d h%i %s %t - %T - %N.mp4"
     # results in files like:
     #   20161227T201500 h115421 ORF Das Sacher. In bester Gesellschaft 1.mp4
     #   20161227T193000 l119684 ORF ZIB 1 - Auswirkungen der _Panama-Papers_ - 2016-12-27_1930_tl_02_ZIB-1_Auswirkungen-de__.mp4
-    MEDIATHEKVIEW_REGEX = re.compile(DATESTAMP_REGEX + 'T?' + TIMESTAMP_REGEX + \
-                          '(.+?)( - [12]\d{3}' + TIMESTAMP_DELIMITERS + '[01]\d' + TIMESTAMP_DELIMITERS + \
-                          '[0123]\d_.+)?.mp4', re.UNICODE)
+    MEDIATHEKVIEW_REGEX = re.compile(DATESTAMP_REGEX + 'T?' + TIMESTAMP_REGEX +
+                                     '(.+?)( - [12]\d{3}' + TIMESTAMP_DELIMITERS + '[01]\d' + TIMESTAMP_DELIMITERS +
+                                     '[0123]\d_.+)?.mp4', re.UNICODE)
     MEDIATHEKVIEW_INDEXGROUPS = [1, '-', 2, '-', 3, 'T', 4, '.', 5, ['.', 7], 8, '.mp4']
 
     logger = None
@@ -185,7 +184,7 @@ class GuessFilename(object):
 
         # FIXXME: return directory as well!
 
-        assert(type(filename) == unicode or type(filename) == str)
+        assert(type(filename) == str or type(filename) == str)
         assert(len(filename) > 0)
 
         components = re.match(self.ISO_NAME_TAGS_EXTENSION_REGEX, filename)
@@ -206,7 +205,7 @@ class GuessFilename(object):
         Returns true, if the string contains one of the strings within entries array
         """
 
-        assert(type(string) == unicode or type(string) == str)
+        assert(type(string) == str or type(string) == str)
         assert(type(entries) == list)
         assert(len(string) > 0)
         assert(len(entries) > 0)
@@ -222,7 +221,7 @@ class GuessFilename(object):
         Returns true, if the string contains all of the strings within entries array
         """
 
-        assert(type(string) == unicode or type(string) == str)
+        assert(type(string) == str or type(string) == str)
         assert(type(entries) == list)
         assert(len(string) > 0)
         assert(len(entries) > 0)
@@ -238,7 +237,7 @@ class GuessFilename(object):
         Returns true, if the string contains a similar one of the strings within entries array
         """
 
-        assert(type(string) == unicode or type(string) == str)
+        assert(type(string) == str or type(string) == str)
         assert(type(entries) == list)
         assert(len(string) > 0)
         assert(len(entries) > 0)
@@ -259,13 +258,13 @@ class GuessFilename(object):
         Returns true, if the string contains all similar ones of the strings within the entries array
         """
 
-        assert(type(string) == unicode or type(string) == str)
+        assert(type(string) == str or type(string) == str)
         assert(type(entries) == list)
         assert(len(string) > 0)
         assert(len(entries) > 0)
 
         for entry in entries:
-            assert(type(entry) == unicode or type(entry) == str)
+            assert(type(entry) == str or type(entry) == str)
             #logging.debug(u"fuzzy_contains_all_of(%s..., %s...) ... " % (string[:30], str(entry[:30])))
             if not entry in string:
                 ## if entry is found in string (exactly), try with fuzzy search:
@@ -285,7 +284,7 @@ class GuessFilename(object):
         Returns true, if the single-line string contains a number with a €-currency
         """
 
-        assert(type(string) == unicode or type(string) == str)
+        assert(type(string) == str or type(string) == str)
         assert(len(string) > 0)
 
         components = re.match(self.EURO_CHARGE_REGEX, string)
@@ -300,7 +299,7 @@ class GuessFilename(object):
         Returns the first included €-currency within single-line "string" or False
         """
 
-        assert(type(string) == unicode or type(string) == str)
+        assert(type(string) == str or type(string) == str)
         assert(len(string) > 0)
 
         components = re.match(self.EURO_CHARGE_REGEX, string)
@@ -329,9 +328,9 @@ class GuessFilename(object):
         Returns the included €-currency which is between before and after strings or False
         """
 
-        assert(type(string) == unicode or type(string) == str)
-        assert(type(before) == unicode or type(before) == str)
-        assert(type(after) == unicode or type(after) == str)
+        assert(type(string) == str or type(string) == str)
+        assert(type(before) == str or type(before) == str)
+        assert(type(after) == str or type(after) == str)
         assert(len(string) > 0)
 
         context_range = '5'  # range of characters where before/after is valid
@@ -344,8 +343,8 @@ class GuessFilename(object):
             #logging.debug("get_euro_charge_from_context extracted float: [%s]" % floatstring)
             return floatstring
         else:
-            logging.warning(u"Sorry, I was not able to extract a charge for this file, please fix manually")
-            logging.debug(u"get_euro_charge_from_context was not able to extract a float: between [%s] and [%s] within [%s]" % (before, after, string[:30] + u"..."))
+            logging.warning("Sorry, I was not able to extract a charge for this file, please fix manually")
+            logging.debug("get_euro_charge_from_context was not able to extract a float: between [%s] and [%s] within [%s]" % (before, after, string[:30] + "..."))
             return False
 
     def rename_file(self, dirname, oldbasename, newbasename, dryrun=False, quiet=False):
@@ -364,8 +363,8 @@ class GuessFilename(object):
             logging.info("Old filename is same as new filename: skipping file")
             return False
 
-        oldfile = os.path.join(dirname, oldbasename).encode('utf-8')
-        newfile = os.path.join(dirname, newbasename).encode('utf-8')
+        oldfile = os.path.join(dirname, oldbasename)
+        newfile = os.path.join(dirname, newbasename)
 
         if not os.path.isfile(oldfile):
             logging.error("file to rename does not exist: [%s]" % oldfile)
@@ -376,9 +375,9 @@ class GuessFilename(object):
             return False
 
         if not quiet:
-            print u'       →  '.encode('utf-8') + newbasename.encode('utf-8')
-        logging.debug(u" renaming \"%s\"".encode('utf-8') % oldfile)
-        logging.debug(u"      ⤷   \"%s\"".encode('utf-8') % newfile)
+            print('       →  ' + newbasename)
+        logging.debug(" renaming \"%s\"" % oldfile)
+        logging.debug("      ⤷   \"%s\"" % newfile)
         if not dryrun:
             os.rename(oldfile, newfile)
         return True
@@ -439,9 +438,9 @@ class GuessFilename(object):
                         #    '   -> not changed because one or more elements of sub-list were not found'
             return result
 
-        logging.debug('build_string_via_indexgroups: FILENAME: ' + str(regex_match.group(0).encode('utf-8')))
+        logging.debug('build_string_via_indexgroups: FILENAME: ' + str(regex_match.group(0)))
         logging.debug('build_string_via_indexgroups: GROUPS: ' + str(regex_match.groups()))
-        result = append_element(u'', indexgroups)
+        result = append_element('', indexgroups)
         logging.debug('build_string_via_indexgroups: RESULT:   ' + result)
         return result
 
@@ -491,58 +490,58 @@ class GuessFilename(object):
         # 2015-11-24 Rechnung A1 Festnetz-Internet 12,34€ -- scan bill.pdf
         if self.contains_one_of(oldfilename, [" A1 ", " a1 "]) and self.has_euro_charge(oldfilename) and datetimestr:
             return datetimestr + \
-                u" A1 Festnetz-Internet " + self.get_euro_charge(oldfilename) + \
-                u"€ -- " + ' '.join(self.adding_tags(tags, ['scan', 'bill'])) + \
-                u".pdf"
+                " A1 Festnetz-Internet " + self.get_euro_charge(oldfilename) + \
+                "€ -- " + ' '.join(self.adding_tags(tags, ['scan', 'bill'])) + \
+                ".pdf"
 
         # 2016-01-19--2016-02-12 benutzter GVB 10er Block -- scan transportation graz.pdf
         if self.contains_one_of(oldfilename, ["10er"]) and datetimestr:
             return datetimestr + \
-                u" benutzter GVB 10er Block" + \
-                u" -- " + ' '.join(self.adding_tags(tags, ['scan', 'transportation', 'graz'])) + \
-                u".pdf"
+                " benutzter GVB 10er Block" + \
+                " -- " + ' '.join(self.adding_tags(tags, ['scan', 'transportation', 'graz'])) + \
+                ".pdf"
 
         # 2016-01-19 bill foobar baz 12,12EUR.pdf -> 2016-01-19 foobar baz 12,12€ -- scan bill.pdf
-        if u'bill' in oldfilename and datetimestr and self.has_euro_charge(oldfilename):
+        if 'bill' in oldfilename and datetimestr and self.has_euro_charge(oldfilename):
             return datetimestr + ' ' + \
-                basefilename.replace(' bill', ' ').replace('bill ', ' ').replace('  ', ' ').replace(u'EUR', u'€').strip() + \
-                u" -- " + ' '.join(self.adding_tags(tags, ['scan', 'bill'])) + \
-                u".pdf"
+                basefilename.replace(' bill', ' ').replace('bill ', ' ').replace('  ', ' ').replace('EUR', '€').strip() + \
+                " -- " + ' '.join(self.adding_tags(tags, ['scan', 'bill'])) + \
+                ".pdf"
 
         # 2015-04-30 FH St.Poelten - Abrechnungsbeleg 12,34 EUR - Honorar -- scan fhstp.pdf
         if self.contains_all_of(oldfilename, [" FH ", "Abrechnungsbeleg"]) and self.has_euro_charge(oldfilename) and datetimestr:
             return datetimestr + \
-                u" FH St.Poelten - Abrechnungsbeleg " + self.get_euro_charge(oldfilename) + \
-                u"€ Honorar -- " + ' '.join(self.adding_tags(tags, ['scan', 'fhstp'])) + \
-                u".pdf"
+                " FH St.Poelten - Abrechnungsbeleg " + self.get_euro_charge(oldfilename) + \
+                "€ Honorar -- " + ' '.join(self.adding_tags(tags, ['scan', 'fhstp'])) + \
+                ".pdf"
 
         # 2016-02-26 Gehaltszettel Februar 12,34 EUR -- scan infonova.pdf
         if self.contains_all_of(oldfilename, ["Gehalt", "infonova"]) and self.has_euro_charge(oldfilename) and datetimestr:
             return datetimestr + \
-                u" Gehaltszettel " + self.get_euro_charge(oldfilename) + \
-                u"€ -- " + ' '.join(self.adding_tags(tags, ['scan', 'infonova'])) + \
-                u".pdf"
+                " Gehaltszettel " + self.get_euro_charge(oldfilename) + \
+                "€ -- " + ' '.join(self.adding_tags(tags, ['scan', 'infonova'])) + \
+                ".pdf"
 
         # 2012-05-26T22.25.12_IMAG0861 Rage Ergebnis - MITSPIELER -- games.jpg
         if self.contains_one_of(basefilename, ["Hive", "Rage", "Stratego"]) and \
            extension.lower() == 'jpg' and not self.has_euro_charge(oldfilename):
             return datetimestr + basefilename + \
-                u" - Ergebnis -- games" + \
-                u".jpg"
+                " - Ergebnis -- games" + \
+                ".jpg"
 
         # 2015-03-11 VBV Kontoinformation 123 EUR -- scan finance infonova.pdf
         if self.contains_all_of(oldfilename, ["VBV", "Kontoinformation"]) and self.has_euro_charge(oldfilename) and datetimestr:
             return datetimestr + \
-                u" VBV Kontoinformation " + self.get_euro_charge(oldfilename) + \
-                u"€ -- " + ' '.join(self.adding_tags(tags, ['scan', 'finance', 'infonova'])) + \
-                u".pdf"
+                " VBV Kontoinformation " + self.get_euro_charge(oldfilename) + \
+                "€ -- " + ' '.join(self.adding_tags(tags, ['scan', 'finance', 'infonova'])) + \
+                ".pdf"
 
         # 2015-03-11 Verbrauchsablesung Wasser - Holding Graz -- scan bwg.pdf
         if self.contains_all_of(oldfilename, ["Verbrauchsablesung", "Wasser"]) and datetimestr:
             return datetimestr + \
-                u" Verbrauchsablesung Wasser - Holding Graz -- " + \
+                " Verbrauchsablesung Wasser - Holding Graz -- " + \
                 ' '.join(self.adding_tags(tags, ['scan', 'bwg'])) + \
-                u".pdf"
+                ".pdf"
 
         # FIXXME: more cases!
 
@@ -589,38 +588,38 @@ class GuessFilename(object):
         if self.fuzzy_contains_all_of(content, ["Transaktionsnummern (TANs)", "Ihre TAN-Liste in Verlust geraten"]) and \
            datetimestr:
             return datetimestr + \
-                u" easybank - neue TAN-Liste -- " + \
+                " easybank - neue TAN-Liste -- " + \
                 ' '.join(self.adding_tags(tags, ['scan', 'private'])) + \
-                u".pdf"
+                ".pdf"
 
         # 2015-11-20 Kirchenbeitrag 12,34 EUR -- scan taxes bill.pdf
         if self.fuzzy_contains_all_of(content, ["4294-0208", "AT086000000007042401"]) and \
            datetimestr:
             floatstr = self.get_euro_charge_from_context_or_basename(content, "Offen", "Zahlungen", basename)
             return datetimestr + \
-                u" Kirchenbeitrag " + floatstr + u"€ -- " + \
+                " Kirchenbeitrag " + floatstr + "€ -- " + \
                 ' '.join(self.adding_tags(tags, ['scan', 'taxes', 'bill'])) + \
-                u".pdf"
+                ".pdf"
 
         # 2015-11-24 Generali Erhoehung Dynamikklausel - Praemie nun 12,34 - Polizze 12345 -- scan bill.pdf
         if self.config.GENERALI1_POLIZZE_NUMBER in content and \
-           self.fuzzy_contains_all_of(content, [u"ImHinblickaufdievereinbarteDynamikklauseltritteineWertsteigerunginKraft",
-                                                u"IhreangepasstePrämiebeträgtdahermonatlich",
-                                                u"AT44ZZZ00000002054"]) and \
+           self.fuzzy_contains_all_of(content, ["ImHinblickaufdievereinbarteDynamikklauseltritteineWertsteigerunginKraft",
+                                                "IhreangepasstePrämiebeträgtdahermonatlich",
+                                                "AT44ZZZ00000002054"]) and \
             datetimestr:
             floatstr = self.get_euro_charge_from_context_or_basename(content,
                                                                      "IndiesemBetragistauchdiegesetzlicheVersicherungssteuerenthalten.EUR",
                                                                      "Wird",
                                                                      basename)
             return datetimestr + \
-                u" Generali Erhoehung Dynamikklausel - Praemie nun " + floatstr + \
-                u"€ - Polizze " + self.config.GENERALI1_POLIZZE_NUMBER + " -- " + \
+                " Generali Erhoehung Dynamikklausel - Praemie nun " + floatstr + \
+                "€ - Polizze " + self.config.GENERALI1_POLIZZE_NUMBER + " -- " + \
                 ' '.join(self.adding_tags(tags, ['scan', 'bill'])) + \
-                u".pdf"
+                ".pdf"
 
         # 2015-11-30 Merkur Lebensversicherung 123456 - Praemienzahlungsaufforderung 12,34€ -- scan bill.pdf
         if self.config.MERKUR_GESUNDHEITSVORSORGE_NUMBER in content and \
-           self.fuzzy_contains_all_of(content, [u"Prämienvorschreibung",
+           self.fuzzy_contains_all_of(content, ["Prämienvorschreibung",
                                                 self.config.MERKUR_GESUNDHEITSVORSORGE_ZAHLUNGSREFERENZ]) and \
             datetimestr:
             floatstr = self.get_euro_charge_from_context_or_basename(content,
@@ -628,31 +627,31 @@ class GuessFilename(object):
                                                                      "Gesundheit ist ein kostbares Gut",
                                                                      basename)
             return datetimestr + \
-                u" Merkur Lebensversicherung " + self.config.MERKUR_GESUNDHEITSVORSORGE_NUMBER + \
-                u" - Praemienzahlungsaufforderung " + floatstr + \
-                u"€ -- " + \
+                " Merkur Lebensversicherung " + self.config.MERKUR_GESUNDHEITSVORSORGE_NUMBER + \
+                " - Praemienzahlungsaufforderung " + floatstr + \
+                "€ -- " + \
                 ' '.join(self.adding_tags(tags, ['scan', 'bill'])) + \
-                u".pdf"
+                ".pdf"
 
         # 2016-02-22 BANK - Darlehnen - Kontomitteilung -- scan taxes.pdf
         if self.fuzzy_contains_all_of(content, [self.config.LOAN_INSTITUTE, self.config.LOAN_ID]) and \
             datetimestr:
             return datetimestr + \
-                u" " + self.config.LOAN_INSTITUTE + " - Darlehnen - Kontomitteilung -- " + \
+                " " + self.config.LOAN_INSTITUTE + " - Darlehnen - Kontomitteilung -- " + \
                 ' '.join(self.adding_tags(tags, ['scan', 'taxes'])) + \
-                u".pdf"
+                ".pdf"
 
         # 2015-11-24 Rechnung A1 Festnetz-Internet 12,34€ -- scan bill.pdf
         if self.fuzzy_contains_all_of(content, [self.config.PROVIDER_CONTRACT, self.config.PROVIDER_CUE]) and \
             datetimestr:
             floatstr = self.get_euro_charge_from_context_or_basename(content,
-                                                                     u"\u2022",
+                                                                     "\u2022",
                                                                      "Bei Online Zahlungen geben Sie",
                                                                      basename)
             return datetimestr + \
-                u" A1 Festnetz-Internet " + floatstr + \
-                u"€ -- " + ' '.join(self.adding_tags(tags, ['scan', 'bill'])) + \
-                u".pdf"
+                " A1 Festnetz-Internet " + floatstr + \
+                "€ -- " + ' '.join(self.adding_tags(tags, ['scan', 'bill'])) + \
+                ".pdf"
 
         # FIXXME: more file documents
         #import pdb; pdb.set_trace()
@@ -667,7 +666,7 @@ class GuessFilename(object):
         """
 
         assert oldfilename.__class__ == str or \
-            oldfilename.__class__ == unicode
+            oldfilename.__class__ == str
         if dryrun:
             assert dryrun.__class__ == bool
 
@@ -676,35 +675,35 @@ class GuessFilename(object):
             return
         elif not os.path.isfile(oldfilename):
             logging.debug("file type error in folder [%s]: file type: is file? %s  -  is dir? %s  -  is mount? %s" %
-                          (os.getcwdu(), str(os.path.isfile(oldfilename)), str(os.path.isdir(oldfilename)), str(os.path.islink(oldfilename))))
+                          (os.getcwd(), str(os.path.isfile(oldfilename)), str(os.path.isdir(oldfilename)), str(os.path.islink(oldfilename))))
             logging.error("Skipping \"%s\" because this tool only renames existing file names." % oldfilename)
             return
 
-        print '\n   ' + oldfilename + '  ...'
+        print('\n   ' + oldfilename + '  ...')
         dirname = os.path.abspath(os.path.dirname(oldfilename))
-        logging.debug(u"————→ dirname  [%s]" % dirname)
+        logging.debug("————→ dirname  [%s]" % dirname)
         basename = os.path.basename(oldfilename)
-        logging.debug(u"————→ basename [%s]" % basename)
+        logging.debug("————→ basename [%s]" % basename)
 
         newfilename = self.derive_new_filename_from_old_filename(basename)
         if newfilename:
-            logging.debug(u"derive_new_filename_from_old_filename returned new filename: %s" % newfilename)
+            logging.debug("derive_new_filename_from_old_filename returned new filename: %s" % newfilename)
         else:
-            logging.debug(u"derive_new_filename_from_old_filename could not derive a new filename for %s" % basename)
+            logging.debug("derive_new_filename_from_old_filename could not derive a new filename for %s" % basename)
 
         if not newfilename:
             if basename[-4:].lower() == '.pdf':
                 newfilename = self.derive_new_filename_from_content(dirname, basename)
-                logging.debug(u"derive_new_filename_from_content returned new filename: %s" % newfilename)
+                logging.debug("derive_new_filename_from_content returned new filename: %s" % newfilename)
             else:
-                logging.debug(u"file extension is not PDF and therefore I skip analyzing file content")
+                logging.debug("file extension is not PDF and therefore I skip analyzing file content")
 
         if newfilename:
             self.rename_file(dirname, basename, newfilename, dryrun)
             move_to_success_dir(dirname, newfilename)
             return newfilename
         else:
-            logging.warning(u"I failed to derive new filename: not enough cues in file name or PDF file content")
+            logging.warning("I failed to derive new filename: not enough cues in file name or PDF file content")
             move_to_error_dir(dirname, basename)
             return False
 
@@ -732,12 +731,12 @@ def move_to_error_dir(dirname, basename):
                   os.path.join(dirname, ERROR_DIR, basename))
         logging.info('moved file to sub-directory "' + ERROR_DIR + '"')
 
+
 def main():
     """Main function"""
 
     if options.version:
-        print os.path.basename(sys.argv[0]) + " version " + PROG_VERSION_NUMBER + \
-            " from " + PROG_VERSION_DATE
+        print(os.path.basename(sys.argv[0]) + " version " + PROG_VERSION)
         sys.exit(0)
 
     handle_logging()
@@ -759,7 +758,7 @@ def main():
     try:
         import guessfilenameconfig
     except ImportError:
-        print "Could not find \"guessfilenameconfig.py\" in directory \"" + CONFIGDIR + "\".\nPlease take a look at \"guessfilenameconfig-TEMPLATE.py\", copy it, and configure accordingly."
+        print("Could not find \"guessfilenameconfig.py\" in directory \"" + CONFIGDIR + "\".\nPlease take a look at \"guessfilenameconfig-TEMPLATE.py\", copy it, and configure accordingly.")
         sys.exit(1)
 
     guess_filename = GuessFilename(guessfilenameconfig, logging.getLogger())
@@ -771,13 +770,13 @@ def main():
     logging.debug("iterating over files ...\n" + "=" * 80)
     for filename in files:
         if filename.__class__ == str:
-            filename = unicode(filename, "UTF-8")
+            filename = str(filename)
         if not guess_filename.handle_file(filename, options.dryrun):
             filenames_could_not_be_found += 1
 
     if not options.quiet:
         # add empty line for better screen output readability
-        print
+        print()
 
     if filenames_could_not_be_found == 0:
         logging.debug('successfully finished.')
