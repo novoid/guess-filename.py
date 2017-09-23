@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2017-08-22 12:47:24 vk>"
+PROG_VERSION = u"Time-stamp: <2017-09-23 11:13:55 vk>"
 
 
 # TODO:
@@ -543,6 +543,10 @@ class GuessFilename(object):
                 " Verbrauchsablesung Wasser - Holding Graz -- " + \
                 ' '.join(self.adding_tags(tags, ['scan', 'bwg'])) + \
                 ".pdf"
+
+        # 2017-09-23 Hipster-PDA file: 2017-08-16-2017-09-23 Hipster-PDA vollgeschrieben -- scan notes.(png|pdf)
+        if datetimestr and self.contains_one_of(oldfilename, ["hipster", "Hipster"]):
+            return datetimestr + ' Hipster-PDA vollgeschrieben -- scan notes.' + extension
 
         # FIXXME: more cases!
 

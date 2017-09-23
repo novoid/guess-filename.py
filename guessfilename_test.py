@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8; mode: python; -*-
-# Time-stamp: <2017-08-22 12:21:24 vk>
+# Time-stamp: <2017-09-23 11:13:42 vk>
 
 import unittest
 import logging
@@ -107,6 +107,15 @@ class TestGuessFilename(unittest.TestCase):
                           "2016-01-19 foobar baz 12,12€ -- scan bill.pdf")
         self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename("2016-03-12 another bill 34,55EUR.pdf"),
                           "2016-03-12 another 34,55€ -- scan bill.pdf")
+
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename("2017-03-12--2017-09-23 hipster.pdf"),
+                         "2017-03-12--2017-09-23 Hipster-PDA vollgeschrieben -- scan notes.pdf")
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename("2017-03-12--2017-09-23 hipster.png"),
+                         "2017-03-12--2017-09-23 Hipster-PDA vollgeschrieben -- scan notes.png")
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename("2017-03-12-2017-09-23 hipster.png"),
+                         "2017-03-12-2017-09-23 Hipster-PDA vollgeschrieben -- scan notes.png")
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename("2017-03-12-2017-09-23 Hipster.png"),
+                         "2017-03-12-2017-09-23 Hipster-PDA vollgeschrieben -- scan notes.png")
 
     def test_contains_one_of(self):
 
