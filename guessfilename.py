@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2017-10-25 15:34:25 vk>"
+PROG_VERSION = u"Time-stamp: <2017-11-05 11:46:16 vk>"
 
 
 # TODO:
@@ -149,6 +149,10 @@ class GuessFilename(object):
                                      '(.+?)( - [12]\d{3}' + TIMESTAMP_DELIMITERS + '[01]\d' + TIMESTAMP_DELIMITERS +
                                      '[0123]\d_.+)?.mp4', re.UNICODE)
     MEDIATHEKVIEW_INDEXGROUPS = [1, '-', 2, '-', 3, 'T', 4, '.', 5, ['.', 7], 8, '.mp4']
+
+    # C112345678901EUR20150930001.pdf -> 2015-09-30 Bank Austria Kontoauszug 2017-001 12345678901.pdf
+    BANKAUSTRIA_BANK_STATEMENT_REGEX = re.compile('^C1(\d{11})EUR(\d{4})(\d{2})(\d{2})(\d{3}).pdf$', re.UNICODE)
+    BANKAUSTRIA_BANK_STATEMENT_INDEXGROUPS = [2, '-', 3, '-', 4, ' Bank Austria Kontoauszug ', 2, '-', 5, ' ', 1, '.pdf']
 
     logger = None
     config = None
@@ -462,6 +466,11 @@ class GuessFilename(object):
         regex_match = re.match(self.ANDROID_SCREENSHOT_REGEX, oldfilename)
         if regex_match:
             return self.build_string_via_indexgroups(regex_match, self.ANDROID_SCREENSHOT_INDEXGROUPS)
+
+        # C110014365208EUR20150930001.pdf -> 2015-09-30 Bank Austria Kontoauszug 2017-001 10014365208.pdf
+        regex_match = re.match(self.BANKAUSTRIA_BANK_STATEMENT_REGEX, oldfilename)
+        if regex_match:
+            return self.build_string_via_indexgroups(regex_match, self.BANKAUSTRIA_BANK_STATEMENT_INDEXGROUPS)
 
         # MediathekView: Settings > modify Set > Targetfilename: "%DT%d h%i %s %t - %T - %N.mp4"
         # results in files like:
