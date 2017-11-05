@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2017-11-05 11:46:16 vk>"
+PROG_VERSION = u"Time-stamp: <2017-11-05 11:58:26 vk>"
 
 
 # TODO:
@@ -153,6 +153,10 @@ class GuessFilename(object):
     # C112345678901EUR20150930001.pdf -> 2015-09-30 Bank Austria Kontoauszug 2017-001 12345678901.pdf
     BANKAUSTRIA_BANK_STATEMENT_REGEX = re.compile('^C1(\d{11})EUR(\d{4})(\d{2})(\d{2})(\d{3}).pdf$', re.UNICODE)
     BANKAUSTRIA_BANK_STATEMENT_INDEXGROUPS = [2, '-', 3, '-', 4, ' Bank Austria Kontoauszug ', 2, '-', 5, ' ', 1, '.pdf']
+
+    # 2017-11-05T10.56.11_IKS-00000000512345678901234567890.csv -> 2017-11-05T10.56.11 Bank Austria Umsatzliste IKS-00000000512345678901234567890.csv
+    BANKAUSTRIA_BANK_TRANSACTIONS_REGEX = re.compile('^' + DAYTIME_REGEX + '_IKS-(\d{29}).csv$', re.UNICODE)
+    BANKAUSTRIA_BANK_TRANSACTIONS_INDEXGROUPS = [1, ' Bank Austria Umsatzliste IKS-', 4, '.csv']
 
     logger = None
     config = None
@@ -471,6 +475,11 @@ class GuessFilename(object):
         regex_match = re.match(self.BANKAUSTRIA_BANK_STATEMENT_REGEX, oldfilename)
         if regex_match:
             return self.build_string_via_indexgroups(regex_match, self.BANKAUSTRIA_BANK_STATEMENT_INDEXGROUPS)
+
+        # 2017-11-05T10.56.11_IKS-00000000512345678901234567890.csv -> 2017-11-05T10.56.11 Bank Austria Umsatzliste IKS-00000000512345678901234567890.csv
+        regex_match = re.match(self.BANKAUSTRIA_BANK_TRANSACTIONS_REGEX, oldfilename)
+        if regex_match:
+            return self.build_string_via_indexgroups(regex_match, self.BANKAUSTRIA_BANK_TRANSACTIONS_INDEXGROUPS)
 
         # MediathekView: Settings > modify Set > Targetfilename: "%DT%d h%i %s %t - %T - %N.mp4"
         # results in files like:
