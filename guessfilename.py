@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2017-11-05 11:58:26 vk>"
+PROG_VERSION = u"Time-stamp: <2017-11-29 19:13:06 vk>"
 
 
 # TODO:
@@ -157,6 +157,8 @@ class GuessFilename(object):
     # 2017-11-05T10.56.11_IKS-00000000512345678901234567890.csv -> 2017-11-05T10.56.11 Bank Austria Umsatzliste IKS-00000000512345678901234567890.csv
     BANKAUSTRIA_BANK_TRANSACTIONS_REGEX = re.compile('^' + DAYTIME_REGEX + '_IKS-(\d{29}).csv$', re.UNICODE)
     BANKAUSTRIA_BANK_TRANSACTIONS_INDEXGROUPS = [1, ' Bank Austria Umsatzliste IKS-', 4, '.csv']
+
+    RECORDER_REGEX = re.compile('rec_([12]\d{3})([01]\d)([0123]\d)-([012]\d)([012345]\d)(.+)?.(wav|mp3)')
 
     logger = None
     config = None
@@ -505,6 +507,17 @@ class GuessFilename(object):
         regex_match = re.match(self.VID_REGEX, oldfilename)
         if regex_match:
             return self.build_string_via_indexgroups(regex_match, self.VID_INDEXGROUPS)
+
+        # rec_20171129-0902 A nice recording .wav -> 2017-11-29T09.02 A nice recording.wav
+        # rec_20171129-0902 A nice recording.wav  -> 2017-11-29T09.02 A nice recording.wav
+        # rec_20171129-0902.wav -> 2017-11-29T09.02.wav
+        # rec_20171129-0902.mp3 -> 2017-11-29T09.02.mp3
+        regex_match = re.match(self.RECORDER_REGEX, oldfilename)
+        if regex_match:
+            result = self.build_string_via_indexgroups(regex_match, [1, '-', 2, '-', 3, 'T', 4, '.', 5])
+            if regex_match.group(6):
+                result += ' ' + regex_match.group(6).strip()
+            return result + '.' + regex_match.group(7)
 
         # 2015-11-24 Rechnung A1 Festnetz-Internet 12,34€ -- scan bill.pdf
         if self.contains_one_of(oldfilename, [" A1 ", " a1 "]) and self.has_euro_charge(oldfilename) and datetimestr:

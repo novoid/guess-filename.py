@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8; mode: python; -*-
-# Time-stamp: <2017-09-23 11:13:42 vk>
+# Time-stamp: <2017-11-29 19:07:42 vk>
 
 import unittest
 import logging
@@ -116,6 +116,20 @@ class TestGuessFilename(unittest.TestCase):
                          "2017-03-12-2017-09-23 Hipster-PDA vollgeschrieben -- scan notes.png")
         self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename("2017-03-12-2017-09-23 Hipster.png"),
                          "2017-03-12-2017-09-23 Hipster-PDA vollgeschrieben -- scan notes.png")
+
+        # rec_20171129-0902 A nice recording .wav -> 2017-11-29T09.02 A nice recording.wav
+        # rec_20171129-0902 A nice recording.wav  -> 2017-11-29T09.02 A nice recording.wav
+        # rec_20171129-0902.wav -> 2017-11-29T09.02.wav
+        # rec_20171129-0902.mp3 -> 2017-11-29T09.02.mp3
+#        import pdb; pdb.set_trace()
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename("rec_20171129-0902 A nice recording .wav"),
+                         "2017-11-29T09.02 A nice recording.wav")
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename("rec_20171129-0902 A nice recording.wav"),
+                         "2017-11-29T09.02 A nice recording.wav")
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename("rec_20171129-0902.wav"),
+                         "2017-11-29T09.02.wav")
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename("rec_20171129-0902.mp3"),
+                         "2017-11-29T09.02.mp3")
 
     def test_contains_one_of(self):
 
