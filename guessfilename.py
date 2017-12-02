@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2017-11-29 19:13:06 vk>"
+PROG_VERSION = u"Time-stamp: <2017-12-02 13:27:40 vk>"
 
 
 # TODO:
@@ -111,6 +111,7 @@ class GuessFilename(object):
     # ( (date(time)?)?(--date(time)?)? )? filename (tags)? (extension)?
     DAY_REGEX = '[12]\d{3}-?[01]\d-?[0123]\d'  # note: I made the dashes between optional to match simpler format as well
     TIME_REGEX = 'T[012]\d.[012345]\d(.[012345]\d)?'
+    TIME_FUZZY_REGEX = '([012]\d)[-._:]?([012345]\d)([-._:]?([012345]\d))?'  # a bit less restrictive than TIME_REGEX
 
     DAYTIME_REGEX = '(' + DAY_REGEX + '(' + TIME_REGEX + ')?)'
     DAYTIME_DURATION_REGEX = DAYTIME_REGEX + '(--?' + DAYTIME_REGEX + ')?'
@@ -159,6 +160,12 @@ class GuessFilename(object):
     BANKAUSTRIA_BANK_TRANSACTIONS_INDEXGROUPS = [1, ' Bank Austria Umsatzliste IKS-', 4, '.csv']
 
     RECORDER_REGEX = re.compile('rec_([12]\d{3})([01]\d)([0123]\d)-([012]\d)([012345]\d)(.+)?.(wav|mp3)')
+
+    # Screenshot_2017-11-29_10-32-12.png
+    # Screenshot_2017-11-07_07-52-59 my description.png
+    SCREENSHOT1_REGEX = re.compile('Screenshot_(' + DAY_REGEX + ')_' + TIME_FUZZY_REGEX + '(.*).png')
+
+
 
     logger = None
     config = None
@@ -508,6 +515,7 @@ class GuessFilename(object):
         if regex_match:
             return self.build_string_via_indexgroups(regex_match, self.VID_INDEXGROUPS)
 
+        # 2017-11-30:
         # rec_20171129-0902 A nice recording .wav -> 2017-11-29T09.02 A nice recording.wav
         # rec_20171129-0902 A nice recording.wav  -> 2017-11-29T09.02 A nice recording.wav
         # rec_20171129-0902.wav -> 2017-11-29T09.02.wav
@@ -578,6 +586,18 @@ class GuessFilename(object):
         # 2017-09-23 Hipster-PDA file: 2017-08-16-2017-09-23 Hipster-PDA vollgeschrieben -- scan notes.(png|pdf)
         if datetimestr and self.contains_one_of(oldfilename, ["hipster", "Hipster"]):
             return datetimestr + ' Hipster-PDA vollgeschrieben -- scan notes.' + extension
+
+        # 2017-12-02: Files from screenshots from xfce-tool "Screenshot"
+        # example: Screenshot_2017-11-07_07-52-59 my description.png
+        regex_match = re.match(self.SCREENSHOT1_REGEX, oldfilename)
+        if regex_match:
+            if regex_match.group(6):
+                # there is a description with a leading space after the time
+                my_description = regex_match.group(6)
+            else:
+                my_description = ''
+            return self.build_string_via_indexgroups(regex_match, [1, 'T', 2, '.', 3, '.', 5, my_description, ' -- screenshots.png'])
+
 
         # FIXXME: more cases!
 

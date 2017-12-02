@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8; mode: python; -*-
-# Time-stamp: <2017-11-29 19:07:42 vk>
+# Time-stamp: <2017-12-02 12:58:51 vk>
 
 import unittest
 import logging
@@ -130,6 +130,13 @@ class TestGuessFilename(unittest.TestCase):
                          "2017-11-29T09.02.wav")
         self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename("rec_20171129-0902.mp3"),
                          "2017-11-29T09.02.mp3")
+
+        # Screenshot_2017-11-29_10-32-12.png
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename("Screenshot_2017-11-29_10-32-12.png"),
+                         "2017-11-29T10.32.12 -- screenshots.png")
+        # Screenshot_2017-11-07_07-52-59 my description.png
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename("Screenshot_2017-11-29_10-32-12 my description.png"),
+                         "2017-11-29T10.32.12 my description -- screenshots.png")
 
     def test_contains_one_of(self):
 
