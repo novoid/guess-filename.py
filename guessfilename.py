@@ -669,7 +669,7 @@ class GuessFilename(object):
                 ".pdf"
 
         # 2015-11-24 Generali Erhoehung Dynamikklausel - Praemie nun 12,34 - Polizze 12345 -- scan bill.pdf
-        if self.config.GENERALI1_POLIZZE_NUMBER in content and \
+        if self.config and self.config.GENERALI1_POLIZZE_NUMBER in content and \
            self.fuzzy_contains_all_of(content, ["ImHinblickaufdievereinbarteDynamikklauseltritteineWertsteigerunginKraft",
                                                 "IhreangepasstePrämiebeträgtdahermonatlich",
                                                 "AT44ZZZ00000002054"]) and datetimestr:
@@ -684,7 +684,7 @@ class GuessFilename(object):
                 ".pdf"
 
         # 2015-11-30 Merkur Lebensversicherung 123456 - Praemienzahlungsaufforderung 12,34€ -- scan bill.pdf
-        if self.config.MERKUR_GESUNDHEITSVORSORGE_NUMBER in content and \
+        if self.config and self.config.MERKUR_GESUNDHEITSVORSORGE_NUMBER in content and \
            self.fuzzy_contains_all_of(content, ["Prämienvorschreibung",
                                                 self.config.MERKUR_GESUNDHEITSVORSORGE_ZAHLUNGSREFERENZ]) and datetimestr:
             floatstr = self.get_euro_charge_from_context_or_basename(content,
@@ -699,14 +699,14 @@ class GuessFilename(object):
                 ".pdf"
 
         # 2016-02-22 BANK - Darlehnen - Kontomitteilung -- scan taxes.pdf
-        if self.fuzzy_contains_all_of(content, [self.config.LOAN_INSTITUTE, self.config.LOAN_ID]) and datetimestr:
+        if self.config and self.fuzzy_contains_all_of(content, [self.config.LOAN_INSTITUTE, self.config.LOAN_ID]) and datetimestr:
             return datetimestr + \
                 " " + self.config.LOAN_INSTITUTE + " - Darlehnen - Kontomitteilung -- " + \
                 ' '.join(self.adding_tags(tags, ['scan', 'taxes'])) + \
                 ".pdf"
 
         # 2015-11-24 Rechnung A1 Festnetz-Internet 12,34€ -- scan bill.pdf
-        if self.fuzzy_contains_all_of(content, [self.config.PROVIDER_CONTRACT, self.config.PROVIDER_CUE]) and datetimestr:
+        if self.config and self.fuzzy_contains_all_of(content, [self.config.PROVIDER_CONTRACT, self.config.PROVIDER_CUE]) and datetimestr:
             floatstr = self.get_euro_charge_from_context_or_basename(content,
                                                                      "\u2022",
                                                                      "Bei Online Zahlungen geben Sie",
@@ -820,8 +820,11 @@ def main():
     try:
         import guessfilenameconfig
     except ImportError:
-        print("Could not find \"guessfilenameconfig.py\" in directory \"" + CONFIGDIR + "\".\nPlease take a look at \"guessfilenameconfig-TEMPLATE.py\", copy it, and configure accordingly.")
-        sys.exit(1)
+        logging.warning("Could not find \"guessfilenameconfig.py\" in directory \"" + CONFIGDIR +
+                        "\".\nPlease take a look at \"guessfilenameconfig-TEMPLATE.py\", " +
+                        "copy it, and configure accordingly.\nAs long as there is no file " +
+                        "found, you can not use containing private settings")
+        guessfilenameconfig = False
 
     guess_filename = GuessFilename(guessfilenameconfig, logging.getLogger())
 
