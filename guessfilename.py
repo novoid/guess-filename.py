@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2017-12-02 13:27:40 vk>"
+PROG_VERSION = u"Time-stamp: <2017-12-08 15:21:44 vk>"
 
 
 # TODO:
@@ -165,7 +165,8 @@ class GuessFilename(object):
     # Screenshot_2017-11-07_07-52-59 my description.png
     SCREENSHOT1_REGEX = re.compile('Screenshot_(' + DAY_REGEX + ')_' + TIME_FUZZY_REGEX + '(.*).png')
 
-
+    # 2017-12-07_09-23_Thu Went for a walk .gpx
+    OSMTRACK_REGEX = re.compile('(' + DAY_REGEX + ')_' + TIME_FUZZY_REGEX + '_(\w{3})( )?(.*).gpx')
 
     logger = None
     config = None
@@ -597,6 +598,16 @@ class GuessFilename(object):
             else:
                 my_description = ''
             return self.build_string_via_indexgroups(regex_match, [1, 'T', 2, '.', 3, '.', 5, my_description, ' -- screenshots.png'])
+
+        # 2017-12-07_09-23_Thu Went for a walk .gpx
+        regex_match = re.match(self.OSMTRACK_REGEX, oldfilename)
+        if regex_match:
+            if regex_match.group(8):
+                description = regex_match.group(8).strip()
+                return self.build_string_via_indexgroups(regex_match, [1, 'T', 2, '.', 3, ' ', description, '.gpx'])
+            else:
+                return self.build_string_via_indexgroups(regex_match, [1, 'T', 2, '.', 3, '.gpx'])
+
 
 
         # FIXXME: more cases!
