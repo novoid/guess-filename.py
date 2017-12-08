@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2017-12-08 15:40:50 vk>"
+PROG_VERSION = u"Time-stamp: <2017-12-08 15:59:03 vk>"
 
 
 # TODO:
@@ -39,18 +39,18 @@ INVOCATION_TIME = time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime())
 USAGE = "\n\
     " + sys.argv[0] + " [<options>] <list of files>\n\
 \n\
-FIXXME\n\
+This little Python script tries to rename files according to pre-defined rules.\n\
+\n\
+It does this with several methods: first, the current file name is analyzed and\n\
+any ISO date/timestamp and filetags are re-used. Secondly, if the parsing of the\n\
+file name did not lead to any new file name, the content of the file is analyzed.\n\
+\n\
+You have to adapt the rules in the Python script to meet your requirements.\n\
+The default rule-set follows the filename convention described on\n\
+http://karl-voit.at/managing-digital-photographs/\n\
 \n\
 \n\
-Example usages:\n\
-  " + sys.argv[0] + " --tags=\"presentation projectA\" *.pptx\n\
-      ... FIXXME\n\
-\n\
-\n\
-\n\
-Verbose description: FIXXME: http://Karl-Voit.at/FIXXME/\n\
-\n\
-:copyright: (c) by Karl Voit <tools@Karl-Voit.at>\n\
+:copyright: (c) by Karl Voit\n\
 :license: GPL v3 or any later version\n\
 :URL: https://github.com/novoid/guess-filename.py\n\
 :bugreports: via github or <tools@Karl-Voit.at>\n\
