@@ -3,3 +3,6 @@
 /flycheck_guessfilename.py
 /flycheck_guessfilename_test.py
 original_PDF/*
+example_call.sh
+testdata
+.cache
