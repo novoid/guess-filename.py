@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2017-12-08 15:21:44 vk>"
+PROG_VERSION = u"Time-stamp: <2017-12-08 15:40:50 vk>"
 
 
 # TODO:
@@ -627,6 +627,12 @@ class GuessFilename(object):
         filename = os.path.join(dirname, basename)
         assert os.path.isfile(filename)
 
+        datetimestr, basefilename, tags, extension = self.split_filename_entities(basename)
+
+        if extension.lower() != 'pdf':
+            logging.debug("File is not a PDF file and thus can't be parsed by this script: %s" % filename)
+            return False
+
         try:
             pdffile = PyPDF2.PdfFileReader(open(filename, "rb"))
         except:
@@ -643,12 +649,6 @@ class GuessFilename(object):
 
         if len(content) == 0:
             logging.warning('Could read PDF file content but it is empty (skipping content analysis)')
-            return False
-
-        datetimestr, basefilename, tags, extension = self.split_filename_entities(basename)
-
-        if extension.lower() != 'pdf':
-            logging.debug("File is not a PDF file and thus can't be parsed by this script: %s" % filename)
             return False
 
         # 2010-06-08 easybank - neue TAN-Liste -- scan private.pdf
