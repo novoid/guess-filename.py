@@ -6,3 +6,4 @@ original_PDF/*
 example_call.sh
 testdata
 .cache
+MANIFEST dist

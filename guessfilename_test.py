@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8; mode: python; -*-
-# Time-stamp: <2017-12-08 15:15:40 vk>
+# Time-stamp: <2017-12-17 16:42:07 vk>
 
 import unittest
 import logging

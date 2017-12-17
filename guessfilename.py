@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2017-12-08 15:59:03 vk>"
+PROG_VERSION = u"Time-stamp: <2017-12-17 16:44:54 vk>"
 
 
 # TODO:
@@ -463,6 +463,13 @@ class GuessFilename(object):
         logging.debug('build_string_via_indexgroups: RESULT:   ' + result)
         return result
 
+
+    def NumToMonth(self, month):
+
+        months = ['Dezember', 'Jaenner', 'Februar', 'Maerz', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember']
+        return months[month]
+
+
     def derive_new_filename_from_old_filename(self, oldfilename):
         """
         Analyses the old filename and returns a new one if feasible.
@@ -474,6 +481,15 @@ class GuessFilename(object):
 
         logging.debug("derive_new_filename_from_old_filename called")
         datetimestr, basefilename, tags, extension = self.split_filename_entities(oldfilename)
+
+        # Paycheck
+        if self.config.SALARY_STARTSTRING in oldfilename and extension == "PDF":
+            year, month, day = re.match(self.DATESTAMP_REGEX, datetimestr).groups()
+            month = int(month)
+            if int(day) < 15:
+                # salary came after the new month has started; salary is from previous month
+                month = month - 1
+            return datetimestr + ' ' + self.config.SALARY_DESCRIPTION + ' ' + self.NumToMonth(month) +  ' - € -- detego private.pdf'
 
         # Android screenshots:
         # Screenshot_2013-03-05-08-14-09.png -> 2013-03-05T08-14-09 -- android screenshots.png
