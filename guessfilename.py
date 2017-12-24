@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2017-12-17 16:44:54 vk>"
+PROG_VERSION = u"Time-stamp: <2017-12-24 16:40:35 vk>"
 
 
 # TODO:
@@ -20,6 +20,7 @@ import os.path
 import time
 import logging
 from optparse import OptionParser
+import colorama
 
 try:
     from fuzzywuzzy import fuzz  # for fuzzy comparison of strings
@@ -394,7 +395,7 @@ class GuessFilename(object):
             return False
 
         if not quiet:
-            print('       →  ' + newbasename)
+            print('       →  ' + colorama.Style.BRIGHT + colorama.Fore.GREEN + newbasename + colorama.Style.RESET_ALL)
         logging.debug(" renaming \"%s\"" % oldfile)
         logging.debug("      ⤷   \"%s\"" % newfile)
         if not dryrun:
@@ -483,12 +484,13 @@ class GuessFilename(object):
         datetimestr, basefilename, tags, extension = self.split_filename_entities(oldfilename)
 
         # Paycheck
-        if self.config.SALARY_STARTSTRING in oldfilename and extension == "PDF":
+        if extension == "PDF" and self.config.SALARY_STARTSTRING and self.config.SALARY_STARTSTRING in oldfilename:
             year, month, day = re.match(self.DATESTAMP_REGEX, datetimestr).groups()
             month = int(month)
             if int(day) < 15:
                 # salary came after the new month has started; salary is from previous month
                 month = month - 1
+            print(' ' * 7 + colorama.Style.DIM + '→  PDF file password: ' + self.config.SALARY_PDF_PASSWORD + colorama.Style.RESET_ALL)
             return datetimestr + ' ' + self.config.SALARY_DESCRIPTION + ' ' + self.NumToMonth(month) +  ' - € -- detego private.pdf'
 
         # Android screenshots:
@@ -757,7 +759,7 @@ class GuessFilename(object):
             logging.error("Skipping \"%s\" because this tool only renames existing file names." % oldfilename)
             return
 
-        print('\n   ' + oldfilename + '  ...')
+        print('\n   ' + colorama.Style.BRIGHT + oldfilename + colorama.Style.RESET_ALL + '  ...')
         dirname = os.path.abspath(os.path.dirname(oldfilename))
         logging.debug("————→ dirname  [%s]" % dirname)
         basename = os.path.basename(oldfilename)
@@ -818,6 +820,7 @@ def main():
         sys.exit(0)
 
     handle_logging()
+    colorama.init()  # use Colorama to make Termcolor work on Windows too
 
     if options.verbose and options.quiet:
         error_exit(1, "Options \"--verbose\" and \"--quiet\" found. " +
