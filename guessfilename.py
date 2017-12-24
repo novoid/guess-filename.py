@@ -651,16 +651,16 @@ class GuessFilename(object):
 
         try:
             pdffile = PyPDF2.PdfFileReader(open(filename, "rb"))
+            # use first and second page of content only:
+            if pdffile.getNumPages() > 1:
+                content = pdffile.pages[0].extractText() + pdffile.pages[1].extractText()
+            elif pdffile.getNumPages() == 1:
+                content = pdffile.pages[0].extractText()
+            else:
+                logging.error('Could not determine number of pages of PDF content! (skipping content analysis)')
+                return False
         except:
             logging.error('Could not read PDF file content. Skipping its content.')
-            return False
-        # use first and second page of content only:
-        if pdffile.getNumPages() > 1:
-            content = pdffile.pages[0].extractText() + pdffile.pages[1].extractText()
-        elif pdffile.getNumPages() == 1:
-            content = pdffile.pages[0].extractText()
-        else:
-            logging.error('Could not determine number of pages of PDF content! (skipping content analysis)')
             return False
 
         if len(content) == 0:
