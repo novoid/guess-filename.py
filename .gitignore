@@ -9,3 +9,4 @@ testdata
 MANIFEST dist
 dist/
 .gitignore
+update_pip.sh

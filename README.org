@@ -1,7 +1,3 @@
-## Time-stamp: <2016-03-06 19:41:02 vk>
-## -*- coding: utf-8 -*-
-## This file is best viewed with GNU Emacs Org-mode: http://orgmode.org/
-
 * guessfilename.py
 
 This Python script tries to come up with a new file name for each
@@ -37,12 +33,39 @@ customer numbers or phone numbers, amounts to pay, and so on.
 
 ** Usage
 
-: guessfilename.py a_file_name.txt
-... FIXXME
+#+BEGIN_SRC sh :results output :wrap src
+./guessfilename/__init__.py --help
+#+END_SRC
+
+#+BEGIN_src
+Usage:
+    guessfilename [<options>] <list of files>
+
+This little Python script tries to rename files according to pre-defined rules.
+
+It does this with several methods: first, the current file name is analyzed and
+any ISO date/timestamp and filetags are re-used. Secondly, if the parsing of the
+file name did not lead to any new file name, the content of the file is analyzed.
+
+You have to adapt the rules in the Python script to meet your requirements.
+The default rule-set follows the filename convention described on
+http://karl-voit.at/managing-digital-photographs/
 
 
-For a complete list of parameters, please try:
-: guessfilename.py --help
+:copyright: (c) by Karl Voit
+:license: GPL v3 or any later version
+:URL: https://github.com/novoid/guess-filename.py
+:bugreports: via github or <tools@Karl-Voit.at>
+
+
+Options:
+  -h, --help     show this help message and exit
+  -d, --dryrun   enable dryrun mode: just simulate what would happen, do not
+                 modify files
+  -v, --verbose  enable verbose mode
+  -q, --quiet    enable quiet mode
+  --version      display version and exit
+#+END_src
 
 * Related tools and workflows
 

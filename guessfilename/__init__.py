@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2017-12-24 16:40:35 vk>"
+PROG_VERSION = u"Time-stamp: <2018-02-03 19:32:22 vk>"
 
 
 # TODO:
@@ -38,7 +38,7 @@ PROG_VERSION_DATE = PROG_VERSION[13:23]
 INVOCATION_TIME = time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime())
 
 USAGE = "\n\
-    " + sys.argv[0] + " [<options>] <list of files>\n\
+    guessfilename [<options>] <list of files>\n\
 \n\
 This little Python script tries to rename files according to pre-defined rules.\n\
 \n\
