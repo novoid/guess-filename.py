@@ -7,3 +7,5 @@ example_call.sh
 testdata
 .cache
 MANIFEST dist
+dist/
+.gitignore
