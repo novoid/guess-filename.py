@@ -93,6 +93,13 @@ current season]].
 Files containing an ISO time/date-stamp gets indexed by the
 filename-module of [[https://github.com/novoid/Memacs][Memacs]].
 
+-------------
+
+[[http://www.jonasjberg.com/][Jonas Sjöberg]] took my idea and developed the much more advanced (and
+thus a bit more complicated) [[https://github.com/jonasjberg/autonameow][autonameow]]. It uses rule-based renaming,
+analyzes content of plain text, epub, pdf and rtf files, extracts
+meta-data from many different file formats via [[https://www.sno.phy.queensu.ca/%257Ephil/exiftool/][exiftool]] and so forth.
+
 * Contribute!
 
 I am looking for your ideas!
