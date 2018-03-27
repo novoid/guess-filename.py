@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2018-02-03 19:32:22 vk>"
+PROG_VERSION = u"Time-stamp: <2018-03-27 20:15:30 vk>"
 
 
 # TODO:
@@ -161,6 +161,10 @@ class GuessFilename(object):
     BANKAUSTRIA_BANK_TRANSACTIONS_INDEXGROUPS = [1, ' Bank Austria Umsatzliste IKS-', 4, '.csv']
 
     RECORDER_REGEX = re.compile('rec_([12]\d{3})([01]\d)([0123]\d)-([012]\d)([012345]\d)(.+)?.(wav|mp3)')
+
+    # modet_2018-03-27_16-10.mkv
+    # modet_2018-03-27_17-44-1.mkv
+    MODET_REGEX = re.compile('modet_(' + DAY_REGEX + ')_' + TIME_FUZZY_REGEX + '(.*).mkv')
 
     # Screenshot_2017-11-29_10-32-12.png
     # Screenshot_2017-11-07_07-52-59 my description.png
@@ -533,6 +537,15 @@ class GuessFilename(object):
         regex_match = re.match(self.VID_REGEX, oldfilename)
         if regex_match:
             return self.build_string_via_indexgroups(regex_match, self.VID_INDEXGROUPS)
+
+        # 2018-03-27:
+        # modet_2018-03-27_16-10.mkv
+        # modet_2018-03-27_17-44-1.mkv
+        regex_match = re.match(self.MODET_REGEX, oldfilename)
+        if regex_match:
+            result = self.build_string_via_indexgroups(regex_match, [1, 'T', 2, '.', 3, ' modet ', 6, '.mkv'])
+            return result
+
 
         # 2017-11-30:
         # rec_20171129-0902 A nice recording .wav -> 2017-11-29T09.02 A nice recording.wav
