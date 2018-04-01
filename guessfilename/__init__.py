@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2018-04-01 14:17:02 vk>"
+PROG_VERSION = u"Time-stamp: <2018-04-01 14:18:51 vk>"
 
 
 # TODO:
@@ -128,7 +128,7 @@ class GuessFilename(object):
     EURO_CHARGE_INDEX = 2
 
     ANDROID_SCREENSHOT_REGEX = re.compile('Screenshot_([12]\d{3})-?([01]\d)-?([0123]\d)' + '-?' +
-                                          '([012]\d).?([012345]\d)(.?([012345]\d))?' + '( .*)?.png', re.UNICODE)
+                                          '([012]\d).?([012345]\d)(.?([012345]\d))?' + '(.*)?.png', re.UNICODE)
     ANDROID_SCREENSHOT_INDEXGROUPS = [1, '-', 2, '-', 3, 'T', 4, '.', 5, '.', 7, 8, ' -- screenshots android.png']
 
     TIMESTAMP_DELIMITERS = '[.;:-]?'
@@ -500,7 +500,7 @@ class GuessFilename(object):
             return datetimestr + ' ' + self.config.SALARY_DESCRIPTION + ' ' + self.NumToMonth(month) +  ' - € -- detego private.pdf'
 
         # Android screenshots:
-        # Screenshot_2013-03-05-08-14-09.png -> 2013-03-05T08-14-09 -- android screenshots.png
+        # Screenshot_2013-03-05-08-14-09.png -> 2013-03-05T08.14.09 -- android screenshots.png
         regex_match = re.match(self.ANDROID_SCREENSHOT_REGEX, oldfilename)
         if regex_match:
             return self.build_string_via_indexgroups(regex_match, self.ANDROID_SCREENSHOT_INDEXGROUPS)
