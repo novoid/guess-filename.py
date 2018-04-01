@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2018-03-27 20:15:30 vk>"
+PROG_VERSION = u"Time-stamp: <2018-04-01 14:17:02 vk>"
 
 
 # TODO:
@@ -137,6 +137,8 @@ class GuessFilename(object):
 
     OSMTRACKS_REGEX = re.compile(DATESTAMP_REGEX + 'T?' + TIMESTAMP_REGEX + '(_.*)?.gpx', re.UNICODE)
     OSMTRACKS_INDEXGROUPS = [1, '-', 2, '-', 3, 'T', 4, '.', 5, ['.', 7], 8, '.gpx']
+
+    SIGNAL_REGEX = re.compile('signal-' + DATESTAMP_REGEX + '-' + TIMESTAMP_REGEX + '(.+)?.jpg', re.UNICODE)
 
     IMG_REGEX = re.compile('IMG_' + DATESTAMP_REGEX + '_' + TIMESTAMP_REGEX + '(_Bokeh)?(.+)?.jpg', re.UNICODE)
     IMG_INDEXGROUPS = [1, '-', 2, '-', 3, 'T', 4, '.', 5, ['.', 7], 9, '.jpg']
@@ -537,6 +539,17 @@ class GuessFilename(object):
         regex_match = re.match(self.VID_REGEX, oldfilename)
         if regex_match:
             return self.build_string_via_indexgroups(regex_match, self.VID_INDEXGROUPS)
+
+        # 2018-04-01:
+        # signal-2018-03-08-102332.jpg → 2018-03-08T10.23.32.jpg
+        # signal-2018-03-08-102332 foo bar.jpg → 2018-03-08T10.23.32 foo bar.jpg
+        regex_match = re.match(self.SIGNAL_REGEX, oldfilename)
+        if regex_match:
+            if regex_match.group(8):
+                result = self.build_string_via_indexgroups(regex_match, [1, '-', 2, '-', 3, 'T', 4, '.', 5, '.', 6, 8, '.jpg'])
+            else:
+                result = self.build_string_via_indexgroups(regex_match, [1, '-', 2, '-', 3, 'T', 4, '.', 5, '.', 6, '.jpg'])
+            return result
 
         # 2018-03-27:
         # modet_2018-03-27_16-10.mkv
