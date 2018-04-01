@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2018-04-01 14:18:51 vk>"
+PROG_VERSION = u"Time-stamp: <2018-04-01 14:25:26 vk>"
 
 
 # TODO:
@@ -128,8 +128,8 @@ class GuessFilename(object):
     EURO_CHARGE_INDEX = 2
 
     ANDROID_SCREENSHOT_REGEX = re.compile('Screenshot_([12]\d{3})-?([01]\d)-?([0123]\d)' + '-?' +
-                                          '([012]\d).?([012345]\d)(.?([012345]\d))?' + '(.*)?.png', re.UNICODE)
-    ANDROID_SCREENSHOT_INDEXGROUPS = [1, '-', 2, '-', 3, 'T', 4, '.', 5, '.', 7, 8, ' -- screenshots android.png']
+                                          '([012]\d)([012345]\d)(([012345]\d))?' + '(.*)?.(png|jpg)', re.UNICODE)
+    ANDROID_SCREENSHOT_INDEXGROUPS = [1, '-', 2, '-', 3, 'T', 4, '.', 5, '.', 7, 8, ' -- screenshots android.', 9]
 
     TIMESTAMP_DELIMITERS = '[.;:-]?'
     DATESTAMP_REGEX = '([12]\d{3})' + TIMESTAMP_DELIMITERS + '([01]\d)' + TIMESTAMP_DELIMITERS + '([0123]\d)'
