@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2018-04-01 14:25:26 vk>"
+PROG_VERSION = u"Time-stamp: <2018-04-22 19:15:01 vk>"
 
 
 # TODO:
@@ -523,6 +523,8 @@ class GuessFilename(object):
         #     -> 2016-12-27T19.30.00 l119684 ORF ZIB 1 - Auswirkungen der _Panama-Papers_.mp4
         regex_match = re.match(self.MEDIATHEKVIEW_REGEX, oldfilename)
         if regex_match:
+            if 'Tatort' in oldfilename and os.stat(oldfilename).st_size < 2000000000 and not options.quiet:
+                print('       →  ' + colorama.Style.BRIGHT + colorama.Fore.RED + 'WARNING: Tatort file seems to be too small (download aborted?): ' + oldfilename + colorama.Style.RESET_ALL)
             return self.build_string_via_indexgroups(regex_match, self.MEDIATHEKVIEW_INDEXGROUPS).replace('_', ' ')
 
         # Android OSMTracker GPS track files:
