@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2018-05-10 17:01:51 vk>"
+PROG_VERSION = u"Time-stamp: <2018-05-10 17:11:38 vk>"
 
 
 # TODO:
@@ -158,12 +158,12 @@ class GuessFilename(object):
     # OLD #                                         '[0123]\d_.+)?.mp4', re.UNICODE)
     # OLD # MEDIATHEKVIEW_SIMPLE_INDEXGROUPS = [1, '-', 2, '-', 3, 'T', 4, '.', 5, ['.', 7], 8, '.mp4']
 
-    # MediathekView: Settings > modify Set > Targetfilename: "%DT%d %s %t - %T -ORIGINAL- %N.mp4" (without any limitation of the maximum numbers of characters)
+    # MediathekView: Settings > modify Set > Targetfilename: "%DT%d %s - %t - %T -ORIGINAL- %N.mp4" (without any limitation of the maximum numbers of characters)
     # results in files like:
-    #   20180510T090000 ORF ZIB 9_00 - Signation -ORIGINAL- 2018-05-10_0900_tl_02_ZIB-9-00_Signation__13976423__o__1368225677__s14297692_2__WEB03HD_09000305P_09001400P_Q4A.mp4
-    #   20180510T090000 ORF ZIB 9_00 - Weitere Signale der Entspannung -ORIGINAL- 2018-05-10_0900_tl_02_ZIB-9-00_Weitere-Signale__13976423__o__5968792755__s14297694_4__WEB03HD_09011813P_09020710P_Q4A.mp4
+    #   20180510T090000 ORF - ZIB - Signation -ORIGINAL- 2018-05-10_0900_tl_02_ZIB-9-00_Signation__13976423__o__1368225677__s14297692_2__WEB03HD_09000305P_09001400P_Q4A.mp4
+    #   20180510T090000 ORF - ZIB - Weitere Signale der Entspannung -ORIGINAL- 2018-05-10_0900_tl_02_ZIB-9-00_Weitere-Signale__13976423__o__5968792755__s14297694_4__WEB03HD_09011813P_09020710P_Q4A.mp4
     MEDIATHEKVIEW_LONG_REGEX = re.compile(DATESTAMP_REGEX + 'T?' + TIMESTAMP_REGEX +
-                                          ' ORF (.+) - (.+) -ORIGINAL- ' +
+                                          ' (.+) - (.+) - (.+) -ORIGINAL- ' +
                                           '20.+_(' + TIMESTAMP_REGEX + ').+P_' +
                                           '(' + TIMESTAMP_REGEX + ').+P_(Q4A|Q8C).mp4', re.UNICODE)
 
@@ -530,24 +530,22 @@ class GuessFilename(object):
 
         # MediathekView: Settings > modify Set > Targetfilename: "%DT%d %s %t - %T -ORIGINAL- %N.mp4" (without any limitation of the maximum numbers of characters)
         # results in files like:
-        #   20180510T090000 ORF ZIB - Signation -ORIGINAL- 2018-05-10_0900_tl_02_ZIB-9-00_Signation__13976423__o__1368225677__s14297692_2__WEB03HD_09000305P_09001400P_Q4A.mp4
-        #      regex_match.groups() == ('2018', '05', '10', '09', '00', '00', '00', 'ZIB', 'Signation', '090003', '09', '00', '03', '03', '090014', '09', '00', '14', '14', 'Q4A')
+        #   20180510T090000 ORF - ZIB - Signation -ORIGINAL- 2018-05-10_0900_tl_02_ZIB-9-00_Signation__13976423__o__1368225677__s14297692_2__WEB03HD_09000305P_09001400P_Q4A.mp4
+        #      regex_match.groups() == ('2018', '05', '10', '09', '00', '00', '00', 'ORF', 'ZIB', 'Signation', '090003', '09', '00', '03', '03', '090014', '09', '00', '14', '14', 'Q4A')
         #      -> 2018-05-10T09.00.03 ORF - ZIB - Signation -- lowquality.mp4
-        #   20180510T090000 ORF ZIB - Weitere Signale der Entspannung -ORIGINAL- 2018-05-10_0900_tl_02_ZIB-9-00_Weitere-Signale__13976423__o__5968792755__s14297694_4__WEB03HD_09011813P_09020710P_Q4A.mp4
+        #   20180510T090000 ORF - ZIB - Weitere Signale der Entspannung -ORIGINAL- 2018-05-10_0900_tl_02_ZIB-9-00_Weitere-Signale__13976423__o__5968792755__s14297694_4__WEB03HD_09011813P_09020710P_Q4A.mp4
         #      -> 2018-05-10T09.01.18 ORF - ZIB - Weitere Signale der Entspannung -- lowquality.mp4
         regex_match = re.match(self.MEDIATHEKVIEW_LONG_REGEX, oldfilename)
-        if regex_match.group(9) == 'Signation':
-            import pdb; pdb.set_trace()
         if regex_match:
             if 'Tatort' in oldfilename and os.stat(oldfilename).st_size < 2000000000 and not options.quiet:
                 print('       →  ' + colorama.Style.BRIGHT + colorama.Fore.RED + 'WARNING: Tatort file seems to be too small (download aborted?): ' + oldfilename + colorama.Style.RESET_ALL)
-            if regex_match.group(20).upper() == 'Q4A':
+            if regex_match.group(21).upper() == 'Q4A':
                 qualitytag = 'lowquality'
-            elif regex_match.group(20).upper() == 'Q8C':
+            elif regex_match.group(21).upper() == 'Q8C':
                 qualitytag = 'highquality'
             else:
                 qualitytag = 'UNKNOWNQUALITY'
-            MEDIATHEKVIEW_LONG_INDEXGROUPS = [1, '-', 2, '-', 3, 'T', 11, '.', 12, '.', 13, ' ORF - ', 8, ' - ', 9, ' -- ', qualitytag, '.mp4']
+            MEDIATHEKVIEW_LONG_INDEXGROUPS = [1, '-', 2, '-', 3, 'T', 11, '.', 12, '.', 13, ' ', 8, ' - ', 9, ' - ', 10, ' -- ', qualitytag, '.mp4']
             return self.build_string_via_indexgroups(regex_match, MEDIATHEKVIEW_LONG_INDEXGROUPS).replace('_', ' ')
 
         # OLD # # MediathekView: Settings > modify Set > Targetfilename: "%DT%d h%i %s %t - %T - %N.mp4"
