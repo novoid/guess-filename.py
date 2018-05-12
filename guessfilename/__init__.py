@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2018-05-10 17:11:38 vk>"
+PROG_VERSION = u"Time-stamp: <2018-05-12 09:46:06 vk>"
 
 
 # TODO:
@@ -545,7 +545,7 @@ class GuessFilename(object):
                 qualitytag = 'highquality'
             else:
                 qualitytag = 'UNKNOWNQUALITY'
-            MEDIATHEKVIEW_LONG_INDEXGROUPS = [1, '-', 2, '-', 3, 'T', 11, '.', 12, '.', 13, ' ', 8, ' - ', 9, ' - ', 10, ' -- ', qualitytag, '.mp4']
+            MEDIATHEKVIEW_LONG_INDEXGROUPS = [1, '-', 2, '-', 3, 'T', 12, '.', 13, '.', 14, ' ', 8, ' - ', 9, ' - ', 10, ' -- ', qualitytag, '.mp4']
             return self.build_string_via_indexgroups(regex_match, MEDIATHEKVIEW_LONG_INDEXGROUPS).replace('_', ' ')
 
         # OLD # # MediathekView: Settings > modify Set > Targetfilename: "%DT%d h%i %s %t - %T - %N.mp4"
