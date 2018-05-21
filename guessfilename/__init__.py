@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2018-05-12 09:46:06 vk>"
+PROG_VERSION = u"Time-stamp: <2018-05-21 13:56:48 vk>"
 
 
 # TODO:
@@ -162,10 +162,11 @@ class GuessFilename(object):
     # results in files like:
     #   20180510T090000 ORF - ZIB - Signation -ORIGINAL- 2018-05-10_0900_tl_02_ZIB-9-00_Signation__13976423__o__1368225677__s14297692_2__WEB03HD_09000305P_09001400P_Q4A.mp4
     #   20180510T090000 ORF - ZIB - Weitere Signale der Entspannung -ORIGINAL- 2018-05-10_0900_tl_02_ZIB-9-00_Weitere-Signale__13976423__o__5968792755__s14297694_4__WEB03HD_09011813P_09020710P_Q4A.mp4
-    MEDIATHEKVIEW_LONG_REGEX = re.compile(DATESTAMP_REGEX + 'T?' + TIMESTAMP_REGEX +
-                                          ' (.+) - (.+) - (.+) -ORIGINAL- ' +
-                                          '20.+_(' + TIMESTAMP_REGEX + ').+P_' +
-                                          '(' + TIMESTAMP_REGEX + ').+P_(Q4A|Q8C).mp4', re.UNICODE)
+    MEDIATHEKVIEW_LONG_REGEX = re.compile(DATESTAMP_REGEX + 'T?' + TIMESTAMP_REGEX +  # e.g., "20180510T090000"
+                                          ' (.+) - (.+) - (.+) -ORIGINAL- ' +         # e.g., " ORF - ZIB - Signation -ORIGINAL- "
+                                          '20.+__o__(\d+)__s(\d+)_' +                 # e.g., "2018-05-10_0900_tl_02_ZIB-9-00_Signation__13976423__o__1368225677__s14297692"
+                                          '(.+_(' + TIMESTAMP_REGEX + ').+P_(' + TIMESTAMP_REGEX + ').+P_)?' +  # OPTIONAL: time-stamps of chunks: "_2__WEB03HD_09000305P_09001400P"
+                                          '(Q4A|Q8C).mp4', re.UNICODE)                # "Q4A.mp4" for lowquality or "Q8C.mp4" for highquality
 
     # C112345678901EUR20150930001.pdf -> 2015-09-30 Bank Austria Kontoauszug 2017-001 12345678901.pdf
     BANKAUSTRIA_BANK_STATEMENT_REGEX = re.compile('^C1(\d{11})EUR(\d{4})(\d{2})(\d{2})(\d{3}).pdf$', re.UNICODE)
@@ -530,22 +531,42 @@ class GuessFilename(object):
 
         # MediathekView: Settings > modify Set > Targetfilename: "%DT%d %s %t - %T -ORIGINAL- %N.mp4" (without any limitation of the maximum numbers of characters)
         # results in files like:
+        # with the optional time-stamp information of the chunks:
         #   20180510T090000 ORF - ZIB - Signation -ORIGINAL- 2018-05-10_0900_tl_02_ZIB-9-00_Signation__13976423__o__1368225677__s14297692_2__WEB03HD_09000305P_09001400P_Q4A.mp4
-        #      regex_match.groups() == ('2018', '05', '10', '09', '00', '00', '00', 'ORF', 'ZIB', 'Signation', '090003', '09', '00', '03', '03', '090014', '09', '00', '14', '14', 'Q4A')
+        #      regex_match.groups() == ('2018', '05', '10', '09', '00', '00', '00', 'ORF', 'ZIB', 'Signation', '1368225677', '14297692', '2__WEB03HD_09000305P_09001400P_', '090003', '09', '00', '03', '03', '090014', '09', '00', '14', '14', 'Q4A')
         #      -> 2018-05-10T09.00.03 ORF - ZIB - Signation -- lowquality.mp4
         #   20180510T090000 ORF - ZIB - Weitere Signale der Entspannung -ORIGINAL- 2018-05-10_0900_tl_02_ZIB-9-00_Weitere-Signale__13976423__o__5968792755__s14297694_4__WEB03HD_09011813P_09020710P_Q4A.mp4
         #      -> 2018-05-10T09.01.18 ORF - ZIB - Weitere Signale der Entspannung -- lowquality.mp4
+        # without the optional time-stamp:
+        #   20180520T201500 ORF - Tatort - Tatort_ Aus der Tiefe der Zeit -ORIGINAL- 2018-05-20_2015_in_02_Tatort--Aus-der_____13977411__o__1151703583__s14303062_Q8C.mp4
+        #      ('2018', '05', '20', '20', '15', '00', '00', 'ORF', 'Tatort', 'Tatort_ Aus der Tiefe der Zeit', '1151703583', '14303062', None, None, None, None, None, None, None, None, None, None, None, 'Q8C')
+        #      -> 2018-05-20T20.15.00 ORF - Tatort - Tatort  Aus der Tiefe der Zeit -- highquality.mp4
         regex_match = re.match(self.MEDIATHEKVIEW_LONG_REGEX, oldfilename)
         if regex_match:
-            if 'Tatort' in oldfilename and os.stat(oldfilename).st_size < 2000000000 and not options.quiet:
-                print('       →  ' + colorama.Style.BRIGHT + colorama.Fore.RED + 'WARNING: Tatort file seems to be too small (download aborted?): ' + oldfilename + colorama.Style.RESET_ALL)
-            if regex_match.group(21).upper() == 'Q4A':
+
+            try:
+                if 'Tatort' in oldfilename and os.stat(oldfilename).st_size < 2000000000 and not options.quiet:
+                    print('       →  ' + colorama.Style.BRIGHT + colorama.Fore.RED + 'WARNING: Tatort file seems to be too small (download aborted?): ' + oldfilename + colorama.Style.RESET_ALL)
+            except OSError:
+                # ignore this error because this only(?) happens when
+                # the function is called within its unittest module
+                # where the files do not exist
+                pass
+
+            quality_string = regex_match.group(len(regex_match.groups())).upper()
+            if quality_string == 'Q4A':
                 qualitytag = 'lowquality'
-            elif regex_match.group(21).upper() == 'Q8C':
+            elif quality_string == 'Q8C':
                 qualitytag = 'highquality'
             else:
                 qualitytag = 'UNKNOWNQUALITY'
-            MEDIATHEKVIEW_LONG_INDEXGROUPS = [1, '-', 2, '-', 3, 'T', 12, '.', 13, '.', 14, ' ', 8, ' - ', 9, ' - ', 10, ' -- ', qualitytag, '.mp4']
+
+            if regex_match.group(13):
+                # the file name contained the optional chunk time-stamp(s)
+                MEDIATHEKVIEW_LONG_INDEXGROUPS = [1, '-', 2, '-', 3, 'T', 15, '.', 16, '.', 17, ' ', 8, ' - ', 9, ' - ', 10, ' -- ', qualitytag, '.mp4']
+            else:
+                # the file name did NOT contain the optional chunk time-stamp(s), so we have to use the main time-stamp
+                MEDIATHEKVIEW_LONG_INDEXGROUPS = [1, '-', 2, '-', 3, 'T', 4, '.', 5, '.', 6, ' ', 8, ' - ', 9, ' - ', 10, ' -- ', qualitytag, '.mp4']
             return self.build_string_via_indexgroups(regex_match, MEDIATHEKVIEW_LONG_INDEXGROUPS).replace('_', ' ')
 
         # OLD # # MediathekView: Settings > modify Set > Targetfilename: "%DT%d h%i %s %t - %T - %N.mp4"

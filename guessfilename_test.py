@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8; mode: python; -*-
-# Time-stamp: <2017-12-17 16:42:07 vk>
+# Time-stamp: <2018-05-21 13:49:29 vk>
 
 import unittest
 import logging
@@ -144,6 +144,13 @@ class TestGuessFilename(unittest.TestCase):
                          "2017-12-07T09.23 Went for a walk.gpx")
         self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename("2017-11-03_07-29_Fri Bicycling.gpx"),
                          "2017-11-03T07.29 Bicycling.gpx")
+
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename("20180510T090000 ORF - ZIB - Signation -ORIGINAL- 2018-05-10_0900_tl_02_ZIB-9-00_Signation__13976423__o__1368225677__s14297692_2__WEB03HD_09000305P_09001400P_Q4A.mp4"),
+                         "2018-05-10T09.00.03 ORF - ZIB - Signation -- lowquality.mp4")
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename("20180510T090000 ORF - ZIB - Weitere Signale der Entspannung -ORIGINAL- 2018-05-10_0900_tl_02_ZIB-9-00_Weitere-Signale__13976423__o__5968792755__s14297694_4__WEB03HD_09011813P_09020710P_Q4A.mp4"),
+                         "2018-05-10T09.01.18 ORF - ZIB - Weitere Signale der Entspannung -- lowquality.mp4")
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename("20180520T201500 ORF - Tatort - Tatort_ Aus der Tiefe der Zeit -ORIGINAL- 2018-05-20_2015_in_02_Tatort--Aus-der_____13977411__o__1151703583__s14303062_Q8C.mp4"),
+                         "2018-05-20T20.15.00 ORF - Tatort - Tatort  Aus der Tiefe der Zeit -- highquality.mp4")
 
 #        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename(""),
 #                         "")
