@@ -162,9 +162,12 @@ class GuessFilename(object):
     # results in files like:
     #   20180510T090000 ORF - ZIB - Signation -ORIGINAL- 2018-05-10_0900_tl_02_ZIB-9-00_Signation__13976423__o__1368225677__s14297692_2__WEB03HD_09000305P_09001400P_Q4A.mp4
     #   20180510T090000 ORF - ZIB - Weitere Signale der Entspannung -ORIGINAL- 2018-05-10_0900_tl_02_ZIB-9-00_Weitere-Signale__13976423__o__5968792755__s14297694_4__WEB03HD_09011813P_09020710P_Q4A.mp4
+    #   20180521T193000 ORF - ZIB 1 - Parlament bereitet sich auf EU-Vorsitz vor -ORIGINAL- 2018-05-21_1930_tl_02_ZIB-1_Parlament-berei__13977453__o__277886215b__s14303762_2__WEB03HD_19350304P_19371319P_Q4A.mp4
+    #   20180522T220000 ORF - Willkommen Österreich mit Stermann & Grissemann - Beachvolleyball-Duo Clemens Doppler und Alexander Horst -ORIGINAL- 2018-05-22_2200_l__13977514__o__1745__s14352_2__BCK1HD_22394018P_22.mp4
+    #    -ORIGINAL- 2018-05-22_2200_l__13977514__o__1745__s14352_2__BCK1HD_22394018P_22.mp4
     MEDIATHEKVIEW_LONG_REGEX = re.compile(DATESTAMP_REGEX + 'T?' + TIMESTAMP_REGEX +  # e.g., "20180510T090000"
                                           ' (.+) - (.+) - (.+) -ORIGINAL- ' +         # e.g., " ORF - ZIB - Signation -ORIGINAL- "
-                                          '20.+__o__(\d+)__s(\d+)_' +                 # e.g., "2018-05-10_0900_tl_02_ZIB-9-00_Signation__13976423__o__1368225677__s14297692"
+                                          '.+__o__(\d+b?)__s(\d+)_' +                 # e.g., "2018-05-10_0900_tl_02_ZIB-9-00_Signation__13976423__o__1368225677__s14297692"
                                           '(.+_(' + TIMESTAMP_REGEX + ').+P_(' + TIMESTAMP_REGEX + ').+P_)?' +  # OPTIONAL: time-stamps of chunks: "_2__WEB03HD_09000305P_09001400P"
                                           '(Q4A|Q8C).mp4', re.UNICODE)                # "Q4A.mp4" for lowquality or "Q8C.mp4" for highquality
 
