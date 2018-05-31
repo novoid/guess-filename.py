@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2018-05-21 13:56:48 vk>"
+PROG_VERSION = u"Time-stamp: <2018-05-31 12:11:00 vk>"
 
 
 # TODO:
@@ -506,16 +506,6 @@ class GuessFilename(object):
         logging.debug("derive_new_filename_from_old_filename called")
         datetimestr, basefilename, tags, extension = self.split_filename_entities(oldfilename)
 
-        # Paycheck
-        if extension == "PDF" and self.config.SALARY_STARTSTRING and self.config.SALARY_STARTSTRING in oldfilename:
-            year, month, day = re.match(self.DATESTAMP_REGEX, datetimestr).groups()
-            month = int(month)
-            if int(day) < 15:
-                # salary came after the new month has started; salary is from previous month
-                month = month - 1
-            print(' ' * 7 + colorama.Style.DIM + '→  PDF file password: ' + self.config.SALARY_PDF_PASSWORD + colorama.Style.RESET_ALL)
-            return datetimestr + ' ' + self.config.SALARY_DESCRIPTION + ' ' + self.NumToMonth(month) +  ' - € -- detego private.pdf'
-
         # Android screenshots:
         # Screenshot_2013-03-05-08-14-09.png -> 2013-03-05T08.14.09 -- android screenshots.png
         regex_match = re.match(self.ANDROID_SCREENSHOT_REGEX, oldfilename)
@@ -744,6 +734,19 @@ class GuessFilename(object):
 
         try:
             pdffile = PyPDF2.PdfFileReader(open(filename, "rb"))
+
+            # if PDF is encryped, try password stored in config file
+            # or quit this function if decryption is not successful
+            if pdffile.isEncrypted:
+                returncode = pdffile.decrypt(self.config.SALARY_PDF_PASSWORD)
+                if returncode < 1:
+                    logging.error('PDF file is encrypted and could NOT be decrypted using ' +
+                                  'config.SALARY_PDF_PASSWORD. Skipping content analysis.')
+                    return False
+                else:
+                    logging.debug('PDF file is encrypted and could be decrypted using ' +
+                                  'config.SALARY_PDF_PASSWORD. Return code = ' + str(returncode))
+
             # use first and second page of content only:
             if pdffile.getNumPages() > 1:
                 content = pdffile.pages[0].extractText() + pdffile.pages[1].extractText()
@@ -759,6 +762,36 @@ class GuessFilename(object):
         if len(content) == 0:
             logging.warning('Could read PDF file content but it is empty (skipping content analysis)')
             return False
+
+        # Salary - NOTE: this is highly specific to the PDF file
+        # structure of the author's salary processing software.
+        # Therefore, this most likely does not work for your salary
+        # PDF file.
+        if extension == "PDF" and self.config.SALARY_STARTSTRING and self.config.SALARY_STARTSTRING in filename:
+            content = content.replace('\n', '')  # there is a '\n' after each character
+            try:
+                # should parse starting sequence of
+                # "^.LOHN/GEHALTSABRECHNUNG JÄNNER 2018Klien..." and
+                # return "Jaenner"
+                month_of_salary = re.match(r'.LOHN/GEHALTSABRECHNUNG (.+) .+', content).group(1).capitalize().replace('ä', 'ae')
+            except:
+                logging.error('derive_new_filename_from_content(' + filename + '): I recognized pattern ' +
+                              'for salary file but content format for extracting month must have changed.')
+                month_of_salary = 'FIXXME'
+            try:
+                # should extract "2.345,67" from following sequence
+                # ".+SZAbzüge1.234,56Netto2.345,67IBAN:.+"
+                net_salary = re.match(r'.+Netto(\d\.\d{3},\d{2})IBAN.+', content).group(1)
+            except:
+                logging.error('derive_new_filename_from_content(' + filename + '): I recognized pattern ' +
+                              'for salary file but content format for extracting net salary must have changed.')
+                net_salary = 'FIXXME'
+            # print out password to stdout in order to give the user a
+            # hint when he wants to open the PDF in a PDF viewer
+            print(' ' * 7 + colorama.Style.DIM + '→  PDF file password: ' + self.config.SALARY_PDF_PASSWORD +
+                  colorama.Style.RESET_ALL)
+            return datetimestr + ' ' + self.config.SALARY_DESCRIPTION + ' ' + month_of_salary + ' - ' + \
+                net_salary + '€ -- detego private.pdf'
 
         # 2010-06-08 easybank - neue TAN-Liste -- scan private.pdf
         if self.fuzzy_contains_all_of(content, ["Transaktionsnummern (TANs)", "Ihre TAN-Liste in Verlust geraten"]) and \
