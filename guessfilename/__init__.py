@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2018-05-31 12:11:00 vk>"
+PROG_VERSION = u"Time-stamp: <2018-06-09 14:56:05 vk>"
 
 
 # TODO:
@@ -165,11 +165,35 @@ class GuessFilename(object):
     #   20180521T193000 ORF - ZIB 1 - Parlament bereitet sich auf EU-Vorsitz vor -ORIGINAL- 2018-05-21_1930_tl_02_ZIB-1_Parlament-berei__13977453__o__277886215b__s14303762_2__WEB03HD_19350304P_19371319P_Q4A.mp4
     #   20180522T220000 ORF - Willkommen Österreich mit Stermann & Grissemann - Beachvolleyball-Duo Clemens Doppler und Alexander Horst -ORIGINAL- 2018-05-22_2200_l__13977514__o__1745__s14352_2__BCK1HD_22394018P_22.mp4
     #    -ORIGINAL- 2018-05-22_2200_l__13977514__o__1745__s14352_2__BCK1HD_22394018P_22.mp4
-    MEDIATHEKVIEW_LONG_REGEX = re.compile(DATESTAMP_REGEX + 'T?' + TIMESTAMP_REGEX +  # e.g., "20180510T090000"
-                                          ' (.+) - (.+) - (.+) -ORIGINAL- ' +         # e.g., " ORF - ZIB - Signation -ORIGINAL- "
-                                          '.+__o__(\d+b?)__s(\d+)_' +                 # e.g., "2018-05-10_0900_tl_02_ZIB-9-00_Signation__13976423__o__1368225677__s14297692"
+
+    # SHORT_REGEX: if MediathekView is NOT able to generate the full length file name because
+    #              of file name length restrictions, this RegEx is a fall-back in order to
+    #              recognize the situation.
+    MEDIATHEKVIEW_SHORT_REGEX_STRING = DATESTAMP_REGEX + 'T?' + TIMESTAMP_REGEX + ' (.+) - (.+) - (.+) -ORIGINAL- '  # e.g., "20180510T090000 ORF - ZIB - Signation -ORIGINAL- "
+    MEDIATHEKVIEW_SHORT_REGEX = re.compile(MEDIATHEKVIEW_SHORT_REGEX_STRING + '(.+).mp4')
+
+    # URL has format like: http://apasfpd.apa.at/cms-worldwide/online/7db1010b02753288e65ff61d5e1dff58/1528531468/2018-06-08_2140_tl_01_Was-gibt-es-Neu_Promifrage-gest__13979244__o__1391278651__s14313058_8__BCK1HD_22050122P_22091314P_Q4A.mp4
+    # but with varying quality indicator: Q4A (low), Q6A (high), Q8C (HD)
+    # which gets parsed like:
+    #   http://apasfpd.apa.at/cms-worldwide/online/      → required
+    #   7db1010b02753288e65ff61d5e1dff58/1528531468
+    #   /2018-06-08_2140_tl_                             → required
+    #   01_Was-gibt-es-Neu_Promifrage-gest__13979244__o__1391278651__s14313058_8__BCK1HD
+    #   _22050122P_22091314P_Q4A.mp4                     → required
+    FILM_URL_REGEX = re.compile('http://apasfpd.apa.at/cms-worldwide/online/' +
+                                '.+' +  # e.g., "7db1010b02753288e65ff61d5e1dff58/1528531468"
+                                '/' + DATESTAMP_REGEX + '_' + TIMESTAMP_REGEX + '_tl_' +  # e.g., "/2018-06-08_2140_tl_"
+                                '.+' +  # e.g., "01_Was-gibt-es-Neu_Promifrage-gest__13979244__o__1391278651__s14313058_8__BCK1HD"
+                                '_' + TIMESTAMP_REGEX + '\d\dP_' + TIMESTAMP_REGEX + '\d\dP_' +  # e.g., "_22050122P_22091314P_"
+                                '(Q4A|Q6A|Q8C).mp4') # "Q4A.mp4" or "Q6A.mp4" or "Q8C.mp4"
+
+    # LONG_REGEX: MediathekView was able to generate the full length file name including
+    #             the full length original file name at the end of the file name which ends
+    #             with the quality indicator Q4A or Q8C when used with the ORF sender file format.
+    MEDIATHEKVIEW_LONG_REGEX = re.compile(MEDIATHEKVIEW_SHORT_REGEX_STRING +
+                                          '.+__o__(\d+b?)__s(\d+)_' +   # e.g., "2018-05-10_0900_tl_02_ZIB-9-00_Signation__13976423__o__1368225677__s14297692"
                                           '(.+_(' + TIMESTAMP_REGEX + ').+P_(' + TIMESTAMP_REGEX + ').+P_)?' +  # OPTIONAL: time-stamps of chunks: "_2__WEB03HD_09000305P_09001400P"
-                                          '(Q4A|Q8C).mp4', re.UNICODE)                # "Q4A.mp4" for lowquality or "Q8C.mp4" for highquality
+                                          '(Q4A|Q8C).mp4', re.UNICODE)  # "Q4A.mp4" for lowquality or "Q8C.mp4" for highquality
 
     # C112345678901EUR20150930001.pdf -> 2015-09-30 Bank Austria Kontoauszug 2017-001 12345678901.pdf
     BANKAUSTRIA_BANK_STATEMENT_REGEX = re.compile('^C1(\d{11})EUR(\d{4})(\d{2})(\d{2})(\d{3}).pdf$', re.UNICODE)
@@ -494,6 +518,20 @@ class GuessFilename(object):
         return months[month]
 
 
+    def translate_ORF_quality_string_to_tag(self, quality_string):
+        """
+        Returns a filetag which is derived from a key string. The key strings are defined
+        by the file names of the ORF company offering its download file names.
+        """
+
+        if quality_string == 'Q4A':
+            return 'lowquality'
+        elif quality_string == 'Q6A' or quality_string == 'Q8C':
+            return 'highquality'
+        else:
+            return 'UNKNOWNQUALITY'
+
+
     def derive_new_filename_from_old_filename(self, oldfilename):
         """
         Analyses the old filename and returns a new one if feasible.
@@ -534,6 +572,11 @@ class GuessFilename(object):
         #   20180520T201500 ORF - Tatort - Tatort_ Aus der Tiefe der Zeit -ORIGINAL- 2018-05-20_2015_in_02_Tatort--Aus-der_____13977411__o__1151703583__s14303062_Q8C.mp4
         #      ('2018', '05', '20', '20', '15', '00', '00', 'ORF', 'Tatort', 'Tatort_ Aus der Tiefe der Zeit', '1151703583', '14303062', None, None, None, None, None, None, None, None, None, None, None, 'Q8C')
         #      -> 2018-05-20T20.15.00 ORF - Tatort - Tatort  Aus der Tiefe der Zeit -- highquality.mp4
+        #
+        # LONG_REGEX: MediathekView was able to generate the full length file name including
+        #             the full length original file name at the end of the file name which ends
+        #             with the quality indicator Q4A or Q8C when used with the ORF sender file format.
+        #
         regex_match = re.match(self.MEDIATHEKVIEW_LONG_REGEX, oldfilename)
         if regex_match:
 
@@ -546,13 +589,7 @@ class GuessFilename(object):
                 # where the files do not exist
                 pass
 
-            quality_string = regex_match.group(len(regex_match.groups())).upper()
-            if quality_string == 'Q4A':
-                qualitytag = 'lowquality'
-            elif quality_string == 'Q8C':
-                qualitytag = 'highquality'
-            else:
-                qualitytag = 'UNKNOWNQUALITY'
+            qualitytag = self.translate_ORF_quality_string_to_tag(regex_match.group(len(regex_match.groups())).upper())
 
             if regex_match.group(13):
                 # the file name contained the optional chunk time-stamp(s)
@@ -561,6 +598,78 @@ class GuessFilename(object):
                 # the file name did NOT contain the optional chunk time-stamp(s), so we have to use the main time-stamp
                 MEDIATHEKVIEW_LONG_INDEXGROUPS = [1, '-', 2, '-', 3, 'T', 4, '.', 5, '.', 6, ' ', 8, ' - ', 9, ' - ', 10, ' -- ', qualitytag, '.mp4']
             return self.build_string_via_indexgroups(regex_match, MEDIATHEKVIEW_LONG_INDEXGROUPS).replace('_', ' ')
+
+        # SHORT_REGEX: if MediathekView is NOT able to generate the full length file name because
+        #              of file name length restrictions, this RegEx is a fall-back in order to
+        #              recognize the situation.
+        # This is a fall-back mechanism which requires INTERACTIVE correction: user gets asked to
+        # enter the original file URL: MediathekView > context menu of a chunk > "Film-URL kopieren"
+        # With this URL, guessfilename is able to extract the original time-stamps that were missing
+        # in the SHORT_REGEX.
+        #
+        # test it manually with following data: (no unit test because of interactive input)
+        # filename "20180608T214000 ORF - Was gibt es Neues? - Promifrage gestellt von Helmut Bohatsch_ Wie vergewisserte sich der Bischof von New York 1877, dass das erste Tonaufnahmegerät kein Teufelswerk ist? -ORIGINAL- 2018-06-08_2140_tl_01_Was-gibt-es-Neu_Promifr.mp4"
+        # Low quality URL:
+        # http://apasfpd.apa.at/cms-worldwide/online/7db1010b02753288e65ff61d5e1dff58/1528531468/2018-06-08_2140_tl_01_Was-gibt-es-Neu_Promifrage-gest__13979244__o__1391278651__s14313058_8__BCK1HD_22050122P_22091314P_Q4A.mp4
+        # High quality URL:
+        # http://apasfpd.apa.at/cms-worldwide/online/549c11b7cf10c9a232361003d78e5335/1528531468/2018-06-08_2140_tl_01_Was-gibt-es-Neu_Promifrage-gest__13979244__o__1391278651__s14313058_8__BCK1HD_22050122P_22091314P_Q6A.mp4
+        # HD URL:
+        # http://apasfpd.apa.at/cms-worldwide/online/6ade5772382b0833525870b4a290692c/1528531468/2018-06-08_2140_tl_01_Was-gibt-es-Neu_Promifrage-gest__13979244__o__1391278651__s14313058_8__BCK1HD_22050122P_22091314P_Q8C.mp4
+        regex_match = re.match(self.MEDIATHEKVIEW_SHORT_REGEX, oldfilename)
+        if regex_match:
+
+            try:
+                if 'Tatort' in oldfilename and os.stat(oldfilename).st_size < 2000000000 and not options.quiet:
+                    print('       →  ' + colorama.Style.BRIGHT + colorama.Fore.RED +
+                          'WARNING: Tatort file seems to be too small (download aborted?): ' +
+                          oldfilename + colorama.Style.RESET_ALL)
+            except OSError:
+                # ignore this error because this only(?) happens when
+                # the function is called within its unittest module
+                # where the files do not exist
+                pass
+
+            logging.warn('I recognized a MediathekView file which has a cut-off time-stamp because ' +
+                         'of file name length restrictions.\nYou can fix it manually:')
+
+            url_valid = False
+            while not url_valid:
+
+                film_url = input("\nPlease enter: MediathekView > context menu of the " +
+                                 "corresponding chunk > \"Film-URL kopieren\": (C-k = lowquality; C-h = HD)\n")
+
+                # URL has format like: http://apasfpd.apa.at/cms-worldwide/online/7db1010b02753288e65ff61d5e1dff58/1528531468/2018-06-08_2140_tl_01_Was-gibt-es-Neu_Promifrage-gest__13979244__o__1391278651__s14313058_8__BCK1HD_22050122P_22091314P_Q4A.mp4
+                # but with varying quality indicator: Q4A (low), Q6A (high), Q8C (HD)
+                film_regex_match = re.match(self.FILM_URL_REGEX, film_url)
+
+                if regex_match.groups()[:5] != film_regex_match.groups()[:5]:
+                    # plausibility check fails: date and time of the chunks differ
+                    logging.warn('Sorry, there is a mismatch of the date and time contained bewteen the filename (' +
+                                 self.build_string_via_indexgroups(regex_match, [1, '-', 2, '-', 3, 'T', 4, '.', 5]) +
+                                 ') and the URL pasted (' +
+                                 self.build_string_via_indexgroups(film_regex_match, [1, '-', 2, '-', 3, 'T', 4, '.', 5]) +
+                                 '). Please try again with the correct URL ...')
+                elif not film_regex_match:
+                    logging.warn('You did not enter a valid Film-URL which looks like: ' +
+                                 'http://apasfpd.apa.at/cms-worldwide/online/.../.../2018-06-08_2140_tl_01_Description__' +
+                                 '13979244__o__1391278651__s14313058_8__BCK1HD_22050122P_22091314P_Q4A.mp4')
+                else:
+                    url_valid = True
+
+            # "lowquality" or "highquality" or "UNKNOWNQUALITY"
+            qualitytag = self.translate_ORF_quality_string_to_tag(film_regex_match.group(len(film_regex_match.groups())).upper())
+
+            # e.g., "2018-06-08T"
+            datestamp = self.build_string_via_indexgroups(regex_match, [1, '-', 2, '-', 3, 'T'])
+
+            # e.g., "22.05.01 "
+            timestamp = self.build_string_via_indexgroups(film_regex_match, [8, '.', 9, '.', 10, ' '])
+
+            # e.g., "ORF - Was gibt es Neues? - Promifrage gestellt von Helmut Bohatsch_ Wie vergewisserte sich der Bischof von New York 1877, dass das erste Tonaufnahmegerät kein Teufelswerk ist? -- lowquality.mp4"
+            description = self.build_string_via_indexgroups(regex_match, [8, ' - ', 9, ' - ', 10, ' -- ', qualitytag, '.mp4'])
+
+            # combining them all to one final filename:
+            return datestamp + timestamp + description
 
         # OLD # # MediathekView: Settings > modify Set > Targetfilename: "%DT%d h%i %s %t - %T - %N.mp4"
         # OLD # # results in files like:
