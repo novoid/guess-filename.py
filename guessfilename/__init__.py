@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2018-06-09 16:00:48 vk>"
+PROG_VERSION = u"Time-stamp: <2018-06-09 18:07:40 vk>"
 
 
 # TODO:
@@ -21,6 +21,7 @@ import time
 import logging
 from optparse import OptionParser
 import colorama
+import datetime  # for calculating duration of chunks
 
 try:
     from fuzzywuzzy import fuzz  # for fuzzy comparison of strings
@@ -98,6 +99,18 @@ def error_exit(errorcode, text):
     logging.error(text)
 
     sys.exit(errorcode)
+
+
+class FileSizePlausibilityException(Exception):
+    """
+    Exception for file sizes being to small according to their duration and quality indicator
+    """
+
+    def __init__(self, message):
+        self.value = message
+
+    def __str__(self):
+        return repr(self.value)
 
 
 class GuessFilename(object):
@@ -201,7 +214,7 @@ class GuessFilename(object):
     # with the quality indicator Q4A or Q8C when used with the ORF sender file format.
     MEDIATHEKVIEW_LONG_WITH_DETAILED_TIMESTAMPS_REGEX = re.compile(MEDIATHEKVIEW_SHORT_REGEX_STRING +
                                                                    '.+__o__(\d+b?)__s(\d+)_' +   # e.g., "2018-05-10_0900_tl_02_ZIB-9-00_Signation__13976423__o__1368225677__s14297692"
-                                                                   '(.+_(' + TIMESTAMP_REGEX + ').+P_(' + TIMESTAMP_REGEX + ').+P_)?' +  # OPTIONAL: time-stamps of chunks: "_2__WEB03HD_09000305P_09001400P"
+                                                                   '(.+_(' + TIMESTAMP_REGEX + ').+P_(' + TIMESTAMP_REGEX + ').+P_)' +  # OPTIONAL: time-stamps of chunks: "_2__WEB03HD_09000305P_09001400P"
                                                                    '(Q4A|Q8C).mp4', re.UNICODE)  # "Q4A.mp4" for lowquality or "Q8C.mp4" for highquality
 
     # C112345678901EUR20150930001.pdf -> 2015-09-30 Bank Austria Kontoauszug 2017-001 12345678901.pdf
@@ -541,6 +554,92 @@ class GuessFilename(object):
             return 'UNKNOWNQUALITY'
 
 
+    def get_file_size(self, filename):
+        """
+        A simple wrapper to determine file sizes.
+
+        For some hard-coded file names, a hard-coded file size is returned. This enables
+        unit-testing for file sizes that do not exist in the file system.
+        """
+
+        # these are the hard-coded sizes for unit test cases:
+        if filename in ['20180510T090000 ORF - ZIB - Signation -ORIGINAL- 2018-05-10_0900_tl_02_ZIB-9-00_Signation__13976423__o__1368225677__s14297692_2__WEB03HD_09000305P_09001400P_Q4A.mp4',
+                        '20180510T090000 ORF - ZIB - Weitere Signale der Entspannung -ORIGINAL- 2018-05-10_0900_tl_02_ZIB-9-00_Weitere-Signale__13976423__o__5968792755__s14297694_4__WEB03HD_09011813P_09020710P_Q4A.mp4',
+                        '20180520T201500 ORF - Tatort - Tatort_ Aus der Tiefe der Zeit -ORIGINAL- 2018-05-20_2015_in_02_Tatort--Aus-der_____13977411__o__1151703583__s14303062_Q8C.mp4',
+                        '20180521T193000 ORF - ZIB 1 - Parlament bereitet sich auf EU-Vorsitz vor -ORIGINAL- 2018-05-21_1930_tl_02_ZIB-1_Parlament-berei__13977453__o__277886215b__s14303762_2__WEB03HD_19350304P_19371319P_Q4A.mp4',
+                        '20180608T193000 ORF - Österreich Heute - Das Magazin - Österreich Heute - Das Magazin -ORIGINAL- 13979231_0007_Q8C.mp4']:
+            # don't care about file sizes, return a high number that is abote the expected minimum in any case:
+            return 99999999
+        elif filename == '20180608T170000 ORF - ZIB 17_00 - size okay -ORIGINAL- 2018-06-08_1700_tl__13979222__o__1892278656__s14313181_1__WEB03HD_17020613P_17024324P_Q4A.mp4':
+            return 5017289  # from an actual downloaded file
+        elif filename == '20180608T170000 ORF - ZIB 17_00 - size not okay -ORIGINAL- 2018-06-08_1700_tl__13979222__o__1892278656__s14313181_1__WEB03HD_17020613P_17024324P_Q4A.mp4':
+            return 4217289  # manually reduced size from the value of an actual downloaded file
+        elif filename == '20180608T170000 ORF - ZIB 17_00 - size okay -ORIGINAL- 2018-06-08_1700_tl__13979222__o__1892278656__s14313181_1__WEB03HD_17020613P_17024324P_Q8C.mp4':
+            return 15847932  # from an actual downloaded file
+        elif filename == '20180608T170000 ORF - ZIB 17_00 - size not okay -ORIGINAL- 2018-06-08_1700_tl__13979222__o__1892278656__s14313181_1__WEB03HD_17020613P_17024324P_Q8C.mp4':
+            return 14050000  # manually reduced size from the value of an actual downloaded file
+
+        try:
+            return os.stat(filename).st_size
+        except OSError:
+            error_exit(10, 'get_file_size(): Could not get file size of: ' + filename)
+
+
+    def warn_if_ORF_file_seems_to_small_according_to_duration_and_quality_indicator(self, oldfilename, qualityindicator,
+                                                                                    start_hrs, start_min, start_sec,
+                                                                                    end_hrs, end_min, end_sec):
+        """
+        Launches a warning if the expected size differs from the actual file size.
+
+        Expected size is derived from the detailed time-stamp information
+        and tests with a ten minute file:
+
+        | Quality Indicator       | file size | bytes per second |
+        |-------------------------+-----------+------------------|
+        | Q8C = HD                | 240429907 |           400717 |
+        | Q6A = high quality      | 150198346 |           250331 |
+        | Q4A = low quality       |  74992178 |           124987 |
+        """
+
+        TOLERANCE_FACTOR = 0.95  # To cover edge cases where a reduced file size is feasible
+
+        file_size = self.get_file_size(oldfilename)
+
+        start = datetime.datetime(1980, 5, 1, int(start_hrs), int(start_min), int(start_sec))
+        end = datetime.datetime(1980, 5, 1, int(end_hrs), int(end_min), int(end_sec))
+        duration = end - start
+        duration_in_seconds = duration.seconds
+        assert(duration_in_seconds > 0)
+
+        if qualityindicator == 'Q8C':
+            minimum_expected_file_size = 400000 * duration_in_seconds * TOLERANCE_FACTOR
+        elif qualityindicator == 'Q6A':
+            minimum_expected_file_size = 250000 * duration_in_seconds * TOLERANCE_FACTOR
+        elif qualityindicator == 'Q4A':
+            minimum_expected_file_size = 125000 * duration_in_seconds * TOLERANCE_FACTOR
+        else:
+            logging.warn('Unknown quality indicator prevents file size check: ' + qualityindicator)
+            return
+
+#        import pdb; pdb.set_trace()
+        if file_size < minimum_expected_file_size:
+            print('\n       →  ' + colorama.Style.BRIGHT + colorama.Fore.RED +
+                  'ERROR: file size seems to be too small for the given duration ' +
+                  'and quality indicator found (download aborted?): \n' +
+                  ' ' * 10 + 'file size:             ' + "{:,}".format(file_size) + ' Bytes\n' +
+                  ' ' * 10 + 'expected minimum size: ' + "{:,}".format(minimum_expected_file_size) + ' Bytes\n' +
+                  ' ' * 10 + 'duration:  ' + str('%.1f'%(duration_in_seconds/60)) + ' minutes\n' +
+                  ' ' * 10 + 'quality:   ' + qualityindicator + '\n' +
+                  ' ' * 10 + 'file name: ' + oldfilename + colorama.Style.RESET_ALL + '\n')
+            raise(FileSizePlausibilityException('file size is not plausible (too small)'))
+        else:
+            logging.debug('warn_if_ORF_file_seems_to_small_according_to_duration_and_quality_indicator: ' +
+                          'file size (' + "{:,}".format(file_size) +
+                          ') is plausible compared to expected minimum (' +
+                          "{:,}".format(minimum_expected_file_size) +
+                          ')')
+
+
     def derive_new_filename_from_old_filename(self, oldfilename):
         """
         Analyses the old filename and returns a new one if feasible.
@@ -601,7 +700,20 @@ class GuessFilename(object):
                 # where the files do not exist
                 pass
 
-            qualitytag = self.translate_ORF_quality_string_to_tag(regex_match.group(len(regex_match.groups())).upper())
+            qualityindicator = regex_match.group(len(regex_match.groups())).upper()
+            qualitytag = self.translate_ORF_quality_string_to_tag(qualityindicator)
+            start_hrs = regex_match.group(15)
+            start_min = regex_match.group(16)
+            start_sec = regex_match.group(17)
+            end_hrs = regex_match.group(20)
+            if end_hrs < start_hrs:
+                # hack to overcome the midnight issue where end hours is less than begin hours:
+                end_hrs = 24 + end_hrs
+            end_min = regex_match.group(21)
+            end_sec = regex_match.group(22)
+            self.warn_if_ORF_file_seems_to_small_according_to_duration_and_quality_indicator(oldfilename, qualityindicator,
+                                                                                             start_hrs, start_min, start_sec,
+                                                                                             end_hrs, end_min, end_sec)
 
             if regex_match.group(13):
                 # the file name contained the optional chunk time-stamp(s)
@@ -1118,8 +1230,11 @@ def main():
     for filename in files:
         if filename.__class__ == str:
             filename = str(filename)
-        if not guess_filename.handle_file(filename, options.dryrun):
-            filenames_could_not_be_found += 1
+        try:
+            if not guess_filename.handle_file(filename, options.dryrun):
+                filenames_could_not_be_found += 1
+        except:
+            error_exit(99, 'An exception occurred. Aborting further file processing.')
 
     if not options.quiet:
         # add empty line for better screen output readability

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8; mode: python; -*-
-# Time-stamp: <2018-06-09 15:41:49 vk>
+# Time-stamp: <2018-06-09 17:46:00 vk>
 
 import unittest
 import logging
@@ -9,6 +9,7 @@ import os
 import os.path
 import sys
 from guessfilename import GuessFilename
+from guessfilename import FileSizePlausibilityException
 
 
 class TestGuessFilename(unittest.TestCase):
@@ -157,6 +158,18 @@ class TestGuessFilename(unittest.TestCase):
         # ORF file not truncated but still without detailed time-stamps
         self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename("20180608T193000 ORF - Österreich Heute - Das Magazin - Österreich Heute - Das Magazin -ORIGINAL- 13979231_0007_Q8C.mp4"),
                          "2018-06-08T19.30.00 ORF - Österreich Heute - Das Magazin - Österreich Heute - Das Magazin -- highquality.mp4")
+
+        # plausibility checks of file sizes: report plausible sizes
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename("20180608T170000 ORF - ZIB 17_00 - size okay -ORIGINAL- 2018-06-08_1700_tl__13979222__o__1892278656__s14313181_1__WEB03HD_17020613P_17024324P_Q4A.mp4"),
+                         "2018-06-08T17.02.06 ORF - ZIB 17 00 - size okay -- lowquality.mp4")
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename("20180608T170000 ORF - ZIB 17_00 - size okay -ORIGINAL- 2018-06-08_1700_tl__13979222__o__1892278656__s14313181_1__WEB03HD_17020613P_17024324P_Q8C.mp4"),
+                         "2018-06-08T17.02.06 ORF - ZIB 17 00 - size okay -- highquality.mp4")
+
+        # plausibility checks of file sizes: report non-plausible sizes
+        with self.assertRaises(FileSizePlausibilityException, message='file size is not plausible (too small)'):
+            self.guess_filename.derive_new_filename_from_old_filename("20180608T170000 ORF - ZIB 17_00 - size not okay -ORIGINAL- 2018-06-08_1700_tl__13979222__o__1892278656__s14313181_1__WEB03HD_17020613P_17024324P_Q4A.mp4")
+        with self.assertRaises(FileSizePlausibilityException, message='file size is not plausible (too small)'):
+            self.guess_filename.derive_new_filename_from_old_filename("20180608T170000 ORF - ZIB 17_00 - size not okay -ORIGINAL- 2018-06-08_1700_tl__13979222__o__1892278656__s14313181_1__WEB03HD_17020613P_17024324P_Q8C.mp4")
 
 #        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename(""),
 #                         "")
