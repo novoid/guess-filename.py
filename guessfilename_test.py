@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8; mode: python; -*-
-# Time-stamp: <2018-05-31 12:05:39 vk>
+# Time-stamp: <2018-06-09 15:41:49 vk>
 
 import unittest
 import logging
@@ -153,6 +153,10 @@ class TestGuessFilename(unittest.TestCase):
                          "2018-05-20T20.15.00 ORF - Tatort - Tatort  Aus der Tiefe der Zeit -- highquality.mp4")
         self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename("20180521T193000 ORF - ZIB 1 - Parlament bereitet sich auf EU-Vorsitz vor -ORIGINAL- 2018-05-21_1930_tl_02_ZIB-1_Parlament-berei__13977453__o__277886215b__s14303762_2__WEB03HD_19350304P_19371319P_Q4A.mp4"),
                          "2018-05-21T19.35.03 ORF - ZIB 1 - Parlament bereitet sich auf EU-Vorsitz vor -- lowquality.mp4")
+
+        # ORF file not truncated but still without detailed time-stamps
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename("20180608T193000 ORF - Österreich Heute - Das Magazin - Österreich Heute - Das Magazin -ORIGINAL- 13979231_0007_Q8C.mp4"),
+                         "2018-06-08T19.30.00 ORF - Österreich Heute - Das Magazin - Österreich Heute - Das Magazin -- highquality.mp4")
 
 #        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename(""),
 #                         "")
