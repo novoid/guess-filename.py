@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8; mode: python; -*-
-# Time-stamp: <2018-06-09 17:46:00 vk>
+# Time-stamp: <2018-06-10 22:42:27 vk>
 
 import unittest
 import logging
@@ -171,8 +171,13 @@ class TestGuessFilename(unittest.TestCase):
         with self.assertRaises(FileSizePlausibilityException, message='file size is not plausible (too small)'):
             self.guess_filename.derive_new_filename_from_old_filename("20180608T170000 ORF - ZIB 17_00 - size not okay -ORIGINAL- 2018-06-08_1700_tl__13979222__o__1892278656__s14313181_1__WEB03HD_17020613P_17024324P_Q8C.mp4")
 
-#        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename(""),
-#                         "")
+        # You might think that it should be 2018-06-09 instead of 2018-06-10. This is caused by different
+        # day of metadata from filename (after midnight) and metadata from time-stamp (seconds before midnight):
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('20180610T000000 ORF - Kleinkunst - Kleinkunst_ Cordoba - Das Rückspiel (2_2) -ORIGINAL- 2018-06-10_0000_sd_06_Kleinkunst--Cor_____13979381__o__1483927235__s14313621_1__ORF3HD_23592020P_00593103P_Q8C.mp4'),
+                         '2018-06-10T23.59.20 ORF - Kleinkunst - Kleinkunst  Cordoba - Das Rückspiel (2 2) -- highquality.mp4')
+
+#        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename(''),
+#                         '')
 
 
     def test_contains_one_of(self):

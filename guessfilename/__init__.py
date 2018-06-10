@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2018-06-09 18:07:40 vk>"
+PROG_VERSION = u"Time-stamp: <2018-06-10 22:38:36 vk>"
 
 
 # TODO:
@@ -578,6 +578,9 @@ class GuessFilename(object):
             return 15847932  # from an actual downloaded file
         elif filename == '20180608T170000 ORF - ZIB 17_00 - size not okay -ORIGINAL- 2018-06-08_1700_tl__13979222__o__1892278656__s14313181_1__WEB03HD_17020613P_17024324P_Q8C.mp4':
             return 14050000  # manually reduced size from the value of an actual downloaded file
+        elif filename == '20180610T000000 ORF - Kleinkunst - Kleinkunst_ Cordoba - Das Rückspiel (2_2) -ORIGINAL- 2018-06-10_0000_sd_06_Kleinkunst--Cor_____13979381__o__1483927235__s14313621_1__ORF3HD_23592020P_00593103P_Q8C.mp4':
+            return 1506829698  # from actual file
+
 
         try:
             return os.stat(filename).st_size
@@ -605,8 +608,13 @@ class GuessFilename(object):
 
         file_size = self.get_file_size(oldfilename)
 
+        day_of_end = 1
+        if int(end_hrs) < int(start_hrs):
+            logging.debug('end hours is less than begin hours, adding a day-change for calculating duration')
+            day_of_end = 2
+
+        end = datetime.datetime(1980, 5, day_of_end, int(end_hrs), int(end_min), int(end_sec))
         start = datetime.datetime(1980, 5, 1, int(start_hrs), int(start_min), int(start_sec))
-        end = datetime.datetime(1980, 5, 1, int(end_hrs), int(end_min), int(end_sec))
         duration = end - start
         duration_in_seconds = duration.seconds
         assert(duration_in_seconds > 0)
@@ -621,14 +629,13 @@ class GuessFilename(object):
             logging.warn('Unknown quality indicator prevents file size check: ' + qualityindicator)
             return
 
-#        import pdb; pdb.set_trace()
         if file_size < minimum_expected_file_size:
             print('\n       →  ' + colorama.Style.BRIGHT + colorama.Fore.RED +
                   'ERROR: file size seems to be too small for the given duration ' +
                   'and quality indicator found (download aborted?): \n' +
                   ' ' * 10 + 'file size:             ' + "{:,}".format(file_size) + ' Bytes\n' +
                   ' ' * 10 + 'expected minimum size: ' + "{:,}".format(minimum_expected_file_size) + ' Bytes\n' +
-                  ' ' * 10 + 'duration:  ' + str('%.1f'%(duration_in_seconds/60)) + ' minutes\n' +
+                  ' ' * 10 + 'duration:  ' + str('%.1f' % (duration_in_seconds/60)) + ' minutes\n' +
                   ' ' * 10 + 'quality:   ' + qualityindicator + '\n' +
                   ' ' * 10 + 'file name: ' + oldfilename + colorama.Style.RESET_ALL + '\n')
             raise(FileSizePlausibilityException('file size is not plausible (too small)'))
@@ -691,14 +698,6 @@ class GuessFilename(object):
 
             logging.debug('Filename did contain detailed start- and end-timestamps. Using the full-blown time-stamp '
                           + 'information of the chunk itself: MEDIATHEKVIEW_LONG_WITH_DETAILED_TIMESTAMPS_REGEX')
-            try:
-                if 'Tatort' in oldfilename and os.stat(oldfilename).st_size < 2000000000 and not options.quiet:
-                    print('       →  ' + colorama.Style.BRIGHT + colorama.Fore.RED + 'WARNING: Tatort file seems to be too small (download aborted?): ' + oldfilename + colorama.Style.RESET_ALL)
-            except OSError:
-                # ignore this error because this only(?) happens when
-                # the function is called within its unittest module
-                # where the files do not exist
-                pass
 
             qualityindicator = regex_match.group(len(regex_match.groups())).upper()
             qualitytag = self.translate_ORF_quality_string_to_tag(qualityindicator)
@@ -706,15 +705,11 @@ class GuessFilename(object):
             start_min = regex_match.group(16)
             start_sec = regex_match.group(17)
             end_hrs = regex_match.group(20)
-            if end_hrs < start_hrs:
-                # hack to overcome the midnight issue where end hours is less than begin hours:
-                end_hrs = 24 + end_hrs
             end_min = regex_match.group(21)
             end_sec = regex_match.group(22)
             self.warn_if_ORF_file_seems_to_small_according_to_duration_and_quality_indicator(oldfilename, qualityindicator,
                                                                                              start_hrs, start_min, start_sec,
                                                                                              end_hrs, end_min, end_sec)
-
             if regex_match.group(13):
                 # the file name contained the optional chunk time-stamp(s)
                 MEDIATHEKVIEW_LONG_INDEXGROUPS = [1, '-', 2, '-', 3, 'T', 15, '.', 16, '.', 17, ' ', 8, ' - ', 9, ' - ', 10, ' -- ', qualitytag, '.mp4']
@@ -757,17 +752,6 @@ class GuessFilename(object):
         # http://apasfpd.apa.at/cms-worldwide/online/6ade5772382b0833525870b4a290692c/1528531468/2018-06-08_2140_tl_01_Was-gibt-es-Neu_Promifrage-gest__13979244__o__1391278651__s14313058_8__BCK1HD_22050122P_22091314P_Q8C.mp4
         regex_match = re.match(self.MEDIATHEKVIEW_SHORT_REGEX, oldfilename)
         if regex_match:
-
-            try:
-                if 'Tatort' in oldfilename and os.stat(oldfilename).st_size < 2000000000 and not options.quiet:
-                    print('       →  ' + colorama.Style.BRIGHT + colorama.Fore.RED +
-                          'WARNING: Tatort file seems to be too small (download aborted?): ' +
-                          oldfilename + colorama.Style.RESET_ALL)
-            except OSError:
-                # ignore this error because this only(?) happens when
-                # the function is called within its unittest module
-                # where the files do not exist
-                pass
 
             logging.debug('Filename did not contain detailed start- and end-timestamps and no quality indicators. Using the time-stamp '
                           + 'of the "Film-URL" as a fall-back: MEDIATHEKVIEW_SHORT_REGEX + FILM_URL_REGEX')
@@ -1233,7 +1217,7 @@ def main():
         try:
             if not guess_filename.handle_file(filename, options.dryrun):
                 filenames_could_not_be_found += 1
-        except:
+        except FileSizePlausibilityException:
             error_exit(99, 'An exception occurred. Aborting further file processing.')
 
     if not options.quiet:
