@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8; mode: python; -*-
-# Time-stamp: <2018-06-10 22:42:27 vk>
+# Time-stamp: <2018-06-15 21:06:40 vk>
 
 import unittest
 import logging
@@ -175,6 +175,15 @@ class TestGuessFilename(unittest.TestCase):
         # day of metadata from filename (after midnight) and metadata from time-stamp (seconds before midnight):
         self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('20180610T000000 ORF - Kleinkunst - Kleinkunst_ Cordoba - Das Rückspiel (2_2) -ORIGINAL- 2018-06-10_0000_sd_06_Kleinkunst--Cor_____13979381__o__1483927235__s14313621_1__ORF3HD_23592020P_00593103P_Q8C.mp4'),
                          '2018-06-10T23.59.20 ORF - Kleinkunst - Kleinkunst  Cordoba - Das Rückspiel (2 2) -- highquality.mp4')
+
+        # Original ORF TV Mediathek download file names (as a fall-back for raw download using wget or curl):
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('2018-06-14_2105_sd_02_Am-Schauplatz_-_Alles für die Katz-_____13979879__o__1907287074__s14316407_7__WEB03HD_21050604P_21533212P_Q8C.mp4'),
+                         '2018-06-14T21.05.06 Am Schauplatz - Alles für die Katz -- highquality.mp4')
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('2018-06-14_2155_sd_06_Kottan-ermittelt - Wien Mitte_____13979903__o__1460660672__s14316392_2__ORF3HD_21570716P_23260915P_Q8C.mp4'),
+                         '2018-06-14T21.57.07 Kottan ermittelt - Wien Mitte -- highquality.mp4')
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('2018-06-14_2330_sd_06_Sommerkabarett - Lukas Resetarits: Schmäh (1 von 2)_____13979992__o__1310584704__s14316464_4__ORF3HD_23301620P_00302415P_Q8C.mp4'),
+                         '2018-06-14T23.30.16 Sommerkabarett - Lukas Resetarits: Schmäh (1 von 2) -- highquality.mp4')
+
 
 #        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename(''),
 #                         '')

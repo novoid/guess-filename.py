@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2018-06-10 22:38:36 vk>"
+PROG_VERSION = u"Time-stamp: <2018-06-15 21:10:01 vk>"
 
 
 # TODO:
@@ -182,7 +182,8 @@ class GuessFilename(object):
     # SHORT_REGEX: if MediathekView is NOT able to generate the full length file name because
     #              of file name length restrictions, this RegEx is a fall-back in order to
     #              recognize the situation.
-    MEDIATHEKVIEW_SHORT_REGEX_STRING = DATESTAMP_REGEX + 'T?' + TIMESTAMP_REGEX + ' (.+) - (.+) - (.+) -ORIGINAL- '  # e.g., "20180510T090000 ORF - ZIB - Signation -ORIGINAL- "
+    MEDIATHEKVIEW_SHORT_REGEX_STRING = DATESTAMP_REGEX + 'T?' + TIMESTAMP_REGEX + \
+                                       ' (.+) - (.+) - (.+) -ORIGINAL- '  # e.g., "20180510T090000 ORF - ZIB - Signation -ORIGINAL- "
     MEDIATHEKVIEW_SHORT_REGEX = re.compile(MEDIATHEKVIEW_SHORT_REGEX_STRING + '(.+).mp4')
 
     # MediathekView was able to generate the full length file name including
@@ -192,6 +193,21 @@ class GuessFilename(object):
     #
     # example: 20180608T193000 ORF - Österreich Heute HD 10min - Das Magazin - Österreich Heute - Das Magazin -ORIGINAL- 13979231_0007_Q8C.mp4
     MEDIATHEKVIEW_LONG_WITHOUT_DETAILED_TIMESTAMPS_REGEX = re.compile(MEDIATHEKVIEW_SHORT_REGEX_STRING + '.+_(Q4A|Q6A|Q8C).mp4')
+
+    # Original ORF TV Mediathek download file names as a fall-back for
+    # raw download using wget or curl: context menu > "Film-URL
+    # kopieren"
+    #
+    # examples:
+    #   2018-06-14_2105_sd_02_Am-Schauplatz_-_Alles für die Katz-_____13979879__o__1907287074__s14316407_7__WEB03HD_21050604P_21533212P_Q8C.mp4
+    #   2018-06-14_2155_sd_06_Kottan-ermittelt - Wien Mitte_____13979903__o__1460660672__s14316392_2__ORF3HD_21570716P_23260915P_Q8C.mp4
+    #   2018-06-14_2330_sd_06_Sommerkabarett - Lukas Resetarits: Schmäh (1 von 2)_____13979992__o__1310584704__s14316464_4__ORF3HD_23301620P_00302415P_Q8C.mp4
+    MEDIATHEKVIEW_RAW_DATETIME = DATESTAMP_REGEX + '_' + TIMESTAMP_REGEX  # e.g., "2018-06-14_2105"
+    MEDIATHEKVIEW_RAW_TITLE = '_[a-z]{2}_\d{2}_(.+)'  # e.g., "_sd_02_Am-Schauplatz_-_Alles für die Katz"
+    MEDIATHEKVIEW_RAW_NUMBERS = '_+\d+__o__.+_'  # e.g., "_____13979879__o__1907287074__s14316407_7__WEB03HD_"
+    MEDIATHEKVIEW_RAW_ENDING = TIMESTAMP_REGEX + '\d\dP_' + TIMESTAMP_REGEX + '\d\dP_(Q4A|Q6A|Q8C).mp4'  # e.g., "21050604P_21533212P_Q8C.mp4"
+    MEDIATHEKVIEW_RAW_REGEX_STRING = MEDIATHEKVIEW_RAW_DATETIME + MEDIATHEKVIEW_RAW_TITLE + \
+                                     MEDIATHEKVIEW_RAW_NUMBERS + MEDIATHEKVIEW_RAW_ENDING
 
     # URL has format like: http://apasfpd.apa.at/cms-worldwide/online/7db1010b02753288e65ff61d5e1dff58/1528531468/2018-06-08_2140_tl_01_Was-gibt-es-Neu_Promifrage-gest__13979244__o__1391278651__s14313058_8__BCK1HD_22050122P_22091314P_Q4A.mp4
     # but with varying quality indicator: Q4A (low), Q6A (high), Q8C (HD)
@@ -580,7 +596,12 @@ class GuessFilename(object):
             return 14050000  # manually reduced size from the value of an actual downloaded file
         elif filename == '20180610T000000 ORF - Kleinkunst - Kleinkunst_ Cordoba - Das Rückspiel (2_2) -ORIGINAL- 2018-06-10_0000_sd_06_Kleinkunst--Cor_____13979381__o__1483927235__s14313621_1__ORF3HD_23592020P_00593103P_Q8C.mp4':
             return 1506829698  # from actual file
-
+        elif filename == '2018-06-14_2105_sd_02_Am-Schauplatz_-_Alles für die Katz-_____13979879__o__1907287074__s14316407_7__WEB03HD_21050604P_21533212P_Q8C.mp4':
+            return 1214980782  # from actual file
+        elif filename == '2018-06-14_2155_sd_06_Kottan-ermittelt - Wien Mitte_____13979903__o__1460660672__s14316392_2__ORF3HD_21570716P_23260915P_Q8C.mp4':
+            return 2231522252  # from actual file
+        elif filename == '2018-06-14_2330_sd_06_Sommerkabarett - Lukas Resetarits: Schmäh (1 von 2)_____13979992__o__1310584704__s14316464_4__ORF3HD_23301620P_00302415P_Q8C.mp4':
+            return 1506983474  # from actual file
 
         try:
             return os.stat(filename).st_size
@@ -717,6 +738,33 @@ class GuessFilename(object):
                 # the file name did NOT contain the optional chunk time-stamp(s), so we have to use the main time-stamp
                 MEDIATHEKVIEW_LONG_INDEXGROUPS = [1, '-', 2, '-', 3, 'T', 4, '.', 5, '.', 6, ' ', 8, ' - ', 9, ' - ', 10, ' -- ', qualitytag, '.mp4']
             return self.build_string_via_indexgroups(regex_match, MEDIATHEKVIEW_LONG_INDEXGROUPS).replace('_', ' ')
+
+        # MEDIATHEKVIEW_RAW_REGEX_STRING:
+        #             MediathekView ORF raw file name
+        #
+        regex_match = re.match(self.MEDIATHEKVIEW_RAW_REGEX_STRING, oldfilename)
+        if regex_match:
+
+            logging.debug('Filename looks like ORF raw file name: MEDIATHEKVIEW_RAW_REGEX_STRING')
+
+            qualityindicator = regex_match.group(len(regex_match.groups())).upper()
+            qualitytag = self.translate_ORF_quality_string_to_tag(qualityindicator)
+            start_hrs = regex_match.group(9)
+            start_min = regex_match.group(10)
+            start_sec = regex_match.group(11)
+            end_hrs = regex_match.group(13)
+            end_min = regex_match.group(14)
+            end_sec = regex_match.group(15)
+            self.warn_if_ORF_file_seems_to_small_according_to_duration_and_quality_indicator(oldfilename, qualityindicator,
+                                                                                             start_hrs, start_min, start_sec,
+                                                                                             end_hrs, end_min, end_sec)
+            # transform ...
+            # 'Am-Schauplatz_-_Alles f\xc3\xbcr die Katz-____'
+            # ... into ...
+            # 'Am Schauplatz - Alles f\xc3\xbcr die Katz'
+            title = regex_match.group(8).replace('-',' ').replace('_ _',' - ').replace('   ',' - ').replace('_','').strip()
+            MEDIATHEKVIEW_RAW_INDEXGROUPS = [1, '-', 2, '-', 3, 'T', start_hrs, '.', start_min, '.', start_sec, ' ', title, ' -- ', qualitytag, '.mp4']
+            return self.build_string_via_indexgroups(regex_match, MEDIATHEKVIEW_RAW_INDEXGROUPS)
 
         # MEDIATHEKVIEW_LONG_WITHOUT_DETAILED_TIMESTAMPS_REGEX:
         # MediathekView was able to generate the full length file name including
