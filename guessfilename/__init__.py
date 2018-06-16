@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2018-06-15 21:10:01 vk>"
+PROG_VERSION = u"Time-stamp: <2018-06-16 11:36:09 vk>"
 
 
 # TODO:
@@ -217,7 +217,7 @@ class GuessFilename(object):
     #   /2018-06-08_2140_tl_                             → required
     #   01_Was-gibt-es-Neu_Promifrage-gest__13979244__o__1391278651__s14313058_8__BCK1HD
     #   _22050122P_22091314P_Q4A.mp4                     → required
-    FILM_URL_REGEX = re.compile('http://apasfpd.apa.at/cms-worldwide/online/' +
+    FILM_URL_REGEX = re.compile('https?://apasfpd.apa.at/cms-worldwide/online/' +
                                 '.+' +  # e.g., "7db1010b02753288e65ff61d5e1dff58/1528531468"
                                 '/' + DATESTAMP_REGEX + '_' + TIMESTAMP_REGEX + '_tl_' +  # e.g., "/2018-06-08_2140_tl_"
                                 '.+' +  # e.g., "01_Was-gibt-es-Neu_Promifrage-gest__13979244__o__1391278651__s14313058_8__BCK1HD"
@@ -816,7 +816,9 @@ class GuessFilename(object):
                 # but with varying quality indicator: Q4A (low), Q6A (high), Q8C (HD)
                 film_regex_match = re.match(self.FILM_URL_REGEX, film_url)
 
-                if regex_match.groups()[:5] != film_regex_match.groups()[:5]:
+                if not film_regex_match:
+                    logging.warn('Too bad: the URL given did not match the hard-coded regular expression: ' + str(self.FILM_URL_REGEX))
+                elif regex_match.groups()[:5] != film_regex_match.groups()[:5]:
                     # plausibility check fails: date and time of the chunks differ
                     logging.warn('Sorry, there is a mismatch of the date and time contained bewteen the filename (' +
                                  self.build_string_via_indexgroups(regex_match, [1, '-', 2, '-', 3, 'T', 4, '.', 5]) +
@@ -825,7 +827,7 @@ class GuessFilename(object):
                                  '). Please try again with the correct URL ...')
                 elif not film_regex_match:
                     logging.warn('You did not enter a valid Film-URL which looks like: ' +
-                                 'http://apasfpd.apa.at/cms-worldwide/online/.../.../2018-06-08_2140_tl_01_Description__' +
+                                 'http(s)://apasfpd.apa.at/cms-worldwide/online/.../.../2018-06-08_2140_tl_01_Description__' +
                                  '13979244__o__1391278651__s14313058_8__BCK1HD_22050122P_22091314P_Q4A.mp4')
                 else:
                     url_valid = True
