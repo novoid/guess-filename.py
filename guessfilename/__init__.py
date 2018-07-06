@@ -209,15 +209,15 @@ class GuessFilename(object):
     MEDIATHEKVIEW_RAW_REGEX_STRING = MEDIATHEKVIEW_RAW_DATETIME + MEDIATHEKVIEW_RAW_TITLE + \
                                      MEDIATHEKVIEW_RAW_NUMBERS + MEDIATHEKVIEW_RAW_ENDING
 
-    # URL has format like: http://apasfpd.apa.at/cms-worldwide/online/7db1010b02753288e65ff61d5e1dff58/1528531468/2018-06-08_2140_tl_01_Was-gibt-es-Neu_Promifrage-gest__13979244__o__1391278651__s14313058_8__BCK1HD_22050122P_22091314P_Q4A.mp4
+    # URL has format like: http://apasfpd.sf.apa.at/cms-worldwide/online/7db1010b02753288e65ff61d5e1dff58/1528531468/2018-06-08_2140_tl_01_Was-gibt-es-Neu_Promifrage-gest__13979244__o__1391278651__s14313058_8__BCK1HD_22050122P_22091314P_Q4A.mp4
     # but with varying quality indicator: Q4A (low), Q6A (high), Q8C (HD)
     # which gets parsed like:
-    #   http://apasfpd.apa.at/cms-worldwide/online/      → required
+    #   http://apasfpd.sf.apa.at/cms-worldwide/online/      → required
     #   7db1010b02753288e65ff61d5e1dff58/1528531468
     #   /2018-06-08_2140_tl_                             → required
     #   01_Was-gibt-es-Neu_Promifrage-gest__13979244__o__1391278651__s14313058_8__BCK1HD
     #   _22050122P_22091314P_Q4A.mp4                     → required
-    FILM_URL_REGEX = re.compile('https?://apasfpd.apa.at/cms-worldwide/online/' +
+    FILM_URL_REGEX = re.compile('https?://apasfpd.sf.apa.at/cms-worldwide/online/' +
                                 '.+' +  # e.g., "7db1010b02753288e65ff61d5e1dff58/1528531468"
                                 '/' + DATESTAMP_REGEX + '_' + TIMESTAMP_REGEX + '_tl_' +  # e.g., "/2018-06-08_2140_tl_"
                                 '.+' +  # e.g., "01_Was-gibt-es-Neu_Promifrage-gest__13979244__o__1391278651__s14313058_8__BCK1HD"
