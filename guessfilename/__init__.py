@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2018-11-01 11:24:17 vk>"
+PROG_VERSION = u"Time-stamp: <2018-11-01 22:19:54 vk>"
 
 
 # TODO:
@@ -806,7 +806,7 @@ class GuessFilename(object):
             logging.warn('I recognized a MediathekView file which has a cut-off time-stamp because ' +
                          'of file name length restrictions.\nYou can fix it manually:')
 
-            if regex_match.group(12) == 'playlist.m3u8' and len(regex_match.group(11)) > 0:
+            if regex_match.group(12) == 'playlist.m3u8' and regex_match.group(11):
                 # We got this simple case of failing to get "original filename" from MediathekView download source:
                 # '20181028T201400 ORF - Tatort - Tatort_ Blut -ORIGINALhd- playlist.m3u8.mp4'
                 # There is NO original filename containing the starting time :-(
