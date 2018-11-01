@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8; mode: python; -*-
-# Time-stamp: <2018-06-15 21:06:40 vk>
+# Time-stamp: <2018-11-01 11:17:03 vk>
 
 import unittest
 import logging
@@ -183,6 +183,21 @@ class TestGuessFilename(unittest.TestCase):
                          '2018-06-14T21.57.07 Kottan ermittelt - Wien Mitte -- highquality.mp4')
         self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('2018-06-14_2330_sd_06_Sommerkabarett - Lukas Resetarits: Schmäh (1 von 2)_____13979992__o__1310584704__s14316464_4__ORF3HD_23301620P_00302415P_Q8C.mp4'),
                          '2018-06-14T23.30.16 Sommerkabarett - Lukas Resetarits: Schmäh (1 von 2) -- highquality.mp4')
+
+        # ORF TV Mediathek as of 2018-11-01: when there is no original filename with %N, I have to use the data I've got
+        # see https://github.com/mediathekview/MServer/issues/436
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('20181028T201400 ORF - Tatort - Tatort_ Blut -ORIGINALhd- playlist.m3u8.mp4'),
+                         '2018-10-28T20.14.00 ORF - Tatort - Tatort_ Blut -- highquality.mp4')
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('20181028T201400 ORF - Tatort - Tatort_ Blut -ORIGINALlow- playlist.m3u8.mp4'),
+                         '2018-10-28T20.14.00 ORF - Tatort - Tatort_ Blut -- lowquality.mp4')
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('20181022T211100 ORF - Thema - Das Essen der Zukunft -ORIGINALhd- playlist.m3u8.mp4'),
+                         '2018-10-22T21.11.00 ORF - Thema - Das Essen der Zukunft -- highquality.mp4')
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('20181022T211100 ORF - Thema - Das Essen der Zukunft -ORIGINALlow- playlist.m3u8.mp4'),
+                         '2018-10-22T21.11.00 ORF - Thema - Das Essen der Zukunft -- lowquality.mp4')
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('20181025T210500 ORF - Am Schauplatz - Am Schauplatz_ Wenn alles zusammenbricht -ORIGINALhd- playlist.m3u8.mp4'),
+                         '2018-10-25T21.05.00 ORF - Am Schauplatz - Am Schauplatz_ Wenn alles zusammenbricht -- highquality.mp4')
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('20181025T210500 ORF - Am Schauplatz - Am Schauplatz_ Wenn alles zusammenbricht -ORIGINALlow- playlist.m3u8.mp4'),
+                         '2018-10-25T21.05.00 ORF - Am Schauplatz - Am Schauplatz_ Wenn alles zusammenbricht -- lowquality.mp4')
 
 
 #        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename(''),
