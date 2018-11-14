@@ -74,7 +74,14 @@ Options:
 
 When downloading TV shows using [[https://github.com/mediathekview/MediathekView][MediathekView]], you should use the following download pattern:
 
-: %DT%d %s - %t - %T -ORIGINAL- %N.mp4
+- MediathekView v11:
+  : %DT%d %s - %t - %T -ORIGINAL- %N.mp4
+
+- MediathekView v13:
+  - Einstellungen > Aufzeichnen und Abspielen > Set bearbeiten
+    - [Set-Name] > Hilfsprogramme:
+      - ffmpeg > Zieldateiname > =%DT%d %s - %t - %T -ORIGINALhd- %N.mp4=
+      - ffmpeg > Schalter > =-user_agent "Mozilla" -i %f -c copy -bsf:a aac_adtstoasc **=
 
 When applying =guess-filename= on the resulting files, you will get something like this:
 
