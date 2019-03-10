@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2018-11-01 22:19:54 vk>"
+PROG_VERSION = u"Time-stamp: <2019-03-10 12:17:32 vk>"
 
 
 # TODO:
@@ -158,7 +158,8 @@ class GuessFilename(object):
     SIGNAL_REGEX = re.compile('signal-' + DATESTAMP_REGEX + '-' + TIMESTAMP_REGEX + '(.+)?.jpg', re.UNICODE)
 
     IMG_REGEX = re.compile('IMG_' + DATESTAMP_REGEX + '_' + TIMESTAMP_REGEX + '(_Bokeh)?(.+)?.jpg', re.UNICODE)
-    IMG_INDEXGROUPS = [1, '-', 2, '-', 3, 'T', 4, '.', 5, ['.', 7], 9, '.jpg']
+    IMG_INDEXGROUPS_NORMAL = [1, '-', 2, '-', 3, 'T', 4, '.', 5, ['.', 7], 9, '.jpg']
+    IMG_INDEXGROUPS_BOKEH = [1, '-', 2, '-', 3, 'T', 4, '.', 5, ['.', 7], ' Bokeh', 9, '.jpg']
     VID_REGEX = re.compile('VID_' + DATESTAMP_REGEX + '_' + TIMESTAMP_REGEX + '(.+)?.mp4', re.UNICODE)
     VID_INDEXGROUPS = [1, '-', 2, '-', 3, 'T', 4, '.', 5, ['.', 7], 8, '.mp4']
 
@@ -882,7 +883,10 @@ class GuessFilename(object):
         # digital camera images: IMG_20161014_214404 foo bar.jpg -> 2016-10-14T21.44.04 foo bar.jpg  OR
         regex_match = re.match(self.IMG_REGEX, oldfilename)
         if regex_match:
-            return self.build_string_via_indexgroups(regex_match, self.IMG_INDEXGROUPS)
+            if regex_match.group(8) == '_Bokeh':
+                return self.build_string_via_indexgroups(regex_match, self.IMG_INDEXGROUPS_BOKEH)
+            else:
+                return self.build_string_via_indexgroups(regex_match, self.IMG_INDEXGROUPS_NORMAL)
         #                        VID_20170105_173104.mp4         -> 2017-01-05T17.31.04.mp4
         regex_match = re.match(self.VID_REGEX, oldfilename)
         if regex_match:

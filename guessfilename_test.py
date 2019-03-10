@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8; mode: python; -*-
-# Time-stamp: <2018-11-01 11:17:03 vk>
+# Time-stamp: <2019-03-10 12:15:54 vk>
 
 import unittest
 import logging
@@ -199,6 +199,15 @@ class TestGuessFilename(unittest.TestCase):
         self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('20181025T210500 ORF - Am Schauplatz - Am Schauplatz_ Wenn alles zusammenbricht -ORIGINALlow- playlist.m3u8.mp4'),
                          '2018-10-25T21.05.00 ORF - Am Schauplatz - Am Schauplatz_ Wenn alles zusammenbricht -- lowquality.mp4')
 
+        # Digital camera from Android
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('IMG_20190118_133928.jpg'),
+                         '2019-01-18T13.39.28.jpg')
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('IMG_20190118_133928 This is a note.jpg'),
+                         '2019-01-18T13.39.28 This is a note.jpg')
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('IMG_20190118_133928_Bokeh.jpg'),
+                         '2019-01-18T13.39.28 Bokeh.jpg')
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('IMG_20190118_133928_Bokeh This is a note.jpg'),
+                         '2019-01-18T13.39.28 Bokeh This is a note.jpg')
 
 #        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename(''),
 #                         '')
