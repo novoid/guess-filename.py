@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2019-03-10 12:17:32 vk>"
+PROG_VERSION = u"Time-stamp: <2019-05-05 17:16:09 vk>"
 
 
 # TODO:
@@ -923,6 +923,16 @@ class GuessFilename(object):
             if regex_match.group(6):
                 result += ' ' + regex_match.group(6).strip()
             return result + '.' + regex_match.group(7)
+
+        # 2019-04-01 oekostrom AG - Teilbetragsrechnung Stromverbrauch 54 EUR -- scan bill.pdf
+        if 'teilbetragsrechnung' in oldfilename.lower() and \
+           'oekostrom' in oldfilename.lower() and \
+           datetimestr and self.has_euro_charge(oldfilename):
+            return datetimestr + \
+                " oekostrom AG - Teilbetragsrechnung Stromverbrauch " + \
+                self.get_euro_charge(oldfilename) + \
+                "€ -- " + ' '.join(self.adding_tags(tags, ['scan', 'bill'])) + \
+                ".pdf"
 
         # 2015-11-24 Rechnung A1 Festnetz-Internet 12,34€ -- scan bill.pdf
         if self.contains_one_of(oldfilename, [" A1 ", " a1 "]) and self.has_euro_charge(oldfilename) and datetimestr:
