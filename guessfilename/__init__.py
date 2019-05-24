@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2019-05-05 17:16:09 vk>"
+PROG_VERSION = u"Time-stamp: <2019-05-24 17:32:25 vk>"
 
 
 # TODO:
@@ -1020,7 +1020,14 @@ class GuessFilename(object):
             else:
                 return self.build_string_via_indexgroups(regex_match, [1, 'T', 2, '.', 3, '.gpx'])
 
-
+        # 2019-05-24: this is a workaround until PDF file decryption in PyPDF2 is fixed for parsing the content id:2019-05-24-guessfilename-salary
+        if extension.upper() == "PDF" and self.config.SALARY_STARTSTRING in oldfilename and datetimestr:
+            # print out password to stdout in order to give the user a
+            # hint when he wants to open the PDF in a PDF viewer
+            print(' ' * 7 + colorama.Style.DIM + '→  PDF file password: ' + self.config.SALARY_PDF_PASSWORD +
+                  colorama.Style.RESET_ALL)
+            return datetimestr + ' ' + self.config.SALARY_DESCRIPTION + ' MONTH - SALARY' + \
+                '€ -- detego private.pdf'
 
         # FIXXME: more cases!
 
@@ -1038,6 +1045,7 @@ class GuessFilename(object):
 
         filename = os.path.join(dirname, basename)
         assert os.path.isfile(filename)
+        #logging.debug("derive_new_filename_from_content(self, \"%s\", \"%s\") called" % (dirname, basename))
 
         datetimestr, basefilename, tags, extension = self.split_filename_entities(basename)
 
@@ -1080,13 +1088,25 @@ class GuessFilename(object):
         # structure of the author's salary processing software.
         # Therefore, this most likely does not work for your salary
         # PDF file.
-        if extension == "PDF" and self.config.SALARY_STARTSTRING and self.config.SALARY_STARTSTRING in filename:
-            content = content.replace('\n', '')  # there is a '\n' after each character
+        if extension.upper() == "PDF" and self.config.SALARY_STARTSTRING in filename:
+            #content = content.replace('\n', '')  # there is a '\n' after each character
+            # 2019-05-24: new file format for salary PDF can not be parsed by PyPDF2: id:2019-05-24-guessfilename-salary
+            ##   File "/home/vk/bin/guessfilename", line 1055, in derive_new_filename_from_content
+            ##     returncode = pdffile.decrypt(self.config.SALARY_PDF_PASSWORD)
+            ##   File "/usr/lib/python3/dist-packages/PyPDF2/pdf.py", line 1987, in decrypt
+            ##     return self._decrypt(password)
+            ##   File "/usr/lib/python3/dist-packages/PyPDF2/pdf.py", line 1996, in _decrypt
+            ##     raise NotImplementedError("only algorithm code 1 and 2 are supported")
+            ## NotImplementedError: only algorithm code 1 and 2 are supported
+            ##
+            ## producer of PDF file: "wPDF4 by WPCubed GmbH" "PDF v. 1.7"
+            ## might relate to: https://github.com/mstamy2/PyPDF2/issues/378
+            import pdb; pdb.set_trace()
             try:
                 # should parse starting sequence of
                 # "^.LOHN/GEHALTSABRECHNUNG JÄNNER 2018Klien..." and
                 # return "Jaenner"
-                month_of_salary = re.match(r'.LOHN/GEHALTSABRECHNUNG (.+) .+', content).group(1).capitalize().replace('ä', 'ae')
+                month_of_salary = re.match(r'.LOHN.*/.*GEHALTSABRECHNUNG (.+) .+', content).group(1).capitalize().replace('ä', 'ae')
             except:
                 logging.error('derive_new_filename_from_content(' + filename + '): I recognized pattern ' +
                               'for salary file but content format for extracting month must have changed.')
