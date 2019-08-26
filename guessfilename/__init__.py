@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2019-05-24 17:32:25 vk>"
+PROG_VERSION = u"Time-stamp: <2019-08-26 10:46:01 vk>"
 
 
 # TODO:
@@ -651,7 +651,8 @@ class GuessFilename(object):
             logging.warn('Unknown quality indicator prevents file size check: ' + qualityindicator)
             return
 
-        if file_size < minimum_expected_file_size:
+        ## additional check for minimum duration because small videos often produced wrong error messages:
+        if duration_in_seconds > 120 and file_size < minimum_expected_file_size:
             print('\n       →  ' + colorama.Style.BRIGHT + colorama.Fore.RED +
                   'ERROR: file size seems to be too small for the given duration ' +
                   'and quality indicator found (download aborted?): \n' +
