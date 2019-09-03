@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8; mode: python; -*-
-# Time-stamp: <2019-03-10 12:15:54 vk>
+# Time-stamp: <2019-09-03 14:21:05 vk>
 
 import unittest
 import logging
@@ -154,6 +154,13 @@ class TestGuessFilename(unittest.TestCase):
                          "2018-05-20T20.15.00 ORF - Tatort - Tatort  Aus der Tiefe der Zeit -- highquality.mp4")
         self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename("20180521T193000 ORF - ZIB 1 - Parlament bereitet sich auf EU-Vorsitz vor -ORIGINAL- 2018-05-21_1930_tl_02_ZIB-1_Parlament-berei__13977453__o__277886215b__s14303762_2__WEB03HD_19350304P_19371319P_Q4A.mp4"),
                          "2018-05-21T19.35.03 ORF - ZIB 1 - Parlament bereitet sich auf EU-Vorsitz vor -- lowquality.mp4")
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('20190902T220000 ORF - ZIB 2 - Bericht über versteckte ÖVP-Wahlkampfkosten -ORIGINALlow- 2019-09-02_2200_tl_02_ZIB-2_Bericht-ueber-v__14024705__o__71528285d6__s14552793_3__ORF2HD_22033714P_22074303P_Q4A.mp4'),
+                         '2019-09-02T22.03.37 ORF - ZIB 2 - Bericht über versteckte ÖVP-Wahlkampfkosten -- lowquality.mp4')
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('20190902T220000 ORF - ZIB 2 - Hinweis _ Verabschiedung -ORIGINALlow- 2019-09-02_2200_tl_02_ZIB-2_Hinweis---Verab__14024705__o__857007705d__s14552799_9__ORF2HD_22285706P_22300818P_Q4A.mp4'),
+                         '2019-09-02T22.28.57 ORF - ZIB 2 - Hinweis   Verabschiedung -- lowquality.mp4')
+        # NOTE: if you add test cases, you have to add the file name to __init__.py > get_file_size() as well in order to overrule the file size check which would fail in any case!
+        # self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename(''),
+        #                  '')
 
         # ORF file not truncated but still without detailed time-stamps
         self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename("20180608T193000 ORF - Österreich Heute - Das Magazin - Österreich Heute - Das Magazin -ORIGINAL- 13979231_0007_Q8C.mp4"),

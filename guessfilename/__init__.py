@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2019-08-26 10:46:01 vk>"
+PROG_VERSION = u"Time-stamp: <2019-09-03 14:21:50 vk>"
 
 
 # TODO:
@@ -229,8 +229,11 @@ class GuessFilename(object):
     # the full length original file name which contains the detailed begin- and
     # end-timestamps at the end of the file name which ends
     # with the quality indicator Q4A or Q8C when used with the ORF sender file format.
+    # examples:
+    #   20180510T090000 ORF - ZIB - Signation -ORIGINAL- 2018-05-10_0900_tl_02_ZIB-9-00_Signation__13976423__o__1368225677__s14297692_2__WEB03HD_09000305P_09001400P_Q4A.mp4
+    #   20190902T220000 ORF - ZIB 2 - Bericht über versteckte ÖVP-Wahlkampfkosten -ORIGINALlow- 2019-09-02_2200_tl_02_ZIB-2_Bericht-ueber-v__14024705__o__71528285d6__s14552793_3__ORF2HD_22033714P_22074303P_Q4A.mp4
     MEDIATHEKVIEW_LONG_WITH_DETAILED_TIMESTAMPS_REGEX = re.compile(MEDIATHEKVIEW_SHORT_REGEX_STRING +
-                                                                   '.+__o__(\d+b?)__s(\d+)_' +   # e.g., "2018-05-10_0900_tl_02_ZIB-9-00_Signation__13976423__o__1368225677__s14297692"
+                                                                   '.+__o__([a-z0-9]+)__s([a-z0-9]+)_' +   # e.g., "2018-05-10_0900_tl_02_ZIB-9-00_Signation__13976423__o__1368225677__s14297692"
                                                                    '(.+_(' + TIMESTAMP_REGEX + ').+P_(' + TIMESTAMP_REGEX + ').+P_)' +  # OPTIONAL: time-stamps of chunks: "_2__WEB03HD_09000305P_09001400P"
                                                                    '(Q4A|Q8C).mp4', re.UNICODE)  # "Q4A.mp4" for lowquality or "Q8C.mp4" for highquality
 
@@ -584,7 +587,9 @@ class GuessFilename(object):
                         '20180510T090000 ORF - ZIB - Weitere Signale der Entspannung -ORIGINAL- 2018-05-10_0900_tl_02_ZIB-9-00_Weitere-Signale__13976423__o__5968792755__s14297694_4__WEB03HD_09011813P_09020710P_Q4A.mp4',
                         '20180520T201500 ORF - Tatort - Tatort_ Aus der Tiefe der Zeit -ORIGINAL- 2018-05-20_2015_in_02_Tatort--Aus-der_____13977411__o__1151703583__s14303062_Q8C.mp4',
                         '20180521T193000 ORF - ZIB 1 - Parlament bereitet sich auf EU-Vorsitz vor -ORIGINAL- 2018-05-21_1930_tl_02_ZIB-1_Parlament-berei__13977453__o__277886215b__s14303762_2__WEB03HD_19350304P_19371319P_Q4A.mp4',
-                        '20180608T193000 ORF - Österreich Heute - Das Magazin - Österreich Heute - Das Magazin -ORIGINAL- 13979231_0007_Q8C.mp4']:
+                        '20180608T193000 ORF - Österreich Heute - Das Magazin - Österreich Heute - Das Magazin -ORIGINAL- 13979231_0007_Q8C.mp4',
+                        '20190902T220000 ORF - ZIB 2 - Bericht über versteckte ÖVP-Wahlkampfkosten -ORIGINALlow- 2019-09-02_2200_tl_02_ZIB-2_Bericht-ueber-v__14024705__o__71528285d6__s14552793_3__ORF2HD_22033714P_22074303P_Q4A.mp4',
+                        '20190902T220000 ORF - ZIB 2 - Hinweis _ Verabschiedung -ORIGINALlow- 2019-09-02_2200_tl_02_ZIB-2_Hinweis---Verab__14024705__o__857007705d__s14552799_9__ORF2HD_22285706P_22300818P_Q4A.mp4']:
             # don't care about file sizes, return a high number that is abote the expected minimum in any case:
             return 99999999
         elif filename == '20180608T170000 ORF - ZIB 17_00 - size okay -ORIGINAL- 2018-06-08_1700_tl__13979222__o__1892278656__s14313181_1__WEB03HD_17020613P_17024324P_Q4A.mp4':
@@ -737,6 +742,7 @@ class GuessFilename(object):
             self.warn_if_ORF_file_seems_to_small_according_to_duration_and_quality_indicator(oldfilename, qualityindicator,
                                                                                              start_hrs, start_min, start_sec,
                                                                                              end_hrs, end_min, end_sec)
+
             if regex_match.group(13):
                 # the file name contained the optional chunk time-stamp(s)
                 MEDIATHEKVIEW_LONG_INDEXGROUPS = [1, '-', 2, '-', 3, 'T', 16, '.', 17, '.', 18, ' ', 8, ' - ', 9, ' - ', 10, ' -- ', qualitytag, '.mp4']
@@ -1106,7 +1112,7 @@ class GuessFilename(object):
             ##
             ## producer of PDF file: "wPDF4 by WPCubed GmbH" "PDF v. 1.7"
             ## might relate to: https://github.com/mstamy2/PyPDF2/issues/378
-            import pdb; pdb.set_trace()
+
             try:
                 # should parse starting sequence of
                 # "^.LOHN/GEHALTSABRECHNUNG JÄNNER 2018Klien..." and
