@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2019-09-03 14:21:50 vk>"
+PROG_VERSION = u"Time-stamp: <2019-09-21 10:34:44 vk>"
 
 
 # TODO:
@@ -218,12 +218,22 @@ class GuessFilename(object):
     #   /2018-06-08_2140_tl_                             → required
     #   01_Was-gibt-es-Neu_Promifrage-gest__13979244__o__1391278651__s14313058_8__BCK1HD
     #   _22050122P_22091314P_Q4A.mp4                     → required
-    FILM_URL_REGEX = re.compile('https?://apasfpd.sf.apa.at/cms-worldwide/online/' +
-                                '.+' +  # e.g., "7db1010b02753288e65ff61d5e1dff58/1528531468"
-                                '/' + DATESTAMP_REGEX + '_' + TIMESTAMP_REGEX + '_tl_' +  # e.g., "/2018-06-08_2140_tl_"
-                                '.+' +  # e.g., "01_Was-gibt-es-Neu_Promifrage-gest__13979244__o__1391278651__s14313058_8__BCK1HD"
-                                '_' + TIMESTAMP_REGEX + '\d\dP_' + TIMESTAMP_REGEX + '\d\dP_' +  # e.g., "_22050122P_22091314P_"
-                                '(Q4A|Q6A|Q8C).mp4') # "Q4A.mp4" or "Q6A.mp4" or "Q8C.mp4"
+    # 2019-09-21: Regex seems to have changed to something matching:
+    #   https://apasfiis.sf.apa.at/ipad/cms-worldwide/2019-09-20_2200_tl_02_ZIB-2_Wetter__14026467__o__698276635d__s14562567_7__ORF2HD_22241720P_22245804P_Q4A.mp4/playlist.m3u8
+    #   which gets parsed like:
+    #   https://apasfiis.sf.apa.at/ipad/cms-worldwide/
+    #   2019-09-20_2200_tl_
+    #   02_ZIB-2_Wetter__14026467__o__698276635d__s14562567_7__ORF2HD
+    #   _22241720P_22245804P_
+    #   Q4A.mp4/playlist.m3u8
+    FILM_URL_REGEX = re.compile('https?://apasfiis.sf.apa.at/(ipad/)?cms-worldwide/' +
+                                DATESTAMP_REGEX + '_' + TIMESTAMP_REGEX + '_tl_' +  # e.g., 2019-09-20_2200_tl_
+                                '.+' +  # e.g., 02_ZIB-2_Wetter__14026467__o__698276635d__s14562567_7__ORF2HD
+                                '_' + TIMESTAMP_REGEX + '\d\dP_' + TIMESTAMP_REGEX + '\d\dP_' +  # e.g., _22241720P_22245804P_
+                                '(Q4A|Q6A|Q8C).mp4/playlist.m3u8')  # e.g., Q4A.mp4/playlist.m3u8
+    FILM_URL_EXAMPLE = 'https://apasfiis.sf.apa.at/cms-worldwide/2019-09-20_2200_tl_02_ZIB-2_Wetter__14026467__o__698276635d__s14562567_7__ORF2HD_22241720P_22245804P_Q4A.mp4/playlist.m3u8'
+    FILM_URL_REGEX_MISMATCH_HELP_TEXT = 'You did not enter a valid Film-URL which looks like: \n"' + FILM_URL_EXAMPLE + '"\n' + \
+                                        'matching the hard-coded regular expression: \n' + str(FILM_URL_REGEX).replace('re.compile(', '') + '\''
 
     # MediathekView was able to generate the full length file name including
     # the full length original file name which contains the detailed begin- and
@@ -843,18 +853,17 @@ class GuessFilename(object):
                     film_regex_match = re.match(self.FILM_URL_REGEX, film_url)
 
                     if not film_regex_match:
-                        logging.warn('Too bad: the URL given did not match the hard-coded regular expression: ' + str(self.FILM_URL_REGEX))
-                    elif regex_match.groups()[:5] != film_regex_match.groups()[:5]:
-                        # plausibility check fails: date and time of the chunks differ
-                        logging.warn('Sorry, there is a mismatch of the date and time contained bewteen the filename (' +
+                        logging.warn(self.FILM_URL_REGEX_MISMATCH_HELP_TEXT)
+                        logging.debug('entered film_url:\n' + film_url)
+                    elif regex_match.groups()[:5] != film_regex_match.groups()[1:6]:
+                        logging.debug('plausibility check fails: date and time of the chunks differ: \nselected regex_match.groups is   "' +
+                                      str(regex_match.groups()[:5]) + '" which does not match\nselected film_regex_match.groups "' +
+                                      str(film_regex_match.groups()[1:6]) + '". Maybe adapt the potentially changed index group numbers due to changed RegEx?')
+                        logging.warn('Sorry, there is a mismatch of the date and time contained between the filename (' +
                                      self.build_string_via_indexgroups(regex_match, [1, '-', 2, '-', 3, 'T', 4, '.', 5]) +
                                      ') and the URL pasted (' +
                                      self.build_string_via_indexgroups(film_regex_match, [1, '-', 2, '-', 3, 'T', 4, '.', 5]) +
                                      '). Please try again with the correct URL ...')
-                    elif not film_regex_match:
-                        logging.warn('You did not enter a valid Film-URL which looks like: ' +
-                                     'http(s)://apasfpd.apa.at/cms-worldwide/online/.../.../2018-06-08_2140_tl_01_Description__' +
-                                     '13979244__o__1391278651__s14313058_8__BCK1HD_22050122P_22091314P_Q4A.mp4')
                     else:
                         url_valid = True
 
@@ -865,7 +874,7 @@ class GuessFilename(object):
                 datestamp = self.build_string_via_indexgroups(regex_match, [1, '-', 2, '-', 3, 'T'])
 
                 # e.g., "22.05.01 "
-                timestamp = self.build_string_via_indexgroups(film_regex_match, [8, '.', 9, '.', 10, ' '])
+                timestamp = self.build_string_via_indexgroups(film_regex_match, [9, '.', 10, '.', 11, ' '])
 
                 # e.g., "ORF - Was gibt es Neues? - Promifrage gestellt von Helmut Bohatsch_ Wie vergewisserte sich der Bischof von New York 1877, dass das erste Tonaufnahmegerät kein Teufelswerk ist? -- lowquality.mp4"
                 description = self.build_string_via_indexgroups(regex_match, [8, ' - ', 9, ' - ', 10, ' -- ', qualitytag, '.mp4'])
