@@ -8,6 +8,7 @@ import tempfile
 import os
 import os.path
 import sys
+import re
 from guessfilename import GuessFilename
 from guessfilename import FileSizePlausibilityException
 
@@ -219,6 +220,12 @@ class TestGuessFilename(unittest.TestCase):
 
 #        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename(''),
 #                         '')
+
+
+    def test_film_url_regex(self):
+
+        # check if the defined help text string for a MediathekView film URL matches the corresponding RegEx
+        self.assertTrue(re.match(self.guess_filename.FILM_URL_REGEX, self.guess_filename.FILM_URL_EXAMPLE))
 
 
     def test_contains_one_of(self):
