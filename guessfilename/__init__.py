@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2019-09-21 10:34:44 vk>"
+PROG_VERSION = u"Time-stamp: <2019-09-30 10:04:46 vk>"
 
 
 # TODO:
@@ -222,12 +222,12 @@ class GuessFilename(object):
     #   https://apasfiis.sf.apa.at/ipad/cms-worldwide/2019-09-20_2200_tl_02_ZIB-2_Wetter__14026467__o__698276635d__s14562567_7__ORF2HD_22241720P_22245804P_Q4A.mp4/playlist.m3u8
     #   which gets parsed like:
     #   https://apasfiis.sf.apa.at/ipad/cms-worldwide/
-    #   2019-09-20_2200_tl_
+    #   2019-09-20_2200_tl_          2019-09-30: instead "_tl_" there could be "_sd_"
     #   02_ZIB-2_Wetter__14026467__o__698276635d__s14562567_7__ORF2HD
     #   _22241720P_22245804P_
     #   Q4A.mp4/playlist.m3u8
     FILM_URL_REGEX = re.compile('https?://apasfiis.sf.apa.at/(ipad/)?cms-worldwide/' +
-                                DATESTAMP_REGEX + '_' + TIMESTAMP_REGEX + '_tl_' +  # e.g., 2019-09-20_2200_tl_
+                                DATESTAMP_REGEX + '_' + TIMESTAMP_REGEX + '_(tl|sd)_' +  # e.g., 2019-09-20_2200_tl_
                                 '.+' +  # e.g., 02_ZIB-2_Wetter__14026467__o__698276635d__s14562567_7__ORF2HD
                                 '_' + TIMESTAMP_REGEX + '\d\dP_' + TIMESTAMP_REGEX + '\d\dP_' +  # e.g., _22241720P_22245804P_
                                 '(Q4A|Q6A|Q8C).mp4/playlist.m3u8')  # e.g., Q4A.mp4/playlist.m3u8

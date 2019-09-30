@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8; mode: python; -*-
-# Time-stamp: <2019-09-03 14:21:05 vk>
+# Time-stamp: <2019-09-30 10:08:44 vk>
 
 import unittest
 import logging
@@ -192,6 +192,8 @@ class TestGuessFilename(unittest.TestCase):
                          '2018-06-14T21.57.07 Kottan ermittelt - Wien Mitte -- highquality.mp4')
         self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('2018-06-14_2330_sd_06_Sommerkabarett - Lukas Resetarits: Schmäh (1 von 2)_____13979992__o__1310584704__s14316464_4__ORF3HD_23301620P_00302415P_Q8C.mp4'),
                          '2018-06-14T23.30.16 Sommerkabarett - Lukas Resetarits: Schmäh (1 von 2) -- highquality.mp4')
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('2019-09-29_2255_sd_02_Das-Naturhistor_____14027337__o__1412900222__s14566948_8__ORF2HD_23152318P_00005522P_Q8C.mp4/playlist.m3u8'),
+                         '2019-09-29T23.15.23 Das Naturhistor -- highquality.mp4')
 
         # ORF TV Mediathek as of 2018-11-01: when there is no original filename with %N, I have to use the data I've got
         # see https://github.com/mediathekview/MServer/issues/436
