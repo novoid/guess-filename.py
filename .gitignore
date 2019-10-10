@@ -10,3 +10,5 @@ MANIFEST dist
 dist/
 .gitignore
 update_pip.sh
+build/
+guessfilename.egg-info/
