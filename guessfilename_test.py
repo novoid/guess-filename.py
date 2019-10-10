@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8; mode: python; -*-
-# Time-stamp: <2019-09-30 10:08:44 vk>
+# Time-stamp: <2019-10-10 13:30:31 vk>
 
 import unittest
 import logging
@@ -219,6 +219,14 @@ class TestGuessFilename(unittest.TestCase):
                          '2019-01-18T13.39.28 Bokeh.jpg')
         self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('IMG_20190118_133928_Bokeh This is a note.jpg'),
                          '2019-01-18T13.39.28 Bokeh This is a note.jpg')
+
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('2019-10-10 a file exported by Boox Max 2-Exported.pdf'),
+                         '2019-10-10 a file exported by Boox Max 2 -- notes.pdf')
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('2019-10-10 a file exported by Boox Max 2 -- notes-Exported.pdf'),
+                         '2019-10-10 a file exported by Boox Max 2 -- notes.pdf')
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('2019-10-10 a file exported by Boox Max 2 -- draft-Exported.pdf'),
+                         '2019-10-10 a file exported by Boox Max 2 -- draft notes.pdf')
+
 
 #        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename(''),
 #                         '')

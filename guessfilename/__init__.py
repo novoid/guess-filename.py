@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2019-09-30 10:04:46 vk>"
+PROG_VERSION = u"Time-stamp: <2019-10-10 13:33:37 vk>"
 
 
 # TODO:
@@ -1048,6 +1048,25 @@ class GuessFilename(object):
                   colorama.Style.RESET_ALL)
             return datetimestr + ' ' + self.config.SALARY_DESCRIPTION + ' MONTH - SALARY' + \
                 '€ -- detego private.pdf'
+
+        # 2019-10-10: '2019-10-10 a file exported by Boox Max 2-Exported.pdf' or
+        #             '2019-10-10 a file exported by Boox Max 2 -- notes-Exported.pdf' become
+        #         ->  '2019-10-10 a file exported by Boox Max 2 -- notes.pdf'
+        if extension.upper() == "PDF" and oldfilename.upper().endswith('-EXPORTED.PDF'):
+            if self.contains_all_of(oldfilename, [" -- ", " notes"]):
+                # FIXXME: assumption is that "notes" is within the
+                #         filetags and not anywhere else:
+                # '2019-10-10 a file exported by Boox Max 2 -- notes-Exported.pdf'
+                return oldfilename[:-13] + '.pdf'
+            else:
+                if ' -- ' in oldfilename:
+                    # filetags found but not containing "notes":
+                    # '2019-10-10 a file exported by Boox Max 2 -- draft-Exported.pdf'
+                    return oldfilename[:-13] + ' notes.pdf'
+                else:
+                    # no filetags found so far:
+                    # '2019-10-10 a file exported by Boox Max 2-Exported.pdf'
+                    return oldfilename[:-13] + ' -- notes.pdf'
 
         # FIXXME: more cases!
 
