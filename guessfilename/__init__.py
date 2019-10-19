@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2019-10-19 12:52:48 vk>"
+PROG_VERSION = u"Time-stamp: <2019-10-19 14:06:23 vk>"
 
 
 # TODO:
@@ -22,6 +22,7 @@ import logging
 from optparse import OptionParser
 import colorama
 import datetime  # for calculating duration of chunks
+import json  # to parse JSON meta-data files
 
 try:
     from fuzzywuzzy import fuzz  # for fuzzy comparison of strings
@@ -824,6 +825,38 @@ class GuessFilename(object):
 
         return False
 
+    def derive_new_filename_from_json_metadata(self, dirname, basename, json_metadata_file):
+        """
+        Analyses the content of a JSON metadata file which shares the same basename with the extension '.info.json' and returns a new file name if feasible.
+        If not, False is returned instead.
+
+        For example, youtube-dl retrieves such files from sources like YouTube with 'youtube-dl --write-info-json $URL'
+
+        @param dirname: string containing the directory of file within basename
+        @param basename: string containing one file name
+        @param json_metadata_file: string containing file name for the JSON metadata file
+        @param return: False or new filename
+        """
+
+        json_data=open(os.path.join(dirname, json_metadata_file))
+        data = json.load(json_data)
+
+        if "upload_date" in data.keys() and \
+           len(data['upload_date']) == 8 and \
+           "extractor" in data.keys() and \
+           "display_id" in data.keys() and \
+           "ext" in data.keys() and \
+           "fulltitle" in data.keys():
+            logging.debug('derive_new_filename_from_json_metadata: found all required meta data for YouTube download file style')
+            # example from unit tests: "2007-09-13 youtube - The Star7 PDA Prototype - Ahg8OBYixL0.mp4"
+            return data['upload_date'][:4] + '-' + data['upload_date'][4:6] + '-' + data['upload_date'][6:] + ' ' + data["extractor"] + ' - ' + data["fulltitle"] + ' - ' + data["display_id"] + '.' + data["ext"]
+
+        else:
+            logging.debug('derive_new_filename_from_json_metadata: do not understand this type of JSON meta data')
+            return False
+
+        json_data.close()
+
     def handle_file(self, oldfilename, dryrun):
         """
         @param oldfilename: string containing one file name
@@ -837,10 +870,10 @@ class GuessFilename(object):
             assert dryrun.__class__ == bool
 
         if os.path.isdir(oldfilename):
-            logging.debug("Skipping directory \"%s\" because this tool only renames file names." % oldfilename)
+            logging.debug("handle_file: Skipping directory \"%s\" because this tool only renames file names." % oldfilename)
             return
         elif not os.path.isfile(oldfilename):
-            logging.debug("file type error in folder [%s]: file type: is file? %s  -  is dir? %s  -  is mount? %s" %
+            logging.debug("handle_file: file type error in folder [%s]: file type: is file? %s  -  is dir? %s  -  is mount? %s" %
                           (os.getcwd(), str(os.path.isfile(oldfilename)), str(os.path.isdir(oldfilename)), str(os.path.islink(oldfilename))))
             logging.error("Skipping \"%s\" because this tool only renames existing file names." % oldfilename)
             return
@@ -853,16 +886,25 @@ class GuessFilename(object):
 
         newfilename = self.derive_new_filename_from_old_filename(basename)
         if newfilename:
-            logging.debug("derive_new_filename_from_old_filename returned new filename: %s" % newfilename)
+            logging.debug("handle_file: derive_new_filename_from_old_filename returned new filename: %s" % newfilename)
         else:
-            logging.debug("derive_new_filename_from_old_filename could not derive a new filename for %s" % basename)
+            logging.debug("handle_file: derive_new_filename_from_old_filename could not derive a new filename for %s" % basename)
 
         if not newfilename:
-            if basename[-4:].lower() == '.pdf':
+            if os.path.splitext(basename)[1].lower() == '.pdf':
                 newfilename = self.derive_new_filename_from_content(dirname, basename)
-                logging.debug("derive_new_filename_from_content returned new filename: %s" % newfilename)
+                logging.debug("handle_file: derive_new_filename_from_content returned new filename: %s" % newfilename)
             else:
-                logging.debug("file extension is not PDF and therefore I skip analyzing file content")
+                logging.debug("handle_file: file extension is not PDF and therefore I skip analyzing file content")
+
+        if not newfilename:
+            json_metadata_file = os.path.join(dirname, os.path.splitext(basename)[0] + '.info.json')
+            if os.path.isfile(json_metadata_file):
+                logging.debug("handle_file: found a json metadata file: %s   … parsing it …" % json_metadata_file)
+                newfilename = self.derive_new_filename_from_json_metadata(dirname, basename, json_metadata_file)
+                logging.debug("handle_file: derive_new_filename_from_json_metadata returned new filename: %s" % newfilename)
+            else:
+                logging.debug("handle_file: No json metadata file found")
 
         if newfilename:
             self.rename_file(dirname, basename, newfilename, dryrun)
