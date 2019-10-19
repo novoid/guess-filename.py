@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2019-10-10 13:33:37 vk>"
+PROG_VERSION = u"Time-stamp: <2019-10-19 12:13:52 vk>"
 
 
 # TODO:
@@ -226,13 +226,13 @@ class GuessFilename(object):
     #   02_ZIB-2_Wetter__14026467__o__698276635d__s14562567_7__ORF2HD
     #   _22241720P_22245804P_
     #   Q4A.mp4/playlist.m3u8
-    FILM_URL_REGEX = re.compile('https?://apasfiis.sf.apa.at/(ipad/)?cms-worldwide/' +
+    FILM_URL_REGEX = re.compile('https?://apasfiis.sf.apa.at/(ipad/)?cms-.+/' +
                                 DATESTAMP_REGEX + '_' + TIMESTAMP_REGEX + '_(tl|sd)_' +  # e.g., 2019-09-20_2200_tl_
                                 '.+' +  # e.g., 02_ZIB-2_Wetter__14026467__o__698276635d__s14562567_7__ORF2HD
                                 '_' + TIMESTAMP_REGEX + '\d\dP_' + TIMESTAMP_REGEX + '\d\dP_' +  # e.g., _22241720P_22245804P_
                                 '(Q4A|Q6A|Q8C).mp4/playlist.m3u8')  # e.g., Q4A.mp4/playlist.m3u8
     FILM_URL_EXAMPLE = 'https://apasfiis.sf.apa.at/cms-worldwide/2019-09-20_2200_tl_02_ZIB-2_Wetter__14026467__o__698276635d__s14562567_7__ORF2HD_22241720P_22245804P_Q4A.mp4/playlist.m3u8'
-    FILM_URL_REGEX_MISMATCH_HELP_TEXT = 'You did not enter a valid Film-URL which looks like: \n"' + FILM_URL_EXAMPLE + '"\n' + \
+    FILM_URL_REGEX_MISMATCH_HELP_TEXT = 'You did not enter a valid Film-URL which looks like: \n' + FILM_URL_EXAMPLE + '\n' + \
                                         'matching the hard-coded regular expression: \n' + str(FILM_URL_REGEX).replace('re.compile(', '') + '\''
 
     # MediathekView was able to generate the full length file name including
@@ -825,8 +825,6 @@ class GuessFilename(object):
 
             logging.debug('Filename did not contain detailed start- and end-timestamps and no quality indicators. Using the time-stamp '
                           + 'of the "Film-URL" as a fall-back: MEDIATHEKVIEW_SHORT_REGEX + FILM_URL_REGEX')
-            logging.warn('I recognized a MediathekView file which has a cut-off time-stamp because ' +
-                         'of file name length restrictions.\nYou can fix it manually:')
 
             if regex_match.group(12) == 'playlist.m3u8' and regex_match.group(11):
                 # We got this simple case of failing to get "original filename" from MediathekView download source:
@@ -841,18 +839,23 @@ class GuessFilename(object):
 
             else:
                 # we got the ability to derive starting time from "original filename"
+                logging.warn('I recognized a MediathekView file which has a cut-off time-stamp because ' +
+                             'of file name length restrictions.\nYou can fix it manually:')
 
                 url_valid = False
                 while not url_valid:
 
                     film_url = input("\nPlease enter: MediathekView > context menu of the " +
-                                     "corresponding chunk > \"Film-URL kopieren\": (C-k = lowquality; C-h = HD)\n")
+                                     "corresponding chunk > \"Film-URL kopieren\":\n")
 
                     # URL has format like: http://apasfpd.apa.at/cms-worldwide/online/7db1010b02753288e65ff61d5e1dff58/1528531468/2018-06-08_2140_tl_01_Was-gibt-es-Neu_Promifrage-gest__13979244__o__1391278651__s14313058_8__BCK1HD_22050122P_22091314P_Q4A.mp4
                     # but with varying quality indicator: Q4A (low), Q6A (high), Q8C (HD)
                     film_regex_match = re.match(self.FILM_URL_REGEX, film_url)
 
+                    #import pdb; pdb.set_trace()
+
                     if not film_regex_match:
+                        print()
                         logging.warn(self.FILM_URL_REGEX_MISMATCH_HELP_TEXT)
                         logging.debug('entered film_url:\n' + film_url)
                     elif regex_match.groups()[:5] != film_regex_match.groups()[1:6]:
@@ -874,7 +877,7 @@ class GuessFilename(object):
                 datestamp = self.build_string_via_indexgroups(regex_match, [1, '-', 2, '-', 3, 'T'])
 
                 # e.g., "22.05.01 "
-                timestamp = self.build_string_via_indexgroups(film_regex_match, [9, '.', 10, '.', 11, ' '])
+                timestamp = self.build_string_via_indexgroups(film_regex_match, [10, '.', 11, '.', 12, ' '])
 
                 # e.g., "ORF - Was gibt es Neues? - Promifrage gestellt von Helmut Bohatsch_ Wie vergewisserte sich der Bischof von New York 1877, dass das erste Tonaufnahmegerät kein Teufelswerk ist? -- lowquality.mp4"
                 description = self.build_string_via_indexgroups(regex_match, [8, ' - ', 9, ' - ', 10, ' -- ', qualitytag, '.mp4'])
