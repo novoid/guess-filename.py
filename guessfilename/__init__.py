@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2019-10-19 12:13:52 vk>"
+PROG_VERSION = u"Time-stamp: <2019-10-19 12:52:48 vk>"
 
 
 # TODO:
@@ -274,419 +274,6 @@ class GuessFilename(object):
     def __init__(self, config, logger):
         self.logger = logger
         self.config = config
-
-    def adding_tags(self, tagarray, newtags):
-        """
-        Returns unique array of tags containing the newtag.
-
-        @param tagarray: a array of unicode strings containing tags
-        @param newtag: a array of unicode strings containing tags
-        @param return: a array of unicode strings containing tags
-        """
-
-        assert tagarray.__class__ == list
-        assert newtags.__class__ == list
-
-        resulting_tags = tagarray
-
-        for tag in newtags:
-            if tag not in tagarray:
-                resulting_tags.append(tag)
-
-        return resulting_tags
-
-    def split_filename_entities(self, filename):
-        """
-        Takes a filename of format ( (date(time)?)?(--date(time)?)? )? filename (tags)? (extension)?
-        and returns a set of (date/time/duration, filename, array of tags, extension).
-        """
-
-        # FIXXME: return directory as well!
-
-        assert(type(filename) == str or type(filename) == str)
-        assert(len(filename) > 0)
-
-        components = re.match(self.ISO_NAME_TAGS_EXTENSION_REGEX, filename)
-
-        assert(components)
-
-        if components.group(self.TAGS_INDEX):
-            tags = components.group(self.TAGS_INDEX).split(' ')
-        else:
-            tags = []
-        return components.group(self.DAYTIME_DURATION_INDEX), \
-            components.group(self.NAME_INDEX), \
-            tags, \
-            components.group(self.EXTENSION_INDEX)
-
-    def contains_one_of(self, string, entries):
-        """
-        Returns true, if the string contains one of the strings within entries array
-        """
-
-        assert(type(string) == str or type(string) == str)
-        assert(type(entries) == list)
-        assert(len(string) > 0)
-        assert(len(entries) > 0)
-
-        for entry in entries:
-            if entry in string:
-                return True
-
-        return False
-
-    def contains_all_of(self, string, entries):
-        """
-        Returns true, if the string contains all of the strings within entries array
-        """
-
-        assert(type(string) == str or type(string) == str)
-        assert(type(entries) == list)
-        assert(len(string) > 0)
-        assert(len(entries) > 0)
-
-        for entry in entries:
-            if entry not in string:
-                return False
-
-        return True
-
-    def fuzzy_contains_one_of(self, string, entries):
-        """
-        Returns true, if the string contains a similar one of the strings within entries array
-        """
-
-        assert(type(string) == str or type(string) == str)
-        assert(type(entries) == list)
-        assert(len(string) > 0)
-        assert(len(entries) > 0)
-
-        for entry in entries:
-            similarity = fuzz.partial_ratio(string, entry)
-            if similarity > 64:
-                # logging.debug(u"MATCH   fuzzy_contains_one_of(%s, %s) == %i" % (string, str(entry), similarity))
-                return True
-            else:
-                # logging.debug(u"¬ MATCH fuzzy_contains_one_of(%s, %s) == %i" % (string, str(entry), similarity))
-                pass
-
-        return False
-
-    def fuzzy_contains_all_of(self, string, entries):
-        """
-        Returns true, if the string contains all similar ones of the strings within the entries array
-        """
-
-        assert(type(string) == str or type(string) == str)
-        assert(type(entries) == list)
-        assert(len(string) > 0)
-        assert(len(entries) > 0)
-
-        for entry in entries:
-            assert(type(entry) == str or type(entry) == str)
-            # logging.debug(u"fuzzy_contains_all_of(%s..., %s...) ... " % (string[:30], str(entry[:30])))
-            if entry not in string:
-                # if entry is found in string (exactly), try with fuzzy search:
-
-                similarity = fuzz.partial_ratio(string, entry)
-                if similarity > 64:
-                    # logging.debug(u"MATCH   fuzzy_contains_all_of(%s..., %s) == %i" % (string[:30], str(entry), similarity))
-                    pass
-                else:
-                    # logging.debug(u"¬ MATCH fuzzy_contains_all_of(%s..., %s) == %i" % (string[:30], str(entry), similarity))
-                    return False
-
-        return True
-
-    def has_euro_charge(self, string):
-        """
-        Returns true, if the single-line string contains a number with a €-currency
-        """
-
-        assert(type(string) == str or type(string) == str)
-        assert(len(string) > 0)
-
-        components = re.match(self.EURO_CHARGE_REGEX, string)
-
-        if components:
-            return True
-        else:
-            return False
-
-    def get_euro_charge(self, string):
-        """
-        Returns the first included €-currency within single-line "string" or False
-        """
-
-        assert(type(string) == str or type(string) == str)
-        assert(len(string) > 0)
-
-        components = re.match(self.EURO_CHARGE_REGEX, string)
-
-        if components:
-            return components.group(self.EURO_CHARGE_INDEX)
-        else:
-            return False
-
-    def get_euro_charge_from_context_or_basename(self, string, before, after, basename):
-        """
-        Returns the included €-currency which is between before and after
-        strings or within the basename or return 'FIXXME'
-        """
-
-        charge = self.get_euro_charge_from_context(string, before, after)
-        if not charge:
-            charge = self.get_euro_charge(basename)
-            if not charge:
-                return 'FIXXME'
-
-        return charge
-
-    def get_euro_charge_from_context(self, string, before, after):
-        """
-        Returns the included €-currency which is between before and after strings or False
-        """
-
-        assert(type(string) == str or type(string) == str)
-        assert(type(before) == str or type(before) == str)
-        assert(type(after) == str or type(after) == str)
-        assert(len(string) > 0)
-
-        context_range = '5'  # range of characters where before/after is valid
-
-        # for testing: re.search(".*" + before + r"\D{0,6}(\d{1,6}[,.]\d{2})\D{0,6}" + after + ".*", string).groups()
-        components = re.search(".*" + before + r"\D{0," + context_range + "}((\d{1,6})[,.](\d{2}))\D{0," + context_range + "}" + after + ".*", string)
-
-        if components:
-            floatstring = components.group(2) + ',' + components.group(3)
-            # logging.debug("get_euro_charge_from_context extracted float: [%s]" % floatstring)
-            return floatstring
-        else:
-            logging.warning("Sorry, I was not able to extract a charge for this file, please fix manually")
-            logging.debug("get_euro_charge_from_context was not able to extract a float: between [%s] and [%s] within [%s]" % (before, after, string[:30] + "..."))
-            return False
-
-    def rename_file(self, dirname, oldbasename, newbasename, dryrun=False, quiet=False):
-        """
-        Renames a file from oldbasename to newbasename in dirname.
-
-        Only simulates result if dryrun is True.
-
-        @param dirname: string containing the directory of the file
-        @param oldbasename: string containing the old file name (basename)
-        @param newbasename: string containing the new file name (basename)
-        @param dryrun: boolean which defines if files should be changed (False) or not (True)
-        """
-
-        if oldbasename == newbasename:
-            logging.info("Old filename is same as new filename: skipping file")
-            return False
-
-        oldfile = os.path.join(dirname, oldbasename)
-        newfile = os.path.join(dirname, newbasename)
-
-        if not os.path.isfile(oldfile):
-            logging.error("file to rename does not exist: [%s]" % oldfile)
-            return False
-
-        if os.path.isfile(newfile):
-            logging.error("file can't be renamed since new file name already exists: [%s]" % newfile)
-            return False
-
-        if not quiet:
-            print('       →  ' + colorama.Style.BRIGHT + colorama.Fore.GREEN + newbasename + colorama.Style.RESET_ALL)
-        logging.debug(" renaming \"%s\"" % oldfile)
-        logging.debug("      ⤷   \"%s\"" % newfile)
-        if not dryrun:
-            os.rename(oldfile, newfile)
-        return True
-
-    def build_string_via_indexgroups(self, regex_match, indexgroups):
-        """This function takes a regex_match object and concatenates its
-        groups. It does this by traversing the list of indexgroups. If
-        the list item is an integer, the corresponding
-        regex_match.group() is appended to the result string. If the
-        list item is a string, the string is appended to the result
-        string.
-
-        When a list item is a list, its elements are appended as well as
-        long as all list items exist.
-
-        match-groups that are in the indexgroups but are None are ignored.
-
-        @param regex_match: a regex match object from re.match(REGEX, STRING)
-        @param indexgroups: list of strings and integers like [1, '-', 2, '-', 3, 'T', 4, '.', 5, ' foo .png']
-        @param return: string containing the concatenated string
-
-        """
-
-        if not regex_match:
-            logging.error('no re.match object found; please check before calling build_string_via_indexgroups()')
-            return "ERROR"
-
-        def append_element(string, indexgroups):
-            result = string
-            for element in indexgroups:
-                if type(element) == str:
-                    result += element
-                    # print 'DEBUG: result after element [' + str(element)  + '] =  [' + str(result) + ']'
-                elif type(element) == int:
-                    potential_element = regex_match.group(element)
-                    # ignore None matches
-                    if potential_element:
-                        result += regex_match.group(element)
-                        # print 'DEBUG: result after element [' + str(element)  + '] =  [' + str(result) + ']'
-                    else:
-                        # print 'DEBUG: match-group element ' + str(element) + ' is None'
-                        pass
-                elif type(element) == list:
-                    # recursive: if a list element is a list, process if all elements exists:
-                    # print 'DEBUG: found list item = ' + str(element)
-                    # print 'DEBUG:   result before = [' + str(result) + ']'
-                    all_found = True
-                    for listelement in element:
-                        if type(listelement) == int and (regex_match.group(listelement) is None or
-                                                         len(regex_match.group(listelement)) < 1):
-                            all_found = False
-                    if all_found:
-                        result = append_element(result, element)
-                        # print 'DEBUG:   result after =  [' + str(result) + ']'
-                    else:
-                        pass
-                        # print 'DEBUG:   result after =  [' + str(result) + ']' + \
-                        #    '   -> not changed because one or more elements of sub-list were not found'
-            return result
-
-        logging.debug('build_string_via_indexgroups: FILENAME: ' + str(regex_match.group(0)))
-        logging.debug('build_string_via_indexgroups: GROUPS: ' + str(regex_match.groups()))
-        result = append_element('', indexgroups)
-        logging.debug('build_string_via_indexgroups: RESULT:   ' + result)
-        return result
-
-
-    def NumToMonth(self, month):
-
-        months = ['Dezember', 'Jaenner', 'Februar', 'Maerz', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember']
-        return months[month]
-
-
-    def translate_ORF_quality_string_to_tag(self, quality_string):
-        """
-        Returns a filetag which is derived from a key string. The key strings are defined
-        by the file names of the ORF company offering its download file names.
-        """
-
-        if quality_string == 'Q4A' or quality_string == 'LOW':
-            return 'lowquality'
-        elif quality_string == 'Q6A' or quality_string == 'Q8C' or quality_string == 'HD':
-            return 'highquality'
-        else:
-            return 'UNKNOWNQUALITY'
-
-
-    def get_file_size(self, filename):
-        """
-        A simple wrapper to determine file sizes.
-
-        For some hard-coded file names, a hard-coded file size is returned. This enables
-        unit-testing for file sizes that do not exist in the file system.
-        """
-
-        # these are the hard-coded sizes for unit test cases:
-        if filename in ['20180510T090000 ORF - ZIB - Signation -ORIGINAL- 2018-05-10_0900_tl_02_ZIB-9-00_Signation__13976423__o__1368225677__s14297692_2__WEB03HD_09000305P_09001400P_Q4A.mp4',
-                        '20180510T090000 ORF - ZIB - Weitere Signale der Entspannung -ORIGINAL- 2018-05-10_0900_tl_02_ZIB-9-00_Weitere-Signale__13976423__o__5968792755__s14297694_4__WEB03HD_09011813P_09020710P_Q4A.mp4',
-                        '20180520T201500 ORF - Tatort - Tatort_ Aus der Tiefe der Zeit -ORIGINAL- 2018-05-20_2015_in_02_Tatort--Aus-der_____13977411__o__1151703583__s14303062_Q8C.mp4',
-                        '20180521T193000 ORF - ZIB 1 - Parlament bereitet sich auf EU-Vorsitz vor -ORIGINAL- 2018-05-21_1930_tl_02_ZIB-1_Parlament-berei__13977453__o__277886215b__s14303762_2__WEB03HD_19350304P_19371319P_Q4A.mp4',
-                        '20180608T193000 ORF - Österreich Heute - Das Magazin - Österreich Heute - Das Magazin -ORIGINAL- 13979231_0007_Q8C.mp4',
-                        '20190902T220000 ORF - ZIB 2 - Bericht über versteckte ÖVP-Wahlkampfkosten -ORIGINALlow- 2019-09-02_2200_tl_02_ZIB-2_Bericht-ueber-v__14024705__o__71528285d6__s14552793_3__ORF2HD_22033714P_22074303P_Q4A.mp4',
-                        '20190902T220000 ORF - ZIB 2 - Hinweis _ Verabschiedung -ORIGINALlow- 2019-09-02_2200_tl_02_ZIB-2_Hinweis---Verab__14024705__o__857007705d__s14552799_9__ORF2HD_22285706P_22300818P_Q4A.mp4']:
-            # don't care about file sizes, return a high number that is abote the expected minimum in any case:
-            return 99999999
-        elif filename == '20180608T170000 ORF - ZIB 17_00 - size okay -ORIGINAL- 2018-06-08_1700_tl__13979222__o__1892278656__s14313181_1__WEB03HD_17020613P_17024324P_Q4A.mp4':
-            return 5017289  # from an actual downloaded file
-        elif filename == '20180608T170000 ORF - ZIB 17_00 - size not okay -ORIGINAL- 2018-06-08_1700_tl__13979222__o__1892278656__s14313181_1__WEB03HD_17020613P_17024324P_Q4A.mp4':
-            return 4217289  # manually reduced size from the value of an actual downloaded file
-        elif filename == '20180608T170000 ORF - ZIB 17_00 - size okay -ORIGINAL- 2018-06-08_1700_tl__13979222__o__1892278656__s14313181_1__WEB03HD_17020613P_17024324P_Q8C.mp4':
-            return 15847932  # from an actual downloaded file
-        elif filename == '20180608T170000 ORF - ZIB 17_00 - size not okay -ORIGINAL- 2018-06-08_1700_tl__13979222__o__1892278656__s14313181_1__WEB03HD_17020613P_17024324P_Q8C.mp4':
-            return 14050000  # manually reduced size from the value of an actual downloaded file
-        elif filename == '20180610T000000 ORF - Kleinkunst - Kleinkunst_ Cordoba - Das Rückspiel (2_2) -ORIGINAL- 2018-06-10_0000_sd_06_Kleinkunst--Cor_____13979381__o__1483927235__s14313621_1__ORF3HD_23592020P_00593103P_Q8C.mp4':
-            return 1506829698  # from actual file
-        elif filename == '2018-06-14_2105_sd_02_Am-Schauplatz_-_Alles für die Katz-_____13979879__o__1907287074__s14316407_7__WEB03HD_21050604P_21533212P_Q8C.mp4':
-            return 1214980782  # from actual file
-        elif filename == '2018-06-14_2155_sd_06_Kottan-ermittelt - Wien Mitte_____13979903__o__1460660672__s14316392_2__ORF3HD_21570716P_23260915P_Q8C.mp4':
-            return 2231522252  # from actual file
-        elif filename == '2018-06-14_2330_sd_06_Sommerkabarett - Lukas Resetarits: Schmäh (1 von 2)_____13979992__o__1310584704__s14316464_4__ORF3HD_23301620P_00302415P_Q8C.mp4':
-            return 1506983474  # from actual file
-
-        try:
-            return os.stat(filename).st_size
-        except OSError:
-            error_exit(10, 'get_file_size(): Could not get file size of: ' + filename)
-
-
-    def warn_if_ORF_file_seems_to_small_according_to_duration_and_quality_indicator(self, oldfilename, qualityindicator,
-                                                                                    start_hrs, start_min, start_sec,
-                                                                                    end_hrs, end_min, end_sec):
-        """
-        Launches a warning if the expected size differs from the actual file size.
-
-        Expected size is derived from the detailed time-stamp information
-        and tests with a ten minute file:
-
-        | Quality Indicator       | file size | bytes per second |
-        |-------------------------+-----------+------------------|
-        | Q8C = HD                | 240429907 |           400717 |
-        | Q6A = high quality      | 150198346 |           250331 |
-        | Q4A = low quality       |  74992178 |           124987 |
-        """
-
-        #FIXXME: 2019-08-26: disabled: correct from exception to warning #
-        #FIXXME: 2019-09-03: assigned tests also disabled because this function never raises the expected exception
-        return
-
-        TOLERANCE_FACTOR = 0.95  # To cover edge cases where a reduced file size is feasible
-
-        file_size = self.get_file_size(oldfilename)
-
-        day_of_end = 1
-        if int(end_hrs) < int(start_hrs):
-            logging.debug('end hours is less than begin hours, adding a day-change for calculating duration')
-            day_of_end = 2
-
-        end = datetime.datetime(1980, 5, day_of_end, int(end_hrs), int(end_min), int(end_sec))
-        start = datetime.datetime(1980, 5, 1, int(start_hrs), int(start_min), int(start_sec))
-        duration = end - start
-        duration_in_seconds = duration.seconds
-        assert(duration_in_seconds > 0)
-
-        if qualityindicator == 'Q8C':
-            minimum_expected_file_size = 400000 * duration_in_seconds * TOLERANCE_FACTOR
-        elif qualityindicator == 'Q6A':
-            minimum_expected_file_size = 250000 * duration_in_seconds * TOLERANCE_FACTOR
-        elif qualityindicator == 'Q4A':
-            minimum_expected_file_size = 125000 * duration_in_seconds * TOLERANCE_FACTOR
-        else:
-            logging.warn('Unknown quality indicator prevents file size check: ' + qualityindicator)
-            return
-
-        ## additional check for minimum duration because small videos often produced wrong error messages:
-        if duration_in_seconds > 120 and file_size < minimum_expected_file_size:
-            print('\n       →  ' + colorama.Style.BRIGHT + colorama.Fore.RED +
-                  'ERROR: file size seems to be too small for the given duration ' +
-                  'and quality indicator found (download aborted?): \n' +
-                  ' ' * 10 + 'file size:             ' + "{:,}".format(file_size) + ' Bytes\n' +
-                  ' ' * 10 + 'expected minimum size: ' + "{:,}".format(minimum_expected_file_size) + ' Bytes\n' +
-                  ' ' * 10 + 'duration:  ' + str('%.1f' % (duration_in_seconds/60)) + ' minutes\n' +
-                  ' ' * 10 + 'quality:   ' + qualityindicator + '\n' +
-                  ' ' * 10 + 'file name: ' + oldfilename + colorama.Style.RESET_ALL + '\n')
-            raise(FileSizePlausibilityException('file size is not plausible (too small)'))
-        else:
-            logging.debug('warn_if_ORF_file_seems_to_small_according_to_duration_and_quality_indicator: ' +
-                          'file size (' + "{:,}".format(file_size) +
-                          ') is plausible compared to expected minimum (' +
-                          "{:,}".format(minimum_expected_file_size) +
-                          ')')
 
 
     def derive_new_filename_from_old_filename(self, oldfilename):
@@ -1285,6 +872,415 @@ class GuessFilename(object):
             logging.warning("I failed to derive new filename: not enough cues in file name or PDF file content")
             move_to_error_dir(dirname, basename)
             return False
+
+    def adding_tags(self, tagarray, newtags):
+        """
+        Returns unique array of tags containing the newtag.
+
+        @param tagarray: a array of unicode strings containing tags
+        @param newtag: a array of unicode strings containing tags
+        @param return: a array of unicode strings containing tags
+        """
+
+        assert tagarray.__class__ == list
+        assert newtags.__class__ == list
+
+        resulting_tags = tagarray
+
+        for tag in newtags:
+            if tag not in tagarray:
+                resulting_tags.append(tag)
+
+        return resulting_tags
+
+    def split_filename_entities(self, filename):
+        """
+        Takes a filename of format ( (date(time)?)?(--date(time)?)? )? filename (tags)? (extension)?
+        and returns a set of (date/time/duration, filename, array of tags, extension).
+        """
+
+        # FIXXME: return directory as well!
+
+        assert(type(filename) == str or type(filename) == str)
+        assert(len(filename) > 0)
+
+        components = re.match(self.ISO_NAME_TAGS_EXTENSION_REGEX, filename)
+
+        assert(components)
+
+        if components.group(self.TAGS_INDEX):
+            tags = components.group(self.TAGS_INDEX).split(' ')
+        else:
+            tags = []
+        return components.group(self.DAYTIME_DURATION_INDEX), \
+            components.group(self.NAME_INDEX), \
+            tags, \
+            components.group(self.EXTENSION_INDEX)
+
+    def contains_one_of(self, string, entries):
+        """
+        Returns true, if the string contains one of the strings within entries array
+        """
+
+        assert(type(string) == str or type(string) == str)
+        assert(type(entries) == list)
+        assert(len(string) > 0)
+        assert(len(entries) > 0)
+
+        for entry in entries:
+            if entry in string:
+                return True
+
+        return False
+
+    def contains_all_of(self, string, entries):
+        """
+        Returns true, if the string contains all of the strings within entries array
+        """
+
+        assert(type(string) == str or type(string) == str)
+        assert(type(entries) == list)
+        assert(len(string) > 0)
+        assert(len(entries) > 0)
+
+        for entry in entries:
+            if entry not in string:
+                return False
+
+        return True
+
+    def fuzzy_contains_one_of(self, string, entries):
+        """
+        Returns true, if the string contains a similar one of the strings within entries array
+        """
+
+        assert(type(string) == str or type(string) == str)
+        assert(type(entries) == list)
+        assert(len(string) > 0)
+        assert(len(entries) > 0)
+
+        for entry in entries:
+            similarity = fuzz.partial_ratio(string, entry)
+            if similarity > 64:
+                # logging.debug(u"MATCH   fuzzy_contains_one_of(%s, %s) == %i" % (string, str(entry), similarity))
+                return True
+            else:
+                # logging.debug(u"¬ MATCH fuzzy_contains_one_of(%s, %s) == %i" % (string, str(entry), similarity))
+                pass
+
+        return False
+
+    def fuzzy_contains_all_of(self, string, entries):
+        """
+        Returns true, if the string contains all similar ones of the strings within the entries array
+        """
+
+        assert(type(string) == str or type(string) == str)
+        assert(type(entries) == list)
+        assert(len(string) > 0)
+        assert(len(entries) > 0)
+
+        for entry in entries:
+            assert(type(entry) == str or type(entry) == str)
+            # logging.debug(u"fuzzy_contains_all_of(%s..., %s...) ... " % (string[:30], str(entry[:30])))
+            if entry not in string:
+                # if entry is found in string (exactly), try with fuzzy search:
+
+                similarity = fuzz.partial_ratio(string, entry)
+                if similarity > 64:
+                    # logging.debug(u"MATCH   fuzzy_contains_all_of(%s..., %s) == %i" % (string[:30], str(entry), similarity))
+                    pass
+                else:
+                    # logging.debug(u"¬ MATCH fuzzy_contains_all_of(%s..., %s) == %i" % (string[:30], str(entry), similarity))
+                    return False
+
+        return True
+
+    def has_euro_charge(self, string):
+        """
+        Returns true, if the single-line string contains a number with a €-currency
+        """
+
+        assert(type(string) == str or type(string) == str)
+        assert(len(string) > 0)
+
+        components = re.match(self.EURO_CHARGE_REGEX, string)
+
+        if components:
+            return True
+        else:
+            return False
+
+    def get_euro_charge(self, string):
+        """
+        Returns the first included €-currency within single-line "string" or False
+        """
+
+        assert(type(string) == str or type(string) == str)
+        assert(len(string) > 0)
+
+        components = re.match(self.EURO_CHARGE_REGEX, string)
+
+        if components:
+            return components.group(self.EURO_CHARGE_INDEX)
+        else:
+            return False
+
+    def get_euro_charge_from_context_or_basename(self, string, before, after, basename):
+        """
+        Returns the included €-currency which is between before and after
+        strings or within the basename or return 'FIXXME'
+        """
+
+        charge = self.get_euro_charge_from_context(string, before, after)
+        if not charge:
+            charge = self.get_euro_charge(basename)
+            if not charge:
+                return 'FIXXME'
+
+        return charge
+
+    def get_euro_charge_from_context(self, string, before, after):
+        """
+        Returns the included €-currency which is between before and after strings or False
+        """
+
+        assert(type(string) == str or type(string) == str)
+        assert(type(before) == str or type(before) == str)
+        assert(type(after) == str or type(after) == str)
+        assert(len(string) > 0)
+
+        context_range = '5'  # range of characters where before/after is valid
+
+        # for testing: re.search(".*" + before + r"\D{0,6}(\d{1,6}[,.]\d{2})\D{0,6}" + after + ".*", string).groups()
+        components = re.search(".*" + before + r"\D{0," + context_range + "}((\d{1,6})[,.](\d{2}))\D{0," + context_range + "}" + after + ".*", string)
+
+        if components:
+            floatstring = components.group(2) + ',' + components.group(3)
+            # logging.debug("get_euro_charge_from_context extracted float: [%s]" % floatstring)
+            return floatstring
+        else:
+            logging.warning("Sorry, I was not able to extract a charge for this file, please fix manually")
+            logging.debug("get_euro_charge_from_context was not able to extract a float: between [%s] and [%s] within [%s]" % (before, after, string[:30] + "..."))
+            return False
+
+    def rename_file(self, dirname, oldbasename, newbasename, dryrun=False, quiet=False):
+        """
+        Renames a file from oldbasename to newbasename in dirname.
+
+        Only simulates result if dryrun is True.
+
+        @param dirname: string containing the directory of the file
+        @param oldbasename: string containing the old file name (basename)
+        @param newbasename: string containing the new file name (basename)
+        @param dryrun: boolean which defines if files should be changed (False) or not (True)
+        """
+
+        if oldbasename == newbasename:
+            logging.info("Old filename is same as new filename: skipping file")
+            return False
+
+        oldfile = os.path.join(dirname, oldbasename)
+        newfile = os.path.join(dirname, newbasename)
+
+        if not os.path.isfile(oldfile):
+            logging.error("file to rename does not exist: [%s]" % oldfile)
+            return False
+
+        if os.path.isfile(newfile):
+            logging.error("file can't be renamed since new file name already exists: [%s]" % newfile)
+            return False
+
+        if not quiet:
+            print('       →  ' + colorama.Style.BRIGHT + colorama.Fore.GREEN + newbasename + colorama.Style.RESET_ALL)
+        logging.debug(" renaming \"%s\"" % oldfile)
+        logging.debug("      ⤷   \"%s\"" % newfile)
+        if not dryrun:
+            os.rename(oldfile, newfile)
+        return True
+
+    def build_string_via_indexgroups(self, regex_match, indexgroups):
+        """This function takes a regex_match object and concatenates its
+        groups. It does this by traversing the list of indexgroups. If
+        the list item is an integer, the corresponding
+        regex_match.group() is appended to the result string. If the
+        list item is a string, the string is appended to the result
+        string.
+
+        When a list item is a list, its elements are appended as well as
+        long as all list items exist.
+
+        match-groups that are in the indexgroups but are None are ignored.
+
+        @param regex_match: a regex match object from re.match(REGEX, STRING)
+        @param indexgroups: list of strings and integers like [1, '-', 2, '-', 3, 'T', 4, '.', 5, ' foo .png']
+        @param return: string containing the concatenated string
+
+        """
+
+        if not regex_match:
+            logging.error('no re.match object found; please check before calling build_string_via_indexgroups()')
+            return "ERROR"
+
+        def append_element(string, indexgroups):
+            result = string
+            for element in indexgroups:
+                if type(element) == str:
+                    result += element
+                    # print 'DEBUG: result after element [' + str(element)  + '] =  [' + str(result) + ']'
+                elif type(element) == int:
+                    potential_element = regex_match.group(element)
+                    # ignore None matches
+                    if potential_element:
+                        result += regex_match.group(element)
+                        # print 'DEBUG: result after element [' + str(element)  + '] =  [' + str(result) + ']'
+                    else:
+                        # print 'DEBUG: match-group element ' + str(element) + ' is None'
+                        pass
+                elif type(element) == list:
+                    # recursive: if a list element is a list, process if all elements exists:
+                    # print 'DEBUG: found list item = ' + str(element)
+                    # print 'DEBUG:   result before = [' + str(result) + ']'
+                    all_found = True
+                    for listelement in element:
+                        if type(listelement) == int and (regex_match.group(listelement) is None or
+                                                         len(regex_match.group(listelement)) < 1):
+                            all_found = False
+                    if all_found:
+                        result = append_element(result, element)
+                        # print 'DEBUG:   result after =  [' + str(result) + ']'
+                    else:
+                        pass
+                        # print 'DEBUG:   result after =  [' + str(result) + ']' + \
+                        #    '   -> not changed because one or more elements of sub-list were not found'
+            return result
+
+        logging.debug('build_string_via_indexgroups: FILENAME: ' + str(regex_match.group(0)))
+        logging.debug('build_string_via_indexgroups: GROUPS: ' + str(regex_match.groups()))
+        result = append_element('', indexgroups)
+        logging.debug('build_string_via_indexgroups: RESULT:   ' + result)
+        return result
+
+    def NumToMonth(self, month):
+
+        months = ['Dezember', 'Jaenner', 'Februar', 'Maerz', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember']
+        return months[month]
+
+    def translate_ORF_quality_string_to_tag(self, quality_string):
+        """
+        Returns a filetag which is derived from a key string. The key strings are defined
+        by the file names of the ORF company offering its download file names.
+        """
+
+        if quality_string == 'Q4A' or quality_string == 'LOW':
+            return 'lowquality'
+        elif quality_string == 'Q6A' or quality_string == 'Q8C' or quality_string == 'HD':
+            return 'highquality'
+        else:
+            return 'UNKNOWNQUALITY'
+
+    def get_file_size(self, filename):
+        """
+        A simple wrapper to determine file sizes.
+
+        For some hard-coded file names, a hard-coded file size is returned. This enables
+        unit-testing for file sizes that do not exist in the file system.
+        """
+
+        # these are the hard-coded sizes for unit test cases:
+        if filename in ['20180510T090000 ORF - ZIB - Signation -ORIGINAL- 2018-05-10_0900_tl_02_ZIB-9-00_Signation__13976423__o__1368225677__s14297692_2__WEB03HD_09000305P_09001400P_Q4A.mp4',
+                        '20180510T090000 ORF - ZIB - Weitere Signale der Entspannung -ORIGINAL- 2018-05-10_0900_tl_02_ZIB-9-00_Weitere-Signale__13976423__o__5968792755__s14297694_4__WEB03HD_09011813P_09020710P_Q4A.mp4',
+                        '20180520T201500 ORF - Tatort - Tatort_ Aus der Tiefe der Zeit -ORIGINAL- 2018-05-20_2015_in_02_Tatort--Aus-der_____13977411__o__1151703583__s14303062_Q8C.mp4',
+                        '20180521T193000 ORF - ZIB 1 - Parlament bereitet sich auf EU-Vorsitz vor -ORIGINAL- 2018-05-21_1930_tl_02_ZIB-1_Parlament-berei__13977453__o__277886215b__s14303762_2__WEB03HD_19350304P_19371319P_Q4A.mp4',
+                        '20180608T193000 ORF - Österreich Heute - Das Magazin - Österreich Heute - Das Magazin -ORIGINAL- 13979231_0007_Q8C.mp4',
+                        '20190902T220000 ORF - ZIB 2 - Bericht über versteckte ÖVP-Wahlkampfkosten -ORIGINALlow- 2019-09-02_2200_tl_02_ZIB-2_Bericht-ueber-v__14024705__o__71528285d6__s14552793_3__ORF2HD_22033714P_22074303P_Q4A.mp4',
+                        '20190902T220000 ORF - ZIB 2 - Hinweis _ Verabschiedung -ORIGINALlow- 2019-09-02_2200_tl_02_ZIB-2_Hinweis---Verab__14024705__o__857007705d__s14552799_9__ORF2HD_22285706P_22300818P_Q4A.mp4']:
+            # don't care about file sizes, return a high number that is abote the expected minimum in any case:
+            return 99999999
+        elif filename == '20180608T170000 ORF - ZIB 17_00 - size okay -ORIGINAL- 2018-06-08_1700_tl__13979222__o__1892278656__s14313181_1__WEB03HD_17020613P_17024324P_Q4A.mp4':
+            return 5017289  # from an actual downloaded file
+        elif filename == '20180608T170000 ORF - ZIB 17_00 - size not okay -ORIGINAL- 2018-06-08_1700_tl__13979222__o__1892278656__s14313181_1__WEB03HD_17020613P_17024324P_Q4A.mp4':
+            return 4217289  # manually reduced size from the value of an actual downloaded file
+        elif filename == '20180608T170000 ORF - ZIB 17_00 - size okay -ORIGINAL- 2018-06-08_1700_tl__13979222__o__1892278656__s14313181_1__WEB03HD_17020613P_17024324P_Q8C.mp4':
+            return 15847932  # from an actual downloaded file
+        elif filename == '20180608T170000 ORF - ZIB 17_00 - size not okay -ORIGINAL- 2018-06-08_1700_tl__13979222__o__1892278656__s14313181_1__WEB03HD_17020613P_17024324P_Q8C.mp4':
+            return 14050000  # manually reduced size from the value of an actual downloaded file
+        elif filename == '20180610T000000 ORF - Kleinkunst - Kleinkunst_ Cordoba - Das Rückspiel (2_2) -ORIGINAL- 2018-06-10_0000_sd_06_Kleinkunst--Cor_____13979381__o__1483927235__s14313621_1__ORF3HD_23592020P_00593103P_Q8C.mp4':
+            return 1506829698  # from actual file
+        elif filename == '2018-06-14_2105_sd_02_Am-Schauplatz_-_Alles für die Katz-_____13979879__o__1907287074__s14316407_7__WEB03HD_21050604P_21533212P_Q8C.mp4':
+            return 1214980782  # from actual file
+        elif filename == '2018-06-14_2155_sd_06_Kottan-ermittelt - Wien Mitte_____13979903__o__1460660672__s14316392_2__ORF3HD_21570716P_23260915P_Q8C.mp4':
+            return 2231522252  # from actual file
+        elif filename == '2018-06-14_2330_sd_06_Sommerkabarett - Lukas Resetarits: Schmäh (1 von 2)_____13979992__o__1310584704__s14316464_4__ORF3HD_23301620P_00302415P_Q8C.mp4':
+            return 1506983474  # from actual file
+
+        try:
+            return os.stat(filename).st_size
+        except OSError:
+            error_exit(10, 'get_file_size(): Could not get file size of: ' + filename)
+
+    def warn_if_ORF_file_seems_to_small_according_to_duration_and_quality_indicator(self, oldfilename, qualityindicator,
+                                                                                    start_hrs, start_min, start_sec,
+                                                                                    end_hrs, end_min, end_sec):
+        """
+        Launches a warning if the expected size differs from the actual file size.
+
+        Expected size is derived from the detailed time-stamp information
+        and tests with a ten minute file:
+
+        | Quality Indicator       | file size | bytes per second |
+        |-------------------------+-----------+------------------|
+        | Q8C = HD                | 240429907 |           400717 |
+        | Q6A = high quality      | 150198346 |           250331 |
+        | Q4A = low quality       |  74992178 |           124987 |
+        """
+
+        #FIXXME: 2019-08-26: disabled: correct from exception to warning #
+        #FIXXME: 2019-09-03: assigned tests also disabled because this function never raises the expected exception
+        return
+
+        TOLERANCE_FACTOR = 0.95  # To cover edge cases where a reduced file size is feasible
+
+        file_size = self.get_file_size(oldfilename)
+
+        day_of_end = 1
+        if int(end_hrs) < int(start_hrs):
+            logging.debug('end hours is less than begin hours, adding a day-change for calculating duration')
+            day_of_end = 2
+
+        end = datetime.datetime(1980, 5, day_of_end, int(end_hrs), int(end_min), int(end_sec))
+        start = datetime.datetime(1980, 5, 1, int(start_hrs), int(start_min), int(start_sec))
+        duration = end - start
+        duration_in_seconds = duration.seconds
+        assert(duration_in_seconds > 0)
+
+        if qualityindicator == 'Q8C':
+            minimum_expected_file_size = 400000 * duration_in_seconds * TOLERANCE_FACTOR
+        elif qualityindicator == 'Q6A':
+            minimum_expected_file_size = 250000 * duration_in_seconds * TOLERANCE_FACTOR
+        elif qualityindicator == 'Q4A':
+            minimum_expected_file_size = 125000 * duration_in_seconds * TOLERANCE_FACTOR
+        else:
+            logging.warn('Unknown quality indicator prevents file size check: ' + qualityindicator)
+            return
+
+        ## additional check for minimum duration because small videos often produced wrong error messages:
+        if duration_in_seconds > 120 and file_size < minimum_expected_file_size:
+            print('\n       →  ' + colorama.Style.BRIGHT + colorama.Fore.RED +
+                  'ERROR: file size seems to be too small for the given duration ' +
+                  'and quality indicator found (download aborted?): \n' +
+                  ' ' * 10 + 'file size:             ' + "{:,}".format(file_size) + ' Bytes\n' +
+                  ' ' * 10 + 'expected minimum size: ' + "{:,}".format(minimum_expected_file_size) + ' Bytes\n' +
+                  ' ' * 10 + 'duration:  ' + str('%.1f' % (duration_in_seconds/60)) + ' minutes\n' +
+                  ' ' * 10 + 'quality:   ' + qualityindicator + '\n' +
+                  ' ' * 10 + 'file name: ' + oldfilename + colorama.Style.RESET_ALL + '\n')
+            raise(FileSizePlausibilityException('file size is not plausible (too small)'))
+        else:
+            logging.debug('warn_if_ORF_file_seems_to_small_according_to_duration_and_quality_indicator: ' +
+                          'file size (' + "{:,}".format(file_size) +
+                          ') is plausible compared to expected minimum (' +
+                          "{:,}".format(minimum_expected_file_size) +
+                          ')')
 
 
 def move_to_success_dir(dirname, newfilename):
