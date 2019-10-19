@@ -12,3 +12,4 @@ dist/
 update_pip.sh
 build/
 guessfilename.egg-info/
+venv/
