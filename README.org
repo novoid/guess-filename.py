@@ -129,14 +129,12 @@ YouTube, both via http://rg3.github.io/youtube-dl/
 
 This results, for example, with files like these:
 
-#+BEGIN_VERSE
-Durchbruch bei Brexit-Verhandlungen-14577219.info.json
-Durchbruch bei Brexit-Verhandlungen-14577219.mp4
-Isolierte Familie - 58-jähriger Österreicher in U-Haft-14577221.info.json
-Isolierte Familie - 58-jähriger Österreicher in U-Haft-14577221.mp4
-The Star7 PDA Prototype-Ahg8OBYixL0.info.json
-The Star7 PDA Prototype-Ahg8OBYixL0.mp4
-#+END_VERSE
+: Durchbruch bei Brexit-Verhandlungen-14577219.info.json
+: Durchbruch bei Brexit-Verhandlungen-14577219.mp4
+: Isolierte Familie - 58-jähriger Österreicher in U-Haft-14577221.info.json
+: Isolierte Familie - 58-jähriger Österreicher in U-Haft-14577221.mp4
+: The Star7 PDA Prototype-Ahg8OBYixL0.info.json
+: The Star7 PDA Prototype-Ahg8OBYixL0.mp4
 
 Please notice the associated =mp4= files as well as the =info.json=
 files.
