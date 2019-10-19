@@ -83,7 +83,7 @@ When downloading TV shows using [[https://github.com/mediathekview/MediathekView
       - ffmpeg > Zieldateiname > =%DT%d %s - %t - %T -ORIGINALhd- %N.mp4=
       - ffmpeg > Schalter > =-user_agent "Mozilla" -i %f -c copy -bsf:a aac_adtstoasc **=
 
-When applying =guess-filename= on the resulting files, you will get something like this:
+When applying =guessfilename= on the resulting files, you will get something like this:
 
 #+BEGIN_EXAMPLE
    20180509T235000 ORF - ZIB 24 - Auswirkungen nach US-Aus für Atomdeal -ORIGINAL- 2018-05-09_2350_tl_01_ZIB-24_Auswirkungen-na__13976363__o__1735069995__s14297628_8__BCK1HD_23514710P_23540405P_Q4A.mp4  ...
@@ -111,6 +111,52 @@ the files are in their correct order.
 Please note that this does not work with a show whose chunks do cross
 midnight since the date is always taken from the start of the show and
 the time from the actual time being shown.
+
+** .info.json Meta-Data Files
+:PROPERTIES:
+:CREATED:  [2019-10-19 Sat 15:21]
+:END:
+
+If you do download a media file and its associated separate
+=.info.json= file (both base-names without file extension need to
+match), this tool is able to parse the meta-data to derive a new file
+name.
+
+Currently, there are two meta-data formats supported: ORG TVthek and
+YouTube, both via http://rg3.github.io/youtube-dl/
+
+: youtube-dl --write-info-json <URL>
+
+This results, for example, with files like these:
+
+#+BEGIN_VERSE
+Durchbruch bei Brexit-Verhandlungen-14577219.info.json
+Durchbruch bei Brexit-Verhandlungen-14577219.mp4
+Isolierte Familie - 58-jähriger Österreicher in U-Haft-14577221.info.json
+Isolierte Familie - 58-jähriger Österreicher in U-Haft-14577221.mp4
+The Star7 PDA Prototype-Ahg8OBYixL0.info.json
+The Star7 PDA Prototype-Ahg8OBYixL0.mp4
+#+END_VERSE
+
+Please notice the associated =mp4= files as well as the =info.json=
+files.
+
+Applying guess-filename on these files look like this:
+
+#+BEGIN_EXAMPLE
+vk@sherri ~tmp % guessfilename *mp4
+
+   Durchbruch bei Brexit-Verhandlungen-14577219.mp4  ...
+       →  2019-10-17T16.59.07 ORF - ZIB 17 00 - Durchbruch bei Brexit-Verhandlungen -- highquality.mp4
+
+   Isolierte Familie - 58-jähriger Österreicher in U-Haft-14577221.mp4  ...
+       →  2019-10-17T17.01.44 ORF - ZIB 17 00 - Isolierte Familie: 58-jähriger Österreicher in U-Haft -- highquality.mp4
+
+   The Star7 PDA Prototype-Ahg8OBYixL0.mp4  ...
+       →  2007-09-13 youtube - The Star7 PDA Prototype - Ahg8OBYixL0.mp4
+#+END_EXAMPLE
+
+The =info.json= files are not removed or renamed.
 
 * Related tools and workflows
 

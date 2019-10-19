@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2019-10-19 14:06:23 vk>"
+PROG_VERSION = u"Time-stamp: <2019-10-19 15:20:22 vk>"
 
 
 # TODO:
@@ -440,8 +440,6 @@ class GuessFilename(object):
                     # but with varying quality indicator: Q4A (low), Q6A (high), Q8C (HD)
                     film_regex_match = re.match(self.FILM_URL_REGEX, film_url)
 
-                    #import pdb; pdb.set_trace()
-
                     if not film_regex_match:
                         print()
                         logging.warn(self.FILM_URL_REGEX_MISMATCH_HELP_TEXT)
@@ -842,17 +840,57 @@ class GuessFilename(object):
         data = json.load(json_data)
 
         if "upload_date" in data.keys() and \
-           len(data['upload_date']) == 8 and \
            "extractor" in data.keys() and \
            "display_id" in data.keys() and \
            "ext" in data.keys() and \
            "fulltitle" in data.keys():
-            logging.debug('derive_new_filename_from_json_metadata: found all required meta data for YouTube download file style')
-            # example from unit tests: "2007-09-13 youtube - The Star7 PDA Prototype - Ahg8OBYixL0.mp4"
-            return data['upload_date'][:4] + '-' + data['upload_date'][4:6] + '-' + data['upload_date'][6:] + ' ' + data["extractor"] + ' - ' + data["fulltitle"] + ' - ' + data["display_id"] + '.' + data["ext"]
+
+            if data['upload_date'] and len(data['upload_date']) == 8 and \
+               data["extractor_key"] and data["extractor_key"] == "Youtube":
+                logging.debug('derive_new_filename_from_json_metadata: found all ' +
+                              'required meta data for YouTube download file style')
+                # example from unit tests: "2007-09-13 youtube - The Star7 PDA Prototype - Ahg8OBYixL0.mp4"
+                return data['upload_date'][:4] + '-' + data['upload_date'][4:6] + '-' + data['upload_date'][6:] + ' ' + data["extractor"] + ' - ' + data["fulltitle"] + ' - ' + data["display_id"] + '.' + data["ext"]
+            else:
+                logging.debug('derive_new_filename_from_json_metadata: found all required meta data ' +
+                              'for YouTube download file style but upload_date or extractor_key do ' +
+                              'not match expected format')
+
+        if "extractor_key" in data.keys() and \
+           "fulltitle" in data.keys() and \
+           "url" in data.keys() and \
+           "ext" in data.keys():
+            if data["extractor_key"] == "ORFTVthek":
+                logging.debug('derive_new_filename_from_json_metadata: found all ' +
+                              'required meta data for ORF TVthek download file style')
+                # example from unit tests: "2019-10-17T16.59.07 ORF - ZIB 17 00 - Durchbruch bei Brexit-Verhandlungen -- highquality.mp4"
+
+                # data['url'] == 'https://apasfiis.sf.apa.at/cms-worldwide_nas/_definst_/nas/cms-worldwide/online/2019-10-17_1700_tl_02_ZIB-17-00_Durchbruch-bei-__14029194__o__9751208575__s14577219_9__ORF2BHD_16590721P_17000309P_Q8C.mp4/chunklist.m3u8'
+                # data['url'].split('/') == ['https:', '', 'apasfiis.sf.apa.at', 'cms-worldwide_nas', '_definst_', 'nas', 'cms-worldwide', 'online', '2019-10-17_1700_tl_02_ZIB-17-00_Durchbruch-bei-__14029194__o__9751208575__s14577219_9__ORF2BHD_16590721P_17000309P_Q8C.mp4', 'chunklist.m3u8']
+                # data['url'].split('/')[-2:-1][0] == '2019-10-17_1700_tl_02_ZIB-17-00_Durchbruch-bei-__14029194__o__9751208575__s14577219_9__ORF2BHD_16590721P_17000309P_Q8C.mp4'
+
+                # match.groups() == ('2019', '10', '17', '17', '00', None, None, 'ZIB-17-00_Durchbruch-bei-_', '16', '59', '07', '07', '17', '00', '03', '03', 'Q8C')
+
+                # JSON:
+                # "extractor_key": "ORFTVthek",
+                # "fulltitle": "Durchbruch bei Brexit-Verhandlungen",
+                # "url": "https://apasfiis.sf.apa.at/cms-worldwide_nas/_definst_/nas/cms-worldwide/online/
+                #    2019-10-17_1700_tl_02_ZIB-17-00_Durchbruch-bei-__14029194__o__9751208575__s14577219_9__ORF2BHD_16590721P_17000309P_Q8C.mp4/chunklist.m3u8",
+                # "ext": "mp4",
+
+                match = re.match(self.MEDIATHEKVIEW_RAW_REGEX_STRING, data['url'].split('/')[-2:-1][0])
+                qualityindicator = self.translate_ORF_quality_string_to_tag(match.group(17))  # e.g., 'Q8C'
+                return self.build_string_via_indexgroups(match, [1, '-', 2, '-', 3, 'T', 9, '.', 10, '.', 11, ' ORF - ']) + \
+                    match.group(8).split('_')[0].replace('-', ' ') + ' - ' + data['fulltitle'] + ' -- ' + qualityindicator + '.' + data['ext']
+
+            else:
+                logging.debug('derive_new_filename_from_json_metadata: found all required meta data ' +
+                              'for ORF TVthek download file style but extractor_key does ' +
+                              'not match expected format')
 
         else:
-            logging.debug('derive_new_filename_from_json_metadata: do not understand this type of JSON meta data')
+            logging.debug('derive_new_filename_from_json_metadata: do not ' +
+                          'understand this type of JSON meta data')
             return False
 
         json_data.close()

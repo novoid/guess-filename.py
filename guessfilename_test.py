@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8; mode: python; -*-
-# Time-stamp: <2019-10-19 14:10:23 vk>
+# Time-stamp: <2019-10-19 15:20:13 vk>
 
 import unittest
 import logging
@@ -465,6 +465,330 @@ class TestGuessFilename(unittest.TestCase):
         os.remove(new_mediafilename_generated)
         os.remove(jsonfile)
         os.rmdir(tmpdir)
+
+
+    def test_orf_tvthek_json_metadata(self):
+
+        tmpdir=tempfile.mkdtemp()
+        mediafile=tempfile.mkstemp(dir=tmpdir, prefix='Durchbruch bei Brexit-Verhandlungen-', suffix='.mp4')[1]
+        jsonfile=os.path.join(os.path.dirname(mediafile), os.path.splitext(mediafile)[0] + '.info.json')
+
+        with open(mediafile, 'w') as outputhandle:
+            outputhandle.write('This is not of any interest. Delete me.')
+
+        with open(jsonfile, 'w') as outputhandle:
+            outputhandle.write("""{
+  "duration": null,
+  "playlist_title": null,
+  "playlist": "14577219",
+  "width": 1280,
+  "extractor_key": "ORFTVthek",
+  "thumbnail": null,
+  "playlist_uploader": null,
+  "description": "Es ist vollbracht: Die EU und Großbritannien haben sich auf einen Brexit-Vertrag geeinigt. Das bestätigten Kommissionspräsident Juncker und Premier Johnson. Durch ist die Einigung damit aber noch längst nicht.",
+  "extractor": "orf:tvthek",
+  "url": "https://apasfiis.sf.apa.at/cms-worldwide_nas/_definst_/nas/cms-worldwide/online/2019-10-17_1700_tl_02_ZIB-17-00_Durchbruch-bei-__14029194__o__9751208575__s14577219_9__ORF2BHD_16590721P_17000309P_Q8C.mp4/chunklist.m3u8",
+  "playlist_id": "14577219",
+  "height": 720,
+  "n_entries": 8,
+  "format_id": "hls-Q8C-Sehr_hoch-3886",
+  "_type": "video",
+  "display_id": "14577219",
+  "vcodec": "avc1.77.31",
+  "tbr": 3886.742,
+  "upload_date": null,
+  "fps": null,
+  "subtitles": {
+    "de-AT": [
+      {
+        "url": "https://api-tvthek.orf.at/uploads/media/subtitles/0091/63/8b058fcdeb1046abe4866a70d6a7280c06b2ee3a.",
+        "ext": "unknown_video"
+      },
+      {
+        "url": "https://api-tvthek.orf.at/uploads/media/subtitles/0091/63/505af4543d7f9e5d3ab53ac37621d1a1e9e4cad7.srt",
+        "ext": "srt"
+      },
+      {
+        "url": "https://api-tvthek.orf.at/uploads/media/subtitles/0091/63/abee3589f30be631cad01b8ae93def8a2d76f7dd.vtt",
+        "ext": "vtt"
+      },
+      {
+        "url": "https://api-tvthek.orf.at/uploads/media/subtitles/0091/63/6a5b96f23da49f3d4da1905b2d1477b6282da83d.smi",
+        "ext": "smi"
+      },
+      {
+        "url": "https://api-tvthek.orf.at/uploads/media/subtitles/0091/63/1207bb113fabd7865efa04f0870bd0de614c8a4c.ttml",
+        "ext": "ttml"
+      }
+    ]
+  },
+  "id": "14577219",
+  "formats": [
+    {
+      "protocol": "f4m",
+      "width": 320,
+      "preference": null,
+      "http_headers": {
+        "Accept-Charset": "ISO-8859-1,utf-8;q=0.7,*;q=0.7",
+        "Accept-Encoding": "gzip, deflate",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3554.1 Safari/537.36",
+        "Accept-Language": "en-us,en;q=0.5",
+        "Cookie": "ASP.NET_SessionId=0npxlhiy2jqaapscvafzp0sf",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+      },
+      "manifest_url": "https://apasfiis.sf.apa.at/f4m/cms-worldwide/2019-10-17_1700_tl_02_ZIB-17-00_Durchbruch-bei-__14029194__o__9751208575__s14577219_9__ORF2BHD_16590721P_17000309P_Q1A.3gp/manifest.f4m",
+      "url": "https://apasfiis.sf.apa.at/f4m/cms-worldwide/2019-10-17_1700_tl_02_ZIB-17-00_Durchbruch-bei-__14029194__o__9751208575__s14577219_9__ORF2BHD_16590721P_17000309P_Q1A.3gp/manifest.f4m",
+      "height": 180,
+      "ext": "flv",
+      "format_id": "hds-Q1A-Niedrig-430",
+      "tbr": 430,
+      "vcodec": null,
+      "format": "hds-Q1A-Niedrig-430 - 320x180"
+    },
+    {
+      "fps": null,
+      "protocol": "m3u8",
+      "width": 320,
+      "preference": null,
+      "http_headers": {
+        "Accept-Charset": "ISO-8859-1,utf-8;q=0.7,*;q=0.7",
+        "Accept-Encoding": "gzip, deflate",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3554.1 Safari/537.36",
+        "Accept-Language": "en-us,en;q=0.5",
+        "Cookie": "ASP.NET_SessionId=0npxlhiy2jqaapscvafzp0sf",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+      },
+      "acodec": "mp4a.40.2",
+      "manifest_url": "https://apasfiis.sf.apa.at/cms-worldwide_nas/_definst_/nas/cms-worldwide/online/2019-10-17_1700_tl_02_ZIB-17-00_Durchbruch-bei-__14029194__o__9751208575__s14577219_9__ORF2BHD_16590721P_17000309P_Q1A.3gp/playlist.m3u8",
+      "url": "https://apasfiis.sf.apa.at/cms-worldwide_nas/_definst_/nas/cms-worldwide/online/2019-10-17_1700_tl_02_ZIB-17-00_Durchbruch-bei-__14029194__o__9751208575__s14577219_9__ORF2BHD_16590721P_17000309P_Q1A.3gp/chunklist.m3u8",
+      "height": 180,
+      "ext": "mp4",
+      "format_id": "hls-Q1A-Niedrig-516",
+      "tbr": 516.024,
+      "vcodec": "avc1.77.30",
+      "format": "hls-Q1A-Niedrig-516 - 320x180"
+    },
+    {
+      "protocol": "f4m",
+      "width": 640,
+      "preference": null,
+      "http_headers": {
+        "Accept-Charset": "ISO-8859-1,utf-8;q=0.7,*;q=0.7",
+        "Accept-Encoding": "gzip, deflate",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3554.1 Safari/537.36",
+        "Accept-Language": "en-us,en;q=0.5",
+        "Cookie": "ASP.NET_SessionId=0npxlhiy2jqaapscvafzp0sf",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+      },
+      "manifest_url": "https://apasfiis.sf.apa.at/f4m/cms-worldwide/2019-10-17_1700_tl_02_ZIB-17-00_Durchbruch-bei-__14029194__o__9751208575__s14577219_9__ORF2BHD_16590721P_17000309P_Q4A.mp4/manifest.f4m",
+      "url": "https://apasfiis.sf.apa.at/f4m/cms-worldwide/2019-10-17_1700_tl_02_ZIB-17-00_Durchbruch-bei-__14029194__o__9751208575__s14577219_9__ORF2BHD_16590721P_17000309P_Q4A.mp4/manifest.f4m",
+      "height": 360,
+      "ext": "flv",
+      "format_id": "hds-Q4A-Mittel-989",
+      "tbr": 989,
+      "vcodec": null,
+      "format": "hds-Q4A-Mittel-989 - 640x360"
+    },
+    {
+      "manifest_url": "https://apasfiis.sf.apa.at/cms-worldwide_nas/_definst_/nas/cms-worldwide/online/2019-10-17_1700_tl_02_ZIB-17-00_Durchbruch-bei-__14029194__o__9751208575__s14577219_9__ORF2BHD_16590721P_17000309P_hr.smil/playlist.m3u8",
+      "url": "https://apasfiis.sf.apa.at/cms-worldwide_nas/_definst_/nas/cms-worldwide/online/2019-10-17_1700_tl_02_ZIB-17-00_Durchbruch-bei-__14029194__o__9751208575__s14577219_9__ORF2BHD_16590721P_17000309P_hr.smil/chunklist_b992000.m3u8",
+      "protocol": "m3u8",
+      "ext": "mp4",
+      "fps": null,
+      "format_id": "hls-QXB-Adaptiv-992",
+      "tbr": 992.0,
+      "preference": null,
+      "format": "hls-QXB-Adaptiv-992 - unknown",
+      "http_headers": {
+        "Accept-Charset": "ISO-8859-1,utf-8;q=0.7,*;q=0.7",
+        "Accept-Encoding": "gzip, deflate",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3554.1 Safari/537.36",
+        "Accept-Language": "en-us,en;q=0.5",
+        "Cookie": "ASP.NET_SessionId=0npxlhiy2jqaapscvafzp0sf",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+      }
+    },
+    {
+      "fps": null,
+      "protocol": "m3u8",
+      "width": 640,
+      "preference": null,
+      "http_headers": {
+        "Accept-Charset": "ISO-8859-1,utf-8;q=0.7,*;q=0.7",
+        "Accept-Encoding": "gzip, deflate",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3554.1 Safari/537.36",
+        "Accept-Language": "en-us,en;q=0.5",
+        "Cookie": "ASP.NET_SessionId=0npxlhiy2jqaapscvafzp0sf",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+      },
+      "acodec": "mp4a.40.2",
+      "manifest_url": "https://apasfiis.sf.apa.at/cms-worldwide_nas/_definst_/nas/cms-worldwide/online/2019-10-17_1700_tl_02_ZIB-17-00_Durchbruch-bei-__14029194__o__9751208575__s14577219_9__ORF2BHD_16590721P_17000309P_Q4A.mp4/playlist.m3u8",
+      "url": "https://apasfiis.sf.apa.at/cms-worldwide_nas/_definst_/nas/cms-worldwide/online/2019-10-17_1700_tl_02_ZIB-17-00_Durchbruch-bei-__14029194__o__9751208575__s14577219_9__ORF2BHD_16590721P_17000309P_Q4A.mp4/chunklist.m3u8",
+      "height": 360,
+      "ext": "mp4",
+      "format_id": "hls-Q4A-Mittel-1236",
+      "tbr": 1236.117,
+      "vcodec": "avc1.77.30",
+      "format": "hls-Q4A-Mittel-1236 - 640x360"
+    },
+    {
+      "protocol": "f4m",
+      "width": 960,
+      "preference": null,
+      "http_headers": {
+        "Accept-Charset": "ISO-8859-1,utf-8;q=0.7,*;q=0.7",
+        "Accept-Encoding": "gzip, deflate",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3554.1 Safari/537.36",
+        "Accept-Language": "en-us,en;q=0.5",
+        "Cookie": "ASP.NET_SessionId=0npxlhiy2jqaapscvafzp0sf",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+      },
+      "manifest_url": "https://apasfiis.sf.apa.at/f4m/cms-worldwide/2019-10-17_1700_tl_02_ZIB-17-00_Durchbruch-bei-__14029194__o__9751208575__s14577219_9__ORF2BHD_16590721P_17000309P_Q6A.mp4/manifest.f4m",
+      "url": "https://apasfiis.sf.apa.at/f4m/cms-worldwide/2019-10-17_1700_tl_02_ZIB-17-00_Durchbruch-bei-__14029194__o__9751208575__s14577219_9__ORF2BHD_16590721P_17000309P_Q6A.mp4/manifest.f4m",
+      "height": 540,
+      "ext": "flv",
+      "format_id": "hds-Q6A-Hoch-1991",
+      "tbr": 1991,
+      "vcodec": null,
+      "format": "hds-Q6A-Hoch-1991 - 960x540"
+    },
+    {
+      "manifest_url": "https://apasfiis.sf.apa.at/cms-worldwide_nas/_definst_/nas/cms-worldwide/online/2019-10-17_1700_tl_02_ZIB-17-00_Durchbruch-bei-__14029194__o__9751208575__s14577219_9__ORF2BHD_16590721P_17000309P_hr.smil/playlist.m3u8",
+      "url": "https://apasfiis.sf.apa.at/cms-worldwide_nas/_definst_/nas/cms-worldwide/online/2019-10-17_1700_tl_02_ZIB-17-00_Durchbruch-bei-__14029194__o__9751208575__s14577219_9__ORF2BHD_16590721P_17000309P_hr.smil/chunklist_b1992000.m3u8",
+      "protocol": "m3u8",
+      "ext": "mp4",
+      "fps": null,
+      "format_id": "hls-QXB-Adaptiv-1992",
+      "tbr": 1992.0,
+      "preference": null,
+      "format": "hls-QXB-Adaptiv-1992 - unknown",
+      "http_headers": {
+        "Accept-Charset": "ISO-8859-1,utf-8;q=0.7,*;q=0.7",
+        "Accept-Encoding": "gzip, deflate",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3554.1 Safari/537.36",
+        "Accept-Language": "en-us,en;q=0.5",
+        "Cookie": "ASP.NET_SessionId=0npxlhiy2jqaapscvafzp0sf",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+      }
+    },
+    {
+      "fps": null,
+      "protocol": "m3u8",
+      "width": 960,
+      "preference": null,
+      "http_headers": {
+        "Accept-Charset": "ISO-8859-1,utf-8;q=0.7,*;q=0.7",
+        "Accept-Encoding": "gzip, deflate",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3554.1 Safari/537.36",
+        "Accept-Language": "en-us,en;q=0.5",
+        "Cookie": "ASP.NET_SessionId=0npxlhiy2jqaapscvafzp0sf",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+      },
+      "acodec": "mp4a.40.2",
+      "manifest_url": "https://apasfiis.sf.apa.at/cms-worldwide_nas/_definst_/nas/cms-worldwide/online/2019-10-17_1700_tl_02_ZIB-17-00_Durchbruch-bei-__14029194__o__9751208575__s14577219_9__ORF2BHD_16590721P_17000309P_Q6A.mp4/playlist.m3u8",
+      "url": "https://apasfiis.sf.apa.at/cms-worldwide_nas/_definst_/nas/cms-worldwide/online/2019-10-17_1700_tl_02_ZIB-17-00_Durchbruch-bei-__14029194__o__9751208575__s14577219_9__ORF2BHD_16590721P_17000309P_Q6A.mp4/chunklist.m3u8",
+      "height": 540,
+      "ext": "mp4",
+      "format_id": "hls-Q6A-Hoch-2437",
+      "tbr": 2437.8,
+      "vcodec": "avc1.77.31",
+      "format": "hls-Q6A-Hoch-2437 - 960x540"
+    },
+    {
+      "protocol": "f4m",
+      "width": 1280,
+      "preference": null,
+      "http_headers": {
+        "Accept-Charset": "ISO-8859-1,utf-8;q=0.7,*;q=0.7",
+        "Accept-Encoding": "gzip, deflate",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3554.1 Safari/537.36",
+        "Accept-Language": "en-us,en;q=0.5",
+        "Cookie": "ASP.NET_SessionId=0npxlhiy2jqaapscvafzp0sf",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+      },
+      "manifest_url": "https://apasfiis.sf.apa.at/f4m/cms-worldwide/2019-10-17_1700_tl_02_ZIB-17-00_Durchbruch-bei-__14029194__o__9751208575__s14577219_9__ORF2BHD_16590721P_17000309P_Q8C.mp4/manifest.f4m",
+      "url": "https://apasfiis.sf.apa.at/f4m/cms-worldwide/2019-10-17_1700_tl_02_ZIB-17-00_Durchbruch-bei-__14029194__o__9751208575__s14577219_9__ORF2BHD_16590721P_17000309P_Q8C.mp4/manifest.f4m",
+      "height": 720,
+      "ext": "flv",
+      "format_id": "hds-Q8C-Sehr_hoch-3188",
+      "tbr": 3188,
+      "vcodec": null,
+      "format": "hds-Q8C-Sehr_hoch-3188 - 1280x720"
+    },
+    {
+      "manifest_url": "https://apasfiis.sf.apa.at/cms-worldwide_nas/_definst_/nas/cms-worldwide/online/2019-10-17_1700_tl_02_ZIB-17-00_Durchbruch-bei-__14029194__o__9751208575__s14577219_9__ORF2BHD_16590721P_17000309P_hr.smil/playlist.m3u8",
+      "url": "https://apasfiis.sf.apa.at/cms-worldwide_nas/_definst_/nas/cms-worldwide/online/2019-10-17_1700_tl_02_ZIB-17-00_Durchbruch-bei-__14029194__o__9751208575__s14577219_9__ORF2BHD_16590721P_17000309P_hr.smil/chunklist_b3192000.m3u8",
+      "protocol": "m3u8",
+      "ext": "mp4",
+      "fps": null,
+      "format_id": "hls-QXB-Adaptiv-3192",
+      "tbr": 3192.0,
+      "preference": null,
+      "format": "hls-QXB-Adaptiv-3192 - unknown",
+      "http_headers": {
+        "Accept-Charset": "ISO-8859-1,utf-8;q=0.7,*;q=0.7",
+        "Accept-Encoding": "gzip, deflate",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3554.1 Safari/537.36",
+        "Accept-Language": "en-us,en;q=0.5",
+        "Cookie": "ASP.NET_SessionId=0npxlhiy2jqaapscvafzp0sf",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+      }
+    },
+    {
+      "fps": null,
+      "protocol": "m3u8",
+      "width": 1280,
+      "preference": null,
+      "http_headers": {
+        "Accept-Charset": "ISO-8859-1,utf-8;q=0.7,*;q=0.7",
+        "Accept-Encoding": "gzip, deflate",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3554.1 Safari/537.36",
+        "Accept-Language": "en-us,en;q=0.5",
+        "Cookie": "ASP.NET_SessionId=0npxlhiy2jqaapscvafzp0sf",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+      },
+      "acodec": "mp4a.40.2",
+      "manifest_url": "https://apasfiis.sf.apa.at/cms-worldwide_nas/_definst_/nas/cms-worldwide/online/2019-10-17_1700_tl_02_ZIB-17-00_Durchbruch-bei-__14029194__o__9751208575__s14577219_9__ORF2BHD_16590721P_17000309P_Q8C.mp4/playlist.m3u8",
+      "url": "https://apasfiis.sf.apa.at/cms-worldwide_nas/_definst_/nas/cms-worldwide/online/2019-10-17_1700_tl_02_ZIB-17-00_Durchbruch-bei-__14029194__o__9751208575__s14577219_9__ORF2BHD_16590721P_17000309P_Q8C.mp4/chunklist.m3u8",
+      "height": 720,
+      "ext": "mp4",
+      "format_id": "hls-Q8C-Sehr_hoch-3886",
+      "tbr": 3886.742,
+      "vcodec": "avc1.77.31",
+      "format": "hls-Q8C-Sehr_hoch-3886 - 1280x720"
+    }
+  ],
+  "protocol": "m3u8",
+  "manifest_url": "https://apasfiis.sf.apa.at/cms-worldwide_nas/_definst_/nas/cms-worldwide/online/2019-10-17_1700_tl_02_ZIB-17-00_Durchbruch-bei-__14029194__o__9751208575__s14577219_9__ORF2BHD_16590721P_17000309P_Q8C.mp4/playlist.m3u8",
+  "fulltitle": "Durchbruch bei Brexit-Verhandlungen",
+  "preference": null,
+  "webpage_url_basename": "14577219",
+  "acodec": "mp4a.40.2",
+  "http_headers": {
+    "Accept-Charset": "ISO-8859-1,utf-8;q=0.7,*;q=0.7",
+    "Accept-Encoding": "gzip, deflate",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3554.1 Safari/537.36",
+    "Accept-Language": "en-us,en;q=0.5",
+    "Cookie": "ASP.NET_SessionId=0npxlhiy2jqaapscvafzp0sf",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+  },
+  "title": "Durchbruch bei Brexit-Verhandlungen",
+  "_filename": "Durchbruch bei Brexit-Verhandlungen-14577219.mp4",
+  "webpage_url": "https://tvthek.orf.at/profile/ZIB-1700/71284/ZIB-1700/14029194/Durchbruch-bei-Brexit-Verhandlungen/14577219",
+  "ext": "mp4",
+  "playlist_uploader_id": null,
+  "format": "hls-Q8C-Sehr_hoch-3886 - 1280x720",
+  "playlist_index": 2
+}""")
+
+        new_mediafilename_generated = os.path.join(tmpdir, self.guess_filename.handle_file(mediafile, False))
+        new_mediafilename_comparison = os.path.join(tmpdir, "2019-10-17T16.59.07 ORF - ZIB 17 00 - Durchbruch bei Brexit-Verhandlungen -- highquality.mp4")
+        self.assertEqual(new_mediafilename_generated, new_mediafilename_comparison)
+
+        os.remove(new_mediafilename_generated)
+        os.remove(jsonfile)
+        os.rmdir(tmpdir)
+
 
     def test_adding_tags(self):
 
