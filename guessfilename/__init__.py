@@ -709,7 +709,7 @@ class GuessFilename(object):
             return False
 
         if len(content) == 0:
-            logging.warning('Could read PDF file content but it is empty (skipping content analysis)')
+            logging.info('Could read PDF file content but it is empty (skipping content analysis)')
             return False
 
         # Salary - NOTE: this is highly specific to the PDF file
