@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2019-11-23 16:11:23 vk>"
+PROG_VERSION = u"Time-stamp: <2019-12-04 10:49:37 vk>"
 
 
 # TODO:
@@ -163,6 +163,8 @@ class GuessFilename(object):
     IMG_INDEXGROUPS_BOKEH = [1, '-', 2, '-', 3, 'T', 4, '.', 5, ['.', 7], ' Bokeh', 9, '.jpg']
     VID_REGEX = re.compile('VID_' + DATESTAMP_REGEX + '_' + TIMESTAMP_REGEX + '(.+)?.mp4', re.UNICODE)
     VID_INDEXGROUPS = [1, '-', 2, '-', 3, 'T', 4, '.', 5, ['.', 7], 8, '.mp4']
+
+    NEWSPAPER1_REGEX = re.compile('(.+) \((\d{2})\.(\d{2})\.(\d{4})\)(.*)(.pdf)', re.UNICODE)
 
     # OLD # # MediathekView: Settings > modify Set > Targetfilename: "%DT%d h%i %s %t - %T - %N.mp4" (limited to 120 characters)
     # OLD # # results in files like:
@@ -657,6 +659,12 @@ class GuessFilename(object):
                     # no filetags found so far:
                     # '2019-10-10 a file exported by Boox Max 2-Exported.pdf'
                     return oldfilename[:-13] + ' -- notes.pdf'
+
+        # 2019-12-04: NEWSPAPER1_REGEX such as : "Die Presse (31.10.2019) - Unknown.pdf" -> "2019-10-31 Die Presse.pdf"
+        regex_match = re.match(self.NEWSPAPER1_REGEX, oldfilename)
+        if regex_match:
+            return self.build_string_via_indexgroups(regex_match, [4, '-', 3, '-', 2, ' ', 1, 6])
+
 
         # FIXXME: more cases!
 
