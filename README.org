@@ -189,6 +189,14 @@ thus a bit more complicated) [[https://github.com/jonasjberg/autonameow][autonam
 analyzes content of plain text, epub, pdf and rtf files, extracts
 meta-data from many different file formats via [[https://www.sno.phy.queensu.ca/%257Ephil/exiftool/][exiftool]] and so forth.
 
+-------------
+
+[[https://www.reddit.com/r/datacurator/comments/f6ku5p/building_an_auto_file_sorter_need_requirements/][This reddit thread]] brought me to [[https://github.com/unreadablewxy/fs-curator][fs-curator]] whose [[https://github.com/unreadablewxy/fs-curator/wiki][documentation]] looks
+promising. I did not test it and it's still in an early stage.
+However, it could be a future user-friendly part of a workflow that
+watches folders for file changes and applies processes like
+guessfilename.
+
 * Contribute!
 
 I am looking for your ideas!
