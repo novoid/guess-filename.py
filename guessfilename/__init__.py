@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2020-02-29 19:14:00 vk>"
+PROG_VERSION = u"Time-stamp: <2020-02-29 22:56:20 vk>"
 
 
 # TODO:
@@ -139,30 +139,37 @@ class GuessFilename(object):
 
     DATETIME_DURATION_REGEX = DATETIMESTAMP_REGEX + '(--?' + DATETIMESTAMP2_REGEX + ')?'
 
-    ISO_NAME_TAGS_EXTENSION_REGEX = re.compile('((?P<daytimeduration>' + DATETIME_DURATION_REGEX + ')[ -_])?(?P<description>.+?)(' + FILENAME_TAG_SEPARATOR + '(?P<tags>(\w+[' + BETWEEN_TAG_SEPARATOR + ']?)+))?(\.(?P<extension>\w+))?$', re.UNICODE)
+    ISO_NAME_TAGS_EXTENSION_REGEX = re.compile('((?P<daytimeduration>' + DATETIME_DURATION_REGEX + \
+                                               ')[ -_])?(?P<description>.+?)(' + FILENAME_TAG_SEPARATOR + \
+                                               '(?P<tags>(\w+[' + BETWEEN_TAG_SEPARATOR + \
+                                               ']?)+))?(\.(?P<extension>\w+))?$', re.UNICODE)
 
     RAW_EURO_CHARGE_REGEX = '(?P<charge>\d+([,.]\d+)?)[-_ ]?(EUR|€)'
     EURO_CHARGE_REGEX = re.compile('^(.+[-_ ])?' + RAW_EURO_CHARGE_REGEX + '([-_ .].+)?$', re.UNICODE)
 
     # Screenshot_2017-11-29_10-32-12.png
     # Screenshot_2017-11-07_07-52-59 my description.png
-    MISC_SCREENSHOT_REGEX = re.compile('Screenshot_' + DATESTAMP_REGEX + '[-_T]' + TIMESTAMP_REGEX + '(?P<description>.*)?.(?P<extension>png|jpg)', re.UNICODE)
+    MISC_SCREENSHOT_REGEX = re.compile('Screenshot_' + DATESTAMP_REGEX + '[-_T]' + TIMESTAMP_REGEX + \
+                                       '(?P<description>.*)?\.(?P<extension>png|jpg)', re.UNICODE)
 
     # Firefox_Screenshot_2018-05-03T20-07-14.972Z.png
-    EASY_SCREENSHOT_REGEX = re.compile('Firefox_Screenshot_' + DATESTAMP_REGEX + '[-_T]' + TIMESTAMP_REGEX + '\.\d{3}Z(.*).(?P<extension>png|jpg)', re.UNICODE)
+    EASY_SCREENSHOT_REGEX = re.compile('Firefox_Screenshot_' + DATESTAMP_REGEX + '[-_T]' + \
+                                       TIMESTAMP_REGEX + '\.\d{3}Z(.*)\.(?P<extension>png|jpg)', re.UNICODE)
 
     # 2017-12-07_09-23_Thu Went for a walk .gpx
-    OSMTRACK_REGEX = re.compile(DATESTAMP_REGEX + '[T_]?' + TIMESTAMP_REGEX + '(_' + WEEKDAYS_TLA_REGEX + ')?([ _](?P<description>.*))?\.(?P<extension>.+)', re.UNICODE)
+    OSMTRACK_REGEX = re.compile(DATESTAMP_REGEX + '[T_]?' + TIMESTAMP_REGEX + '(_' + \
+                                WEEKDAYS_TLA_REGEX + ')?([ _](?P<description>.*))?\.(?P<extension>.+)', re.UNICODE)
 
-    SIGNAL_REGEX = re.compile('signal-(attachment-)?' + DATESTAMP_REGEX + '-' + TIMESTAMP_REGEX + '(.+)?(\..+)', re.UNICODE)
+    SIGNAL_REGEX = re.compile('signal-(attachment-)?' + DATESTAMP_REGEX + '-' + \
+                              TIMESTAMP_REGEX + '(?P<description>.+)?(\.(?P<extension>.+))', re.UNICODE)
 
-    IMG_REGEX = re.compile('IMG_' + DATESTAMP_REGEX + '_' + TIMESTAMP_REGEX + '(_Bokeh)?(.+)?.jpg', re.UNICODE)
-    IMG_INDEXGROUPS_NORMAL = [1, '-', 2, '-', 3, 'T', 4, '.', 5, ['.', 7], 9, '.jpg']
-    IMG_INDEXGROUPS_BOKEH = [1, '-', 2, '-', 3, 'T', 4, '.', 5, ['.', 7], ' Bokeh', 9, '.jpg']
-    VID_REGEX = re.compile('VID_' + DATESTAMP_REGEX + '_' + TIMESTAMP_REGEX + '(.+)?.mp4', re.UNICODE)
-    VID_INDEXGROUPS = [1, '-', 2, '-', 3, 'T', 4, '.', 5, ['.', 7], 8, '.mp4']
+    IMG_REGEX = re.compile('IMG_' + DATESTAMP_REGEX + '_' + TIMESTAMP_REGEX + \
+                           '(?P<bokeh>_Bokeh)?(?P<description>.+)?\.jpg', re.UNICODE)
+    VID_REGEX = re.compile('VID_' + DATESTAMP_REGEX + '_' + TIMESTAMP_REGEX + \
+                           '(?P<description>.+)?\.(?P<extension>mp4)', re.UNICODE)
 
-    NEWSPAPER1_REGEX = re.compile('(.+) \((\d{2})\.(\d{2})\.(\d{4})\)(.*)(.pdf)', re.UNICODE)
+    # 2019-12-04: "Die Presse (31.10.2019) - Unknown.pdf" -> "2019-10-31 Die Presse.pdf"
+    NEWSPAPER1_REGEX = re.compile('(?P<description>.+) \((?P<day>\d{2})\.(?P<month>\d{2})\.(?P<year>\d{4})\)(?P<misc>.*)\.(?P<extension>pdf)', re.UNICODE)
 
     # OLD # # MediathekView: Settings > modify Set > Targetfilename: "%DT%d h%i %s %t - %T - %N.mp4" (limited to 120 characters)
     # OLD # # results in files like:
@@ -256,11 +263,11 @@ class GuessFilename(object):
     BANKAUSTRIA_BANK_TRANSACTIONS_REGEX = re.compile('^' + DATETIMESTAMP_REGEX + '_IKS-(\d{29}).csv$', re.UNICODE)
     BANKAUSTRIA_BANK_TRANSACTIONS_INDEXGROUPS = [1, ' Bank Austria Umsatzliste IKS-', 4, '.csv']
 
-    RECORDER_REGEX = re.compile('rec_([12]\d{3})([01]\d)([0123]\d)-([012]\d)([012345]\d)(.+)?.(wav|mp3)')
+    RECORDER_REGEX = re.compile('rec_' + DATESTAMP_REGEX + '-' + TIMESTAMP_REGEX + '(?P<description>.+?)?\.(?P<extension>wav|mp3)')
 
     # modet_2018-03-27_16-10.mkv
     # modet_2018-03-27_17-44-1.mkv
-    MODET_REGEX = re.compile('modet_(' + DATESTAMP_REGEX + ')_' + TIMESTAMP_REGEX + '(.*).mkv')
+    MODET_REGEX = re.compile('modet_(' + DATESTAMP_REGEX + ')_' + TIMESTAMP_REGEX + '(?P<description>.*).mkv')
 
     # 20200224-0914_Foo_bar.wav
     SMARTREC_REGEX = re.compile('(?P<DAY>' + DATESTAMP_REGEX + ')-' + TIMESTAMP_REGEX + '(_(?P<description>.+))?.(?P<extension>wav|mp3)')
@@ -476,14 +483,18 @@ class GuessFilename(object):
         # digital camera images: IMG_20161014_214404 foo bar.jpg -> 2016-10-14T21.44.04 foo bar.jpg  OR
         regex_match = re.match(self.IMG_REGEX, oldfilename)
         if regex_match:
-            if regex_match.group(8) == '_Bokeh':
-                return self.build_string_via_indexgroups(regex_match, self.IMG_INDEXGROUPS_BOKEH)
+            if regex_match.group('bokeh') and regex_match.group('description'):
+                return self.get_datetime_string_from_named_groups(regex_match) + ' Bokeh' + regex_match.group('description') + '.jpg'
+            elif not regex_match.group('bokeh') and regex_match.group('description'):
+                return self.get_datetime_string_from_named_groups(regex_match) + regex_match.group('description') + '.jpg'
+            elif regex_match.group('bokeh') and not regex_match.group('description'):
+                return self.get_datetime_string_from_named_groups(regex_match) + ' Bokeh' + '.jpg'
             else:
-                return self.build_string_via_indexgroups(regex_match, self.IMG_INDEXGROUPS_NORMAL)
-        #                        VID_20170105_173104.mp4         -> 2017-01-05T17.31.04.mp4
+                return self.get_datetime_string_from_named_groups(regex_match) + '.jpg'
+        # VID_20170105_173104.mp4         -> 2017-01-05T17.31.04.mp4
         regex_match = re.match(self.VID_REGEX, oldfilename)
         if regex_match:
-            return self.build_string_via_indexgroups(regex_match, self.VID_INDEXGROUPS)
+            return self.get_datetime_description_extension_filename(regex_match, replace_description_underscores=True)
 
         # 2018-04-01:
         # signal-2018-03-08-102332.jpg → 2018-03-08T10.23.32.jpg
@@ -491,20 +502,17 @@ class GuessFilename(object):
         # signal-attachment-2019-11-23-090716_001.jpeg -> 2019-11-23T09.07.16_001.jpeg
         regex_match = re.match(self.SIGNAL_REGEX, oldfilename)
         if regex_match:
-            if regex_match.group(9):
-                result = self.build_string_via_indexgroups(regex_match, [2, '-', 3, '-', 4, 'T', 5, '.', 6, '.', 7, 9, 10])
-            else:
-                result = self.build_string_via_indexgroups(regex_match, [2, '-', 3, '-', 4, 'T', 5, '.', 6, '.', 7, '.jpg'])
-            return result
+            return self.get_datetime_description_extension_filename(regex_match, replace_description_underscores=True)
 
         # 2018-03-27:
         # modet_2018-03-27_16-10.mkv
         # modet_2018-03-27_17-44-1.mkv
         regex_match = re.match(self.MODET_REGEX, oldfilename)
         if regex_match:
-            result = self.build_string_via_indexgroups(regex_match, [1, 'T', 2, '.', 3, ' modet ', 6, '.mkv'])
-            return result
-
+            if regex_match.group('description'):
+                return self.get_datetime_string_from_named_groups(regex_match) + ' modet ' + regex_match.group('description') + '.mkv'
+            else:
+                return self.get_datetime_string_from_named_groups(regex_match) + ' modet' + '.mkv'
 
         # 2017-11-30:
         # rec_20171129-0902 A nice recording .wav -> 2017-11-29T09.02 A nice recording.wav
@@ -513,10 +521,7 @@ class GuessFilename(object):
         # rec_20171129-0902.mp3 -> 2017-11-29T09.02.mp3
         regex_match = re.match(self.RECORDER_REGEX, oldfilename)
         if regex_match:
-            result = self.build_string_via_indexgroups(regex_match, [1, '-', 2, '-', 3, 'T', 4, '.', 5])
-            if regex_match.group(6):
-                result += ' ' + regex_match.group(6).strip()
-            return result + '.' + regex_match.group(7)
+            return self.get_datetime_description_extension_filename(regex_match, replace_description_underscores=True)
 
         # 2019-04-01 oekostrom AG - Teilbetragsrechnung Stromverbrauch 54 EUR -- scan bill.pdf
         if 'teilbetragsrechnung' in oldfilename.lower() and \
@@ -639,7 +644,7 @@ class GuessFilename(object):
         # 2019-12-04: NEWSPAPER1_REGEX such as : "Die Presse (31.10.2019) - Unknown.pdf" -> "2019-10-31 Die Presse.pdf"
         regex_match = re.match(self.NEWSPAPER1_REGEX, oldfilename)
         if regex_match:
-            return self.build_string_via_indexgroups(regex_match, [4, '-', 3, '-', 2, ' ', 1, 6])
+            return self.get_date_description_extension_filename(regex_match, replace_description_underscores=True)
 
 
         # 20200224-0914_Foo_bar.wav
@@ -1185,6 +1190,15 @@ class GuessFilename(object):
         return regex_match.group('year') + '-' + regex_match.group('month') + '-' + regex_match.group('day') + 'T' + \
             regex_match.group('hour') + '.' + regex_match.group('minute') + second
 
+    def get_date_string_from_named_groups(self, regex_match):
+        """Extracts YMDHM(S) from match groups and returns YYYY.MM.DDTHH.MM(.SS)
+        """
+        assert(regex_match)
+        assert(regex_match.group('day'))
+        assert(regex_match.group('month'))
+        assert(regex_match.group('year'))
+        return regex_match.group('year') + '-' + regex_match.group('month') + '-' + regex_match.group('day')
+
     def get_datetime_description_extension_filename(self, regex_match, replace_description_underscores=False):
         """
         When a regex_match has matching groups for datetime elements, an optional description
@@ -1193,13 +1207,29 @@ class GuessFilename(object):
         if regex_match.group('description'):
             if replace_description_underscores:
                 return self.get_datetime_string_from_named_groups(regex_match) + ' ' + \
-                    regex_match.group('description').strip().replace('_', ' ') + '.' + \
+                    regex_match.group('description').strip().replace('_', ' ').strip() + '.' + \
                     regex_match.group('extension')
             else:
                 return self.get_datetime_string_from_named_groups(regex_match) + ' ' + \
                     regex_match.group('description').strip() + '.' + regex_match.group('extension')
         else:
             return self.get_datetime_string_from_named_groups(regex_match) + '.' + regex_match.group('extension')
+
+    def get_date_description_extension_filename(self, regex_match, replace_description_underscores=False):
+        """
+        When a regex_match has matching groups for datetime elements, an optional description
+        and an extension, this function composes the standard file name of pattern "YYYY-MM-DD( description).extension"
+        """
+        if regex_match.group('description'):
+            if replace_description_underscores:
+                return self.get_date_string_from_named_groups(regex_match) + ' ' + \
+                    regex_match.group('description').strip().replace('_', ' ').strip() + '.' + \
+                    regex_match.group('extension')
+            else:
+                return self.get_date_string_from_named_groups(regex_match) + ' ' + \
+                    regex_match.group('description').strip() + '.' + regex_match.group('extension')
+        else:
+            return self.get_date_string_from_named_groups(regex_match) + '.' + regex_match.group('extension')
 
     def build_string_via_indexgroups(self, regex_match, indexgroups):
         """This function takes a regex_match object and concatenates its

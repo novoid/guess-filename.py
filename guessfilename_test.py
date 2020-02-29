@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8; mode: python; -*-
-# Time-stamp: <2020-02-29 18:31:58 vk>
+# Time-stamp: <2020-02-29 22:48:30 vk>
 
 import unittest
 import logging
@@ -927,6 +927,10 @@ class TestGuessFilename(unittest.TestCase):
                          '2019-01-18T13.39.28 Bokeh.jpg')
         self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('IMG_20190118_133928_Bokeh This is a note.jpg'),
                          '2019-01-18T13.39.28 Bokeh This is a note.jpg')
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('VID_20170105_173104.mp4'),
+                         '2017-01-05T17.31.04.mp4')
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('VID_20170105_173104 foo bar.mp4'),
+                         '2017-01-05T17.31.04 foo bar.mp4')
 
         self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('2019-10-10 a file exported by Boox Max 2-Exported.pdf'),
                          '2019-10-10 a file exported by Boox Max 2 -- notes.pdf')
@@ -934,7 +938,6 @@ class TestGuessFilename(unittest.TestCase):
                          '2019-10-10 a file exported by Boox Max 2 -- notes.pdf')
         self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('2019-10-10 a file exported by Boox Max 2 -- draft-Exported.pdf'),
                          '2019-10-10 a file exported by Boox Max 2 -- draft notes.pdf')
-
 
         # Smartrecorder
         self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('20190512-1125_Recording_1.wav'),
@@ -946,6 +949,25 @@ class TestGuessFilename(unittest.TestCase):
         self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('20190512-1125.mp3'),
                          '2019-05-12T11.25.mp3')
 
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('Die Presse (31.10.2019) - Unknown.pdf'),
+                         '2019-10-31 Die Presse.pdf')
+
+        # signal-2018-03-08-102332.jpg → 2018-03-08T10.23.32.jpg
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('signal-2018-03-08-102332.jpg'),
+                         '2018-03-08T10.23.32.jpg')
+        # signal-2018-03-08-102332 foo bar.jpg → 2018-03-08T10.23.32 foo bar.jpg
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('signal-2018-03-08-102332 foo bar.jpg'),
+                         '2018-03-08T10.23.32 foo bar.jpg')
+        # signal-attachment-2019-11-23-090716_001.jpeg -> 2019-11-23T09.07.16_001.jpeg
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('signal-attachment-2019-11-23-090716_001.jpeg'),
+                         '2019-11-23T09.07.16 001.jpeg')
+
+        # modet_2018-03-27_16-10.mkv
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('modet_2018-03-27_16-10.mkv'),
+                         '2018-03-27T16.10 modet.mkv')
+        # modet_2018-03-27_17-44-1.mkv
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('modet_2018-03-27_17-44-1.mkv'),
+                         '2018-03-27T17.44 modet -1.mkv')
 
 #        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename(''),
 #                         '')
@@ -979,6 +1001,16 @@ class TestGuessFilename(unittest.TestCase):
         self.assertTrue(self.guess_filename.get_datetime_description_extension_filename(regex_match,
                                                                                         replace_description_underscores=True),
                         '2020-02-29T15.07.52 with seconds.png')
+
+    def test_get_date_description_extension_filename(self):
+
+        regex_match = re.match(self.guess_filename.ISO_NAME_TAGS_EXTENSION_REGEX, '2020-02-29 with seconds.png')
+        self.assertTrue(self.guess_filename.get_date_description_extension_filename(regex_match), '2020-02-29 with seconds.png')
+
+        regex_match = re.match(self.guess_filename.ISO_NAME_TAGS_EXTENSION_REGEX, '2020-02-29_with_seconds.png')
+        self.assertTrue(self.guess_filename.get_date_description_extension_filename(regex_match,
+                                                                                        replace_description_underscores=True),
+                        '2020-02-29 with seconds.png')
 
     def test_contains_one_of(self):
 
