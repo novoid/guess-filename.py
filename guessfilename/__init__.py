@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2020-02-29 22:56:20 vk>"
+PROG_VERSION = u"Time-stamp: <2020-02-29 23:39:59 vk>"
 
 
 # TODO:
@@ -192,8 +192,8 @@ class GuessFilename(object):
     #              of file name length restrictions, this RegEx is a fall-back in order to
     #              recognize the situation.
     MEDIATHEKVIEW_SHORT_REGEX_STRING = DATESTAMP_REGEX + 'T?' + TIMESTAMP_REGEX + \
-                                       ' (.+) - (.+) - (.+) -ORIGINAL(hd|low)?- '  # e.g., "20180510T090000 ORF - ZIB - Signation -ORIGINAL- "
-    MEDIATHEKVIEW_SHORT_REGEX = re.compile(MEDIATHEKVIEW_SHORT_REGEX_STRING + '(.+).mp4')
+                                       ' (?P<channel>.+) - (?P<show>.+) - (?P<title>.+) -ORIGINAL(?P<qualityindicator>hd|low)?- '  # e.g., "20180510T090000 ORF - ZIB - Signation -ORIGINAL- "
+    MEDIATHEKVIEW_SHORT_REGEX = re.compile(MEDIATHEKVIEW_SHORT_REGEX_STRING + '(?P<details>.+).mp4')
 
     # MediathekView was able to generate the full length file name including
     # the full length original file name which DOES NOT contain the detailed begin- and
@@ -219,6 +219,9 @@ class GuessFilename(object):
                                      MEDIATHEKVIEW_RAW_NUMBERS + MEDIATHEKVIEW_RAW_ENDING
 
     # URL has format like: http://apasfpd.sf.apa.at/cms-worldwide/online/7db1010b02753288e65ff61d5e1dff58/1528531468/2018-06-08_2140_tl_01_Was-gibt-es-Neu_Promifrage-gest__13979244__o__1391278651__s14313058_8__BCK1HD_22050122P_22091314P_Q4A.mp4
+    # 2020-02-29: updated example URL:
+    #        https://apasfiis.sf.apa.at/ipad/cms-worldwide/2020-02-29_1930_tl_02_ZIB-1_Berlinale-geht-__14043186__o__4620066785__s14653504_4__ORF3HD_19463520P_19475503P_Q8C.mp4/playlist.m3u8
+    #     groups: ('ipad/', '2020', '02', '29', '19', '30', None, None, 'tl', '19', '46', '35', '35', '19', '47', '55', '55', 'Q8C')
     # but with varying quality indicator: Q4A (low), Q6A (high), Q8C (HD)
     # which gets parsed like:
     #   http://apasfpd.sf.apa.at/cms-worldwide/online/      → required
@@ -238,7 +241,7 @@ class GuessFilename(object):
                                 DATESTAMP_REGEX + '_' + TIMESTAMP_REGEX + '_(tl|sd)_' +  # e.g., 2019-09-20_2200_tl_
                                 '.+' +  # e.g., 02_ZIB-2_Wetter__14026467__o__698276635d__s14562567_7__ORF2HD
                                 '_' + TIMESTAMP2_REGEX + '\d\dP_' + TIMESTAMP3_REGEX + '\d\dP_' +  # e.g., _22241720P_22245804P_
-                                '(Q4A|Q6A|Q8C).mp4/playlist.m3u8')  # e.g., Q4A.mp4/playlist.m3u8
+                                '(?P<qualityindicator>Q4A|Q6A|Q8C).mp4/playlist.m3u8')  # e.g., Q4A.mp4/playlist.m3u8
     FILM_URL_EXAMPLE = 'https://apasfiis.sf.apa.at/cms-worldwide/2019-09-20_2200_tl_02_ZIB-2_Wetter__14026467__o__698276635d__s14562567_7__ORF2HD_22241720P_22245804P_Q4A.mp4/playlist.m3u8'
     FILM_URL_REGEX_MISMATCH_HELP_TEXT = 'You did not enter a valid Film-URL which looks like: \n' + FILM_URL_EXAMPLE + '\n' + \
                                         'matching the hard-coded regular expression: \n' + str(FILM_URL_REGEX).replace('re.compile(', '') + '\''
@@ -411,16 +414,17 @@ class GuessFilename(object):
             logging.debug('Filename did not contain detailed start- and end-timestamps and no quality indicators. Using the time-stamp '
                           + 'of the "Film-URL" as a fall-back: MEDIATHEKVIEW_SHORT_REGEX + FILM_URL_REGEX')
 
-            if regex_match.group(12) == 'playlist.m3u8' and regex_match.group(11):
+            if regex_match.group('details') == 'playlist.m3u8' and regex_match.group('qualityindicator'):
                 # We got this simple case of failing to get "original filename" from MediathekView download source:
                 # '20181028T201400 ORF - Tatort - Tatort_ Blut -ORIGINALhd- playlist.m3u8.mp4'
                 # There is NO original filename containing the starting time :-(
                 # (see unit tests for details)
 
                 # "lowquality" or "highquality" or "UNKNOWNQUALITY"
-                qualitytag = self.translate_ORF_quality_string_to_tag(regex_match.group(11).upper())
+                qualitytag = self.translate_ORF_quality_string_to_tag(regex_match.group('qualityindicator').upper())
 
-                return self.build_string_via_indexgroups(regex_match, [1, '-', 2, '-', 3, 'T', 4, '.', 5, '.', 7, ' ', 8, ' - ', 9, ' - ', 10, ' -- ', qualitytag, '.mp4'])
+                return self.get_datetime_string_from_named_groups(regex_match) + ' ' + regex_match.group('channel') + \
+                    ' - ' + regex_match.group('show') + ' - ' + regex_match.group('title') + ' -- ' + qualitytag + '.mp4'
 
             else:
                 # we got the ability to derive starting time from "original filename"
@@ -437,18 +441,27 @@ class GuessFilename(object):
                     # but with varying quality indicator: Q4A (low), Q6A (high), Q8C (HD)
                     film_regex_match = re.match(self.FILM_URL_REGEX, film_url)
 
+                    def compare_YMDhm(regex_match, film_regex_match):
+                        "Compare, if date and time are same in both regex_match"
+                        return regex_match.group('year') == film_regex_match.group('year') and \
+                            regex_match.group('month') == film_regex_match.group('month') and \
+                            regex_match.group('day') == film_regex_match.group('day') and \
+                            regex_match.group('hour') == film_regex_match.group('hour') and \
+                            regex_match.group('minute') == film_regex_match.group('minute')
+                    
                     if not film_regex_match:
                         print()
                         logging.warn(self.FILM_URL_REGEX_MISMATCH_HELP_TEXT)
                         logging.debug('entered film_url:\n' + film_url)
-                    elif regex_match.groups()[:5] != film_regex_match.groups()[1:6]:
+                    elif not compare_YMDhm(regex_match, film_regex_match):
+                        # example: ('2020', '02', '29', '19', '30')
                         logging.debug('plausibility check fails: date and time of the chunks differ: \nselected regex_match.groups is   "' +
-                                      str(regex_match.groups()[:5]) + '" which does not match\nselected film_regex_match.groups "' +
-                                      str(film_regex_match.groups()[1:6]) + '". Maybe adapt the potentially changed index group numbers due to changed RegEx?')
+                                      self.get_datetime_string_from_named_groups(regex_match) + '" which does not match\nselected film_regex_match.groups "' +
+                                      self.get_datetime_string_from_named_groups(film_regex_match) + '". Maybe adapt the potentially changed index group numbers due to changed RegEx?')
                         logging.warn('Sorry, there is a mismatch of the date and time contained between the filename (' +
-                                     self.build_string_via_indexgroups(regex_match, [1, '-', 2, '-', 3, 'T', 4, '.', 5]) +
+                                     self.get_datetime_string_from_named_groups(regex_match) +
                                      ') and the URL pasted (' +
-                                     self.build_string_via_indexgroups(film_regex_match, [1, '-', 2, '-', 3, 'T', 4, '.', 5]) +
+                                     self.get_datetime_string_from_named_groups(film_regex_match) +
                                      '). Please try again with the correct URL ...')
                     else:
                         url_valid = True
@@ -457,28 +470,20 @@ class GuessFilename(object):
                 qualitytag = self.translate_ORF_quality_string_to_tag(film_regex_match.group(len(film_regex_match.groups())).upper())
 
                 # e.g., "2018-06-08T"
-                datestamp = self.build_string_via_indexgroups(regex_match, [1, '-', 2, '-', 3, 'T'])
+                #datestamp = self.build_string_via_indexgroups(regex_match, [1, '-', 2, '-', 3, 'T'])
+                datestamp = self.get_date_string_from_named_groups(regex_match) + 'T'
 
                 # e.g., "22.05.01 "
-                timestamp = self.build_string_via_indexgroups(film_regex_match, [10, '.', 11, '.', 12, ' '])
+                #timestamp = self.build_string_via_indexgroups(film_regex_match, [10, '.', 11, '.', 12, ' '])
+                timestamp = film_regex_match.group('hour2') + '.' + film_regex_match.group('minute2') + '.' + film_regex_match.group('second2') + ' '
 
                 # e.g., "ORF - Was gibt es Neues? - Promifrage gestellt von Helmut Bohatsch_ Wie vergewisserte sich der Bischof von New York 1877, dass das erste Tonaufnahmegerät kein Teufelswerk ist? -- lowquality.mp4"
-                description = self.build_string_via_indexgroups(regex_match, [8, ' - ', 9, ' - ', 10, ' -- ', qualitytag, '.mp4'])
+                #description = self.build_string_via_indexgroups(regex_match, [8, ' - ', 9, ' - ', 10, ' -- ', qualitytag, '.mp4'])
+                description = regex_match.group('channel') + ' - ' + regex_match.group('show') + ' - ' + \
+                    regex_match.group('title') + ' -- ' + qualitytag + '.mp4'
 
                 # combining them all to one final filename:
                 return datestamp + timestamp + description
-
-        # OLD # # MediathekView: Settings > modify Set > Targetfilename: "%DT%d h%i %s %t - %T - %N.mp4"
-        # OLD # # results in files like:
-        # OLD # #   20161227T201500 h115421 ORF Das Sacher. In bester Gesellschaft 1.mp4
-        # OLD # #     -> 2016-12-27T20.15.00 h115421 ORF Das Sacher. In bester Gesellschaft 1.mp4
-        # OLD # #   20161227T193000 l119684 ORF ZIB 1 - Auswirkungen der _Panama-Papers_ - 2016-12-27_1930_tl_02_ZIB-1_Auswirkungen-de__.mp4
-        # OLD # #     -> 2016-12-27T19.30.00 l119684 ORF ZIB 1 - Auswirkungen der _Panama-Papers_.mp4
-        # OLD # regex_match = re.match(self.MEDIATHEKVIEW_SIMPLE_REGEX, oldfilename)
-        # OLD # if regex_match:
-        # OLD #     if 'Tatort' in oldfilename and os.stat(oldfilename).st_size < 2000000000 and not options.quiet:
-        # OLD #         print('       →  ' + colorama.Style.BRIGHT + colorama.Fore.RED + 'WARNING: Tatort file seems to be too small (download aborted?): ' + oldfilename + colorama.Style.RESET_ALL)
-        # OLD #     return self.build_string_via_indexgroups(regex_match, self.MEDIATHEKVIEW_SIMPLE_INDEXGROUPS).replace('_', ' ')
 
         # digital camera images: IMG_20161014_214404 foo bar.jpg -> 2016-10-14T21.44.04 foo bar.jpg  OR
         regex_match = re.match(self.IMG_REGEX, oldfilename)
