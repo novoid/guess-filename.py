@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8; mode: python; -*-
-# Time-stamp: <2020-02-29 17:08:31 vk>
+# Time-stamp: <2020-02-29 18:31:58 vk>
 
 import unittest
 import logging
@@ -958,24 +958,24 @@ class TestGuessFilename(unittest.TestCase):
 
     def test_get_datetime_string_from_named_groups(self):
 
-        regex_match = re.match(self.guess_filename.ANDROID_SCREENSHOT_REGEX, 'Screenshot_2020-02-29-15.07.52 with seconds.png')
+        regex_match = re.match(self.guess_filename.MISC_SCREENSHOT_REGEX, 'Screenshot_2020-02-29-15.07.52 with seconds.png')
         self.assertTrue(self.guess_filename.get_datetime_string_from_named_groups(regex_match), '2020-02-29T15.07.52')
 
-        regex_match = re.match(self.guess_filename.ANDROID_SCREENSHOT_REGEX, 'Screenshot_2020-02-29-15.07.52.png')
+        regex_match = re.match(self.guess_filename.MISC_SCREENSHOT_REGEX, 'Screenshot_2020-02-29-15.07.52.png')
         self.assertTrue(self.guess_filename.get_datetime_string_from_named_groups(regex_match), '2020-02-29T15.07.52')
 
-        regex_match = re.match(self.guess_filename.ANDROID_SCREENSHOT_REGEX, 'Screenshot_2020-02-29-15.07 with seconds.png')
+        regex_match = re.match(self.guess_filename.MISC_SCREENSHOT_REGEX, 'Screenshot_2020-02-29-15.07 with seconds.png')
         self.assertTrue(self.guess_filename.get_datetime_string_from_named_groups(regex_match), '2020-02-29T15.07')
 
     def test_get_datetime_description_extension_filename(self):
 
-        regex_match = re.match(self.guess_filename.ANDROID_SCREENSHOT_REGEX, 'Screenshot_2020-02-29-15.07.52.png')
+        regex_match = re.match(self.guess_filename.MISC_SCREENSHOT_REGEX, 'Screenshot_2020-02-29-15.07.52.png')
         self.assertTrue(self.guess_filename.get_datetime_description_extension_filename(regex_match), '2020-02-29T15.07.52.png')
 
-        regex_match = re.match(self.guess_filename.ANDROID_SCREENSHOT_REGEX, 'Screenshot_2020-02-29-15.07.52 with seconds.png')
+        regex_match = re.match(self.guess_filename.MISC_SCREENSHOT_REGEX, 'Screenshot_2020-02-29-15.07.52 with seconds.png')
         self.assertTrue(self.guess_filename.get_datetime_description_extension_filename(regex_match), '2020-02-29T15.07.52 with seconds.png')
 
-        regex_match = re.match(self.guess_filename.ANDROID_SCREENSHOT_REGEX, 'Screenshot_2020-02-29-15.07.52_with_seconds.png')
+        regex_match = re.match(self.guess_filename.MISC_SCREENSHOT_REGEX, 'Screenshot_2020-02-29-15.07.52_with_seconds.png')
         self.assertTrue(self.guess_filename.get_datetime_description_extension_filename(regex_match,
                                                                                         replace_description_underscores=True),
                         '2020-02-29T15.07.52 with seconds.png')
