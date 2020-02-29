@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8; mode: python; -*-
-# Time-stamp: <2020-02-29 11:47:58 vk>
+# Time-stamp: <2020-02-29 17:08:31 vk>
 
 import unittest
 import logging
@@ -852,6 +852,9 @@ class TestGuessFilename(unittest.TestCase):
         self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename("2017-11-03_07-29_Fri Bicycling.gpx"),
                          "2017-11-03T07.29 Bicycling.gpx")
 
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename("2015-05-27T09;00;15_foo_bar.gpx"),
+                         "2015-05-27T09.00.15 foo bar.gpx")
+
         self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename("20180510T090000 ORF - ZIB - Signation -ORIGINAL- 2018-05-10_0900_tl_02_ZIB-9-00_Signation__13976423__o__1368225677__s14297692_2__WEB03HD_09000305P_09001400P_Q4A.mp4"),
                          "2018-05-10T09.00.03 ORF - ZIB - Signation -- lowquality.mp4")
         self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename("20180510T090000 ORF - ZIB - Weitere Signale der Entspannung -ORIGINAL- 2018-05-10_0900_tl_02_ZIB-9-00_Weitere-Signale__13976423__o__5968792755__s14297694_4__WEB03HD_09011813P_09020710P_Q4A.mp4"),
@@ -953,6 +956,29 @@ class TestGuessFilename(unittest.TestCase):
         # check if the defined help text string for a MediathekView film URL matches the corresponding RegEx
         self.assertTrue(re.match(self.guess_filename.FILM_URL_REGEX, self.guess_filename.FILM_URL_EXAMPLE))
 
+    def test_get_datetime_string_from_named_groups(self):
+
+        regex_match = re.match(self.guess_filename.ANDROID_SCREENSHOT_REGEX, 'Screenshot_2020-02-29-15.07.52 with seconds.png')
+        self.assertTrue(self.guess_filename.get_datetime_string_from_named_groups(regex_match), '2020-02-29T15.07.52')
+
+        regex_match = re.match(self.guess_filename.ANDROID_SCREENSHOT_REGEX, 'Screenshot_2020-02-29-15.07.52.png')
+        self.assertTrue(self.guess_filename.get_datetime_string_from_named_groups(regex_match), '2020-02-29T15.07.52')
+
+        regex_match = re.match(self.guess_filename.ANDROID_SCREENSHOT_REGEX, 'Screenshot_2020-02-29-15.07 with seconds.png')
+        self.assertTrue(self.guess_filename.get_datetime_string_from_named_groups(regex_match), '2020-02-29T15.07')
+
+    def test_get_datetime_description_extension_filename(self):
+
+        regex_match = re.match(self.guess_filename.ANDROID_SCREENSHOT_REGEX, 'Screenshot_2020-02-29-15.07.52.png')
+        self.assertTrue(self.guess_filename.get_datetime_description_extension_filename(regex_match), '2020-02-29T15.07.52.png')
+
+        regex_match = re.match(self.guess_filename.ANDROID_SCREENSHOT_REGEX, 'Screenshot_2020-02-29-15.07.52 with seconds.png')
+        self.assertTrue(self.guess_filename.get_datetime_description_extension_filename(regex_match), '2020-02-29T15.07.52 with seconds.png')
+
+        regex_match = re.match(self.guess_filename.ANDROID_SCREENSHOT_REGEX, 'Screenshot_2020-02-29-15.07.52_with_seconds.png')
+        self.assertTrue(self.guess_filename.get_datetime_description_extension_filename(regex_match,
+                                                                                        replace_description_underscores=True),
+                        '2020-02-29T15.07.52 with seconds.png')
 
     def test_contains_one_of(self):
 
