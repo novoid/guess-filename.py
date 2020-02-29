@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2019-12-04 10:49:37 vk>"
+PROG_VERSION = u"Time-stamp: <2020-02-29 11:48:48 vk>"
 
 
 # TODO:
@@ -126,7 +126,7 @@ class GuessFilename(object):
     # ( (date(time)?)?(--date(time)?)? )? filename (tags)? (extension)?
     DAY_REGEX = '[12]\d{3}-?[01]\d-?[0123]\d'  # note: I made the dashes between optional to match simpler format as well
     TIME_REGEX = 'T[012]\d.[012345]\d(.[012345]\d)?'
-    TIME_FUZZY_REGEX = '([012]\d)[-._:]?([012345]\d)([-._:]?([012345]\d))?'  # a bit less restrictive than TIME_REGEX
+    TIME_FUZZY_REGEX = '(?P<year>[012]\d)[-._:]?(?P<month>[012345]\d)([-._:]?(?P<day>[012345]\d))?'  # a bit less restrictive than TIME_REGEX
 
     DAYTIME_REGEX = '(' + DAY_REGEX + '(' + TIME_REGEX + ')?)'
     DAYTIME_DURATION_REGEX = DAYTIME_REGEX + '(--?' + DAYTIME_REGEX + ')?'
@@ -270,6 +270,9 @@ class GuessFilename(object):
 
     # 2017-12-07_09-23_Thu Went for a walk .gpx
     OSMTRACK_REGEX = re.compile('(' + DAY_REGEX + ')_' + TIME_FUZZY_REGEX + '_(\w{3})( )?(.*).gpx')
+
+    # 20200224-0914_Foo_bar.wav
+    SMARTREC_REGEX = re.compile('(?P<DAY>' + DAY_REGEX + ')-' + TIME_FUZZY_REGEX + '(_(?P<descr>.+))?.(?P<ext>wav|mp3)')
 
     logger = None
     config = None
@@ -664,6 +667,23 @@ class GuessFilename(object):
         regex_match = re.match(self.NEWSPAPER1_REGEX, oldfilename)
         if regex_match:
             return self.build_string_via_indexgroups(regex_match, [4, '-', 3, '-', 2, ' ', 1, 6])
+
+
+        # 20200224-0914_Foo_bar.wav
+        #SMARTREC_REGEX = re.compile('(' + DAY_REGEX + ')_' + TIME_FUZZY_REGEX + '(_(.+))?.(wav|mp3)')
+        regex_match = re.match(self.SMARTREC_REGEX, oldfilename)
+        #import pdb; pdb.set_trace()
+        #re.match(r'(?P<day>' + DAY_REGEX + ')-' + TIME_FUZZY_REGEX + '(_(?P<descr>.+))?.(?P<ext>wav|mp3)', oldfilename).groups()
+        # ('20190512', '11', '25', None, None, '_Recording_1', 'Recording_1', 'wav')
+        if regex_match:
+            if regex_match.group('descr'):
+                return regex_match.group(1)[:4] + '-' + regex_match.group(1)[4:6] + '-' + regex_match.group(1)[-2:] + 'T' + \
+                    regex_match.group(2) + '.'+ regex_match.group(3) + ' ' + regex_match.group('descr').replace('_', ' ') + \
+                    '.' + regex_match.group('ext')
+            else:
+                return regex_match.group(1)[:4] + '-' + regex_match.group(1)[4:6] + '-' + regex_match.group(1)[-2:] + 'T' + \
+                    regex_match.group(2) + '.'+ regex_match.group(3) + \
+                    '.' + regex_match.group('ext')
 
 
         # FIXXME: more cases!

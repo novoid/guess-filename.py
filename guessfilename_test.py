@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8; mode: python; -*-
-# Time-stamp: <2019-10-19 15:20:13 vk>
+# Time-stamp: <2020-02-29 11:47:58 vk>
 
 import unittest
 import logging
@@ -931,6 +931,17 @@ class TestGuessFilename(unittest.TestCase):
                          '2019-10-10 a file exported by Boox Max 2 -- notes.pdf')
         self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('2019-10-10 a file exported by Boox Max 2 -- draft-Exported.pdf'),
                          '2019-10-10 a file exported by Boox Max 2 -- draft notes.pdf')
+
+
+        # Smartrecorder
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('20190512-1125_Recording_1.wav'),
+                         '2019-05-12T11.25 Recording 1.wav')
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('20190512-1125_Recording_1.mp3'),
+                         '2019-05-12T11.25 Recording 1.mp3')
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('20190512-1125.wav'),
+                         '2019-05-12T11.25.wav')
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('20190512-1125.mp3'),
+                         '2019-05-12T11.25.mp3')
 
 
 #        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename(''),
