@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2020-02-29 11:48:48 vk>"
+PROG_VERSION = u"Time-stamp: <2020-02-29 17:13:39 vk>"
 
 
 # TODO:
@@ -122,39 +122,38 @@ class GuessFilename(object):
     FILENAME_TAG_SEPARATOR = ' -- '
     BETWEEN_TAG_SEPARATOR = ' '
 
+    TIMESTAMP_DELIMITERS = '[.;:-]?'
+    DATESTAMP_REGEX = '(?P<year>[12]\d{3})' + TIMESTAMP_DELIMITERS + '(?P<month>[01]\d)' + TIMESTAMP_DELIMITERS + '(?P<day>[0123]\d)'
+    TIMESTAMP_REGEX = '(?P<hour>[012]\d)' + TIMESTAMP_DELIMITERS + '(?P<minute>[012345]\d)(' + TIMESTAMP_DELIMITERS + '(?P<second>[012345]\d))?'
+    DATESTAMP2_REGEX = '(?P<year2>[12]\d{3})' + TIMESTAMP_DELIMITERS + '(?P<month2>[01]\d)' + TIMESTAMP_DELIMITERS + '(?P<day2>[0123]\d)'
+    TIMESTAMP2_REGEX = '(?P<hour2>[012]\d)' + TIMESTAMP_DELIMITERS + '(?P<minute2>[012345]\d)(' + TIMESTAMP_DELIMITERS + '(?P<second2>[012345]\d))?'
+    TIMESTAMP3_REGEX = '(?P<hour3>[012]\d)' + TIMESTAMP_DELIMITERS + '(?P<minute3>[012345]\d)(' + TIMESTAMP_DELIMITERS + '(?P<second3>[012345]\d))?'
+
+    WEEKDAYS_TLA_REGEX = '(Mon|Tue|Wed|Thu|Fri|Sat|Sun)'
+
     # file names containing tags matches following regular expression
     # ( (date(time)?)?(--date(time)?)? )? filename (tags)? (extension)?
-    DAY_REGEX = '[12]\d{3}-?[01]\d-?[0123]\d'  # note: I made the dashes between optional to match simpler format as well
-    TIME_REGEX = 'T[012]\d.[012345]\d(.[012345]\d)?'
-    TIME_FUZZY_REGEX = '(?P<year>[012]\d)[-._:]?(?P<month>[012345]\d)([-._:]?(?P<day>[012345]\d))?'  # a bit less restrictive than TIME_REGEX
+    DAY_REGEX = '(?P<year>[12]\d{3})-?(?P<month>[01]\d)-?(?P<day>[0123]\d)'  # note: I made the dashes between optional to match simpler format as well
+    DAY2_REGEX = '(?P<year2>[12]\d{3})-?(?P<month2>[01]\d)-?(?P<day2>[0123]\d)'  # note: DAY2, TIME2, ... necessary because they appear twice in durations
+    TIME_REGEX = 'T(?P<hour>[012]\d).(?P<minute>[012345]\d)(.(?P<second>[012345]\d))?'
+    TIME2_REGEX = 'T(?P<hour2>[012]\d).(?P<minute2>[012345]\d)(.(?P<second2>[012345]\d))?'
+    TIME_FUZZY_REGEX = '(?P<hour>[012]\d)[-._:]?(?P<minute>[012345]\d)([-._:]?(?P<second>[012345]\d))?'  # a bit less restrictive than TIME_REGEX
 
     DAYTIME_REGEX = '(' + DAY_REGEX + '(' + TIME_REGEX + ')?)'
-    DAYTIME_DURATION_REGEX = DAYTIME_REGEX + '(--?' + DAYTIME_REGEX + ')?'
+    DAYTIME2_REGEX = '(' + DAY2_REGEX + '(' + TIME2_REGEX + ')?)'
+    DAYTIME_DURATION_REGEX = DAYTIME_REGEX + '(--?' + DAYTIME2_REGEX + ')?'
 
-    ISO_NAME_TAGS_EXTENSION_REGEX = re.compile('((' + DAYTIME_DURATION_REGEX + ')[ -_])?(.+?)(' + FILENAME_TAG_SEPARATOR + '((\w+[' + BETWEEN_TAG_SEPARATOR + ']?)+))?(\.(\w+))?$', re.UNICODE)
-    DAYTIME_DURATION_INDEX = 2
-    NAME_INDEX = 10
-    TAGS_INDEX = 12
-    EXTENSION_INDEX = 15
+    ISO_NAME_TAGS_EXTENSION_REGEX = re.compile('((?P<daytimeduration>' + DAYTIME_DURATION_REGEX + ')[ -_])?(?P<description>.+?)(' + FILENAME_TAG_SEPARATOR + '(?P<tags>(\w+[' + BETWEEN_TAG_SEPARATOR + ']?)+))?(\.(?P<extension>\w+))?$', re.UNICODE)
 
-    RAW_EURO_CHARGE_REGEX = '(\d+([,.]\d+)?)[-_ ]?(EUR|€)'
+    RAW_EURO_CHARGE_REGEX = '(?P<charge>\d+([,.]\d+)?)[-_ ]?(EUR|€)'
     EURO_CHARGE_REGEX = re.compile('^(.+[-_ ])?' + RAW_EURO_CHARGE_REGEX + '([-_ .].+)?$', re.UNICODE)
-    EURO_CHARGE_INDEX = 2
 
-    ANDROID_SCREENSHOT_REGEX = re.compile('Screenshot_([12]\d{3})-?([01]\d)-?([0123]\d)' + '-?' +
-                                          '([012]\d)([012345]\d)(([012345]\d))?' + '(.*)?.(png|jpg)', re.UNICODE)
-    ANDROID_SCREENSHOT_INDEXGROUPS = [1, '-', 2, '-', 3, 'T', 4, '.', 5, '.', 7, 8, ' -- screenshots android.', 9]
+    ANDROID_SCREENSHOT_REGEX = re.compile('Screenshot_' + DAY_REGEX + '[-_T]' + TIME_FUZZY_REGEX + '(?P<description>.*)?.(?P<extension>png|jpg)', re.UNICODE)
 
     # Firefox_Screenshot_2018-05-03T20-07-14.972Z.png
-    EASY_SCREENSHOT_REGEX = re.compile('Firefox_Screenshot_(' + DAY_REGEX + ')T' + TIME_FUZZY_REGEX + '\.\d{3}Z(.*).png')
-    EASY_SCREENSHOT_INDEXGROUPS = [1, 'T', 2, '.', 3, '.', 5, ' Firefox - -- screenshots.png']
+    EASY_SCREENSHOT_REGEX = re.compile('Firefox_Screenshot_' + DAY_REGEX + '[-_T]' + TIME_FUZZY_REGEX + '\.\d{3}Z(.*).(?P<extension>png|jpg)', re.UNICODE)
 
-    TIMESTAMP_DELIMITERS = '[.;:-]?'
-    DATESTAMP_REGEX = '([12]\d{3})' + TIMESTAMP_DELIMITERS + '([01]\d)' + TIMESTAMP_DELIMITERS + '([0123]\d)'
-    TIMESTAMP_REGEX = '([012]\d)' + TIMESTAMP_DELIMITERS + '([012345]\d)(' + TIMESTAMP_DELIMITERS + '([012345]\d))?'
-
-    OSMTRACKS_REGEX = re.compile(DATESTAMP_REGEX + 'T?' + TIMESTAMP_REGEX + '(_.*)?.gpx', re.UNICODE)
-    OSMTRACKS_INDEXGROUPS = [1, '-', 2, '-', 3, 'T', 4, '.', 5, ['.', 7], 8, '.gpx']
+    OSMTRACK_REGEX = re.compile(DATESTAMP_REGEX + '[T_]?' + TIMESTAMP_REGEX + '(_' + WEEKDAYS_TLA_REGEX + ')?([ _](?P<description>.*))?\.(?P<extension>.+)', re.UNICODE)
 
     SIGNAL_REGEX = re.compile('signal-(attachment-)?' + DATESTAMP_REGEX + '-' + TIMESTAMP_REGEX + '(.+)?(\..+)', re.UNICODE)
 
@@ -209,7 +208,7 @@ class GuessFilename(object):
     MEDIATHEKVIEW_RAW_DATETIME = DATESTAMP_REGEX + '_' + TIMESTAMP_REGEX  # e.g., "2018-06-14_2105"
     MEDIATHEKVIEW_RAW_TITLE = '_[a-z]{2}_\d{2}_(.+)'  # e.g., "_sd_02_Am-Schauplatz_-_Alles für die Katz"
     MEDIATHEKVIEW_RAW_NUMBERS = '_+\d+__o__.+_'  # e.g., "_____13979879__o__1907287074__s14316407_7__WEB03HD_"
-    MEDIATHEKVIEW_RAW_ENDING = TIMESTAMP_REGEX + '\d\dP_' + TIMESTAMP_REGEX + '\d\dP_(Q4A|Q6A|Q8C).mp4'  # e.g., "21050604P_21533212P_Q8C.mp4"
+    MEDIATHEKVIEW_RAW_ENDING = TIMESTAMP2_REGEX + '\d\dP_' + TIMESTAMP3_REGEX + '\d\dP_(Q4A|Q6A|Q8C).mp4'  # e.g., "21050604P_21533212P_Q8C.mp4"
     MEDIATHEKVIEW_RAW_REGEX_STRING = MEDIATHEKVIEW_RAW_DATETIME + MEDIATHEKVIEW_RAW_TITLE + \
                                      MEDIATHEKVIEW_RAW_NUMBERS + MEDIATHEKVIEW_RAW_ENDING
 
@@ -232,7 +231,7 @@ class GuessFilename(object):
     FILM_URL_REGEX = re.compile('https?://apasfiis.sf.apa.at/(ipad/)?cms-.+/' +
                                 DATESTAMP_REGEX + '_' + TIMESTAMP_REGEX + '_(tl|sd)_' +  # e.g., 2019-09-20_2200_tl_
                                 '.+' +  # e.g., 02_ZIB-2_Wetter__14026467__o__698276635d__s14562567_7__ORF2HD
-                                '_' + TIMESTAMP_REGEX + '\d\dP_' + TIMESTAMP_REGEX + '\d\dP_' +  # e.g., _22241720P_22245804P_
+                                '_' + TIMESTAMP2_REGEX + '\d\dP_' + TIMESTAMP3_REGEX + '\d\dP_' +  # e.g., _22241720P_22245804P_
                                 '(Q4A|Q6A|Q8C).mp4/playlist.m3u8')  # e.g., Q4A.mp4/playlist.m3u8
     FILM_URL_EXAMPLE = 'https://apasfiis.sf.apa.at/cms-worldwide/2019-09-20_2200_tl_02_ZIB-2_Wetter__14026467__o__698276635d__s14562567_7__ORF2HD_22241720P_22245804P_Q4A.mp4/playlist.m3u8'
     FILM_URL_REGEX_MISMATCH_HELP_TEXT = 'You did not enter a valid Film-URL which looks like: \n' + FILM_URL_EXAMPLE + '\n' + \
@@ -247,7 +246,7 @@ class GuessFilename(object):
     #   20190902T220000 ORF - ZIB 2 - Bericht über versteckte ÖVP-Wahlkampfkosten -ORIGINALlow- 2019-09-02_2200_tl_02_ZIB-2_Bericht-ueber-v__14024705__o__71528285d6__s14552793_3__ORF2HD_22033714P_22074303P_Q4A.mp4
     MEDIATHEKVIEW_LONG_WITH_DETAILED_TIMESTAMPS_REGEX = re.compile(MEDIATHEKVIEW_SHORT_REGEX_STRING +
                                                                    '.+__o__([a-z0-9]+)__s([a-z0-9]+)_' +   # e.g., "2018-05-10_0900_tl_02_ZIB-9-00_Signation__13976423__o__1368225677__s14297692"
-                                                                   '(.+_(' + TIMESTAMP_REGEX + ').+P_(' + TIMESTAMP_REGEX + ').+P_)' +  # OPTIONAL: time-stamps of chunks: "_2__WEB03HD_09000305P_09001400P"
+                                                                   '(.+_(' + TIMESTAMP2_REGEX + ').+P_(' + TIMESTAMP3_REGEX + ').+P_)' +  # OPTIONAL: time-stamps of chunks: "_2__WEB03HD_09000305P_09001400P"
                                                                    '(Q4A|Q8C).mp4', re.UNICODE)  # "Q4A.mp4" for lowquality or "Q8C.mp4" for highquality
 
     # C112345678901EUR20150930001.pdf -> 2015-09-30 Bank Austria Kontoauszug 2017-001 12345678901.pdf
@@ -266,13 +265,13 @@ class GuessFilename(object):
 
     # Screenshot_2017-11-29_10-32-12.png
     # Screenshot_2017-11-07_07-52-59 my description.png
-    SCREENSHOT1_REGEX = re.compile('Screenshot_(' + DAY_REGEX + ')_' + TIME_FUZZY_REGEX + '(.*).png')
+    #FIXXME: ANDROID_SCREENSHOT: SCREENSHOT1_REGEX = re.compile('Screenshot_(' + DAY_REGEX + ')_' + TIME_FUZZY_REGEX + '(?P<description>.*).png')
 
     # 2017-12-07_09-23_Thu Went for a walk .gpx
-    OSMTRACK_REGEX = re.compile('(' + DAY_REGEX + ')_' + TIME_FUZZY_REGEX + '_(\w{3})( )?(.*).gpx')
+#    OSMTRACK_REGEX = re.compile('(' + DAY_REGEX + ')_' + TIME_FUZZY_REGEX + '_(\w{3})( )?(.*).gpx')
 
     # 20200224-0914_Foo_bar.wav
-    SMARTREC_REGEX = re.compile('(?P<DAY>' + DAY_REGEX + ')-' + TIME_FUZZY_REGEX + '(_(?P<descr>.+))?.(?P<ext>wav|mp3)')
+    SMARTREC_REGEX = re.compile('(?P<DAY>' + DAY_REGEX + ')-' + TIME_FUZZY_REGEX + '(_(?P<description>.+))?.(?P<extension>wav|mp3)')
 
     logger = None
     config = None
@@ -293,12 +292,6 @@ class GuessFilename(object):
 
         logging.debug("derive_new_filename_from_old_filename called")
         datetimestr, basefilename, tags, extension = self.split_filename_entities(oldfilename)
-
-        # Android screenshots:
-        # Screenshot_2013-03-05-08-14-09.png -> 2013-03-05T08.14.09 -- android screenshots.png
-        regex_match = re.match(self.ANDROID_SCREENSHOT_REGEX, oldfilename)
-        if regex_match:
-            return self.build_string_via_indexgroups(regex_match, self.ANDROID_SCREENSHOT_INDEXGROUPS)
 
         # C110014365208EUR20150930001.pdf -> 2015-09-30 Bank Austria Kontoauszug 2017-001 10014365208.pdf
         regex_match = re.match(self.BANKAUSTRIA_BANK_STATEMENT_REGEX, oldfilename)
@@ -488,12 +481,6 @@ class GuessFilename(object):
         # OLD #         print('       →  ' + colorama.Style.BRIGHT + colorama.Fore.RED + 'WARNING: Tatort file seems to be too small (download aborted?): ' + oldfilename + colorama.Style.RESET_ALL)
         # OLD #     return self.build_string_via_indexgroups(regex_match, self.MEDIATHEKVIEW_SIMPLE_INDEXGROUPS).replace('_', ' ')
 
-        # Android OSMTracker GPS track files:
-        # 2015-05-27T09;00;15_foo_bar.gpx -> 2015-05-27T09.00.15 foo bar.gpx
-        regex_match = re.match(self.OSMTRACKS_REGEX, oldfilename)
-        if regex_match:
-            return self.build_string_via_indexgroups(regex_match, self.OSMTRACKS_INDEXGROUPS).replace('_', ' ')
-
         # digital camera images: IMG_20161014_214404 foo bar.jpg -> 2016-10-14T21.44.04 foo bar.jpg  OR
         regex_match = re.match(self.IMG_REGEX, oldfilename)
         if regex_match:
@@ -609,31 +596,26 @@ class GuessFilename(object):
         if datetimestr and self.contains_one_of(oldfilename, ["hipster", "Hipster"]):
             return datetimestr + ' Hipster-PDA vollgeschrieben -- scan notes.' + extension
 
+        # Android screenshots:
+        # Screenshot_2013-03-05-08-14-09.png -> 2013-03-05T08.14.09 -- android screenshots.png
+        regex_match = re.match(self.ANDROID_SCREENSHOT_REGEX, oldfilename)
+        if regex_match:
+            if regex_match.group('description'):
+                return self.get_datetime_string_from_named_groups(regex_match) + regex_match.group('description') + ' -- screenshots.' + regex_match.group('extension')
+            else:
+                return self.get_datetime_string_from_named_groups(regex_match) + ' -- screenshots.' + regex_match.group('extension')
+
         # 2018-05-05: Files generated by "Easy Screenshot" (Firefox add-on)
         # Firefox_Screenshot_2018-05-03T20-07-14.972Z.png
         regex_match = re.match(self.EASY_SCREENSHOT_REGEX, oldfilename)
         if regex_match:
-            return self.build_string_via_indexgroups(regex_match, self.EASY_SCREENSHOT_INDEXGROUPS)
-
-        # 2017-12-02: Files from screenshots from xfce-tool "Screenshot"
-        # example: Screenshot_2017-11-07_07-52-59 my description.png
-        regex_match = re.match(self.SCREENSHOT1_REGEX, oldfilename)
-        if regex_match:
-            if regex_match.group(6):
-                # there is a description with a leading space after the time
-                my_description = regex_match.group(6)
-            else:
-                my_description = ''
-            return self.build_string_via_indexgroups(regex_match, [1, 'T', 2, '.', 3, '.', 5, my_description, ' -- screenshots.png'])
+            return self.get_datetime_string_from_named_groups(regex_match) + ' Firefox - -- screenshots.' + regex_match.group('extension')
 
         # 2017-12-07_09-23_Thu Went for a walk .gpx
+        # 2015-05-27T09;00;15_foo_bar.gpx -> 2015-05-27T09.00.15 foo bar.gpx
         regex_match = re.match(self.OSMTRACK_REGEX, oldfilename)
         if regex_match:
-            if regex_match.group(8):
-                description = regex_match.group(8).strip()
-                return self.build_string_via_indexgroups(regex_match, [1, 'T', 2, '.', 3, ' ', description, '.gpx'])
-            else:
-                return self.build_string_via_indexgroups(regex_match, [1, 'T', 2, '.', 3, '.gpx'])
+            return self.get_datetime_description_extension_filename(regex_match, replace_description_underscores=True)
 
         # 2019-05-24: this is a workaround until PDF file decryption in PyPDF2 is fixed for parsing the content id:2019-05-24-guessfilename-salary
         if extension.upper() == "PDF" and self.config.SALARY_STARTSTRING in oldfilename and datetimestr:
@@ -670,20 +652,9 @@ class GuessFilename(object):
 
 
         # 20200224-0914_Foo_bar.wav
-        #SMARTREC_REGEX = re.compile('(' + DAY_REGEX + ')_' + TIME_FUZZY_REGEX + '(_(.+))?.(wav|mp3)')
         regex_match = re.match(self.SMARTREC_REGEX, oldfilename)
-        #import pdb; pdb.set_trace()
-        #re.match(r'(?P<day>' + DAY_REGEX + ')-' + TIME_FUZZY_REGEX + '(_(?P<descr>.+))?.(?P<ext>wav|mp3)', oldfilename).groups()
-        # ('20190512', '11', '25', None, None, '_Recording_1', 'Recording_1', 'wav')
         if regex_match:
-            if regex_match.group('descr'):
-                return regex_match.group(1)[:4] + '-' + regex_match.group(1)[4:6] + '-' + regex_match.group(1)[-2:] + 'T' + \
-                    regex_match.group(2) + '.'+ regex_match.group(3) + ' ' + regex_match.group('descr').replace('_', ' ') + \
-                    '.' + regex_match.group('ext')
-            else:
-                return regex_match.group(1)[:4] + '-' + regex_match.group(1)[4:6] + '-' + regex_match.group(1)[-2:] + 'T' + \
-                    regex_match.group(2) + '.'+ regex_match.group(3) + \
-                    '.' + regex_match.group('ext')
+            return self.get_datetime_description_extension_filename(regex_match, replace_description_underscores=True)
 
 
         # FIXXME: more cases!
@@ -1017,21 +988,21 @@ class GuessFilename(object):
 
         assert(components)
 
-        if components.group(self.TAGS_INDEX):
-            tags = components.group(self.TAGS_INDEX).split(' ')
+        if components.group('tags'):
+            tags = components.group('tags').split(' ')
         else:
             tags = []
-        return components.group(self.DAYTIME_DURATION_INDEX), \
-            components.group(self.NAME_INDEX), \
+        return components.group('daytimeduration'), \
+            components.group('description'), \
             tags, \
-            components.group(self.EXTENSION_INDEX)
+            components.group('extension')
 
     def contains_one_of(self, string, entries):
         """
         Returns true, if the string contains one of the strings within entries array
         """
 
-        assert(type(string) == str or type(string) == str)
+        assert(type(string) == str)
         assert(type(entries) == list)
         assert(len(string) > 0)
         assert(len(entries) > 0)
@@ -1131,7 +1102,7 @@ class GuessFilename(object):
         components = re.match(self.EURO_CHARGE_REGEX, string)
 
         if components:
-            return components.group(self.EURO_CHARGE_INDEX)
+            return components.group('charge')
         else:
             return False
 
@@ -1207,6 +1178,37 @@ class GuessFilename(object):
         if not dryrun:
             os.rename(oldfile, newfile)
         return True
+
+    def get_datetime_string_from_named_groups(self, regex_match):
+        """Extracts YMDHM(S) from match groups and returns YYYY.MM.DDTHH.MM(.SS)
+        """
+        assert(regex_match)
+        assert(regex_match.group('day'))
+        assert(regex_match.group('month'))
+        assert(regex_match.group('year'))
+        assert(regex_match.group('hour'))
+        assert(regex_match.group('minute'))
+        second = ''
+        if regex_match.group('second'):
+            second = '.' + regex_match.group('second')
+        return regex_match.group('year') + '-' + regex_match.group('month') + '-' + regex_match.group('day') + 'T' + \
+            regex_match.group('hour') + '.' + regex_match.group('minute') + second
+
+    def get_datetime_description_extension_filename(self, regex_match, replace_description_underscores=False):
+        """
+        When a regex_match has matching groups for datetime elements, an optional description
+        and an extension, this function composes the standard file name of pattern "YYYY-MM-DDThh.mm(.ss)( description).extension"
+        """
+        if regex_match.group('description'):
+            if replace_description_underscores:
+                return self.get_datetime_string_from_named_groups(regex_match) + ' ' + \
+                    regex_match.group('description').strip().replace('_', ' ') + '.' + \
+                    regex_match.group('extension')
+            else:
+                return self.get_datetime_string_from_named_groups(regex_match) + ' ' + \
+                    regex_match.group('description').strip() + '.' + regex_match.group('extension')
+        else:
+            return self.get_datetime_string_from_named_groups(regex_match) + '.' + regex_match.group('extension')
 
     def build_string_via_indexgroups(self, regex_match, indexgroups):
         """This function takes a regex_match object and concatenates its
