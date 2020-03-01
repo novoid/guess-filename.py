@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2020-03-01 14:14:37 vk>"
+PROG_VERSION = u"Time-stamp: <2020-03-01 14:20:34 vk>"
 
 
 # TODO:
@@ -260,13 +260,10 @@ class GuessFilename(object):
                                                                    '(?P<qualityindicator>Q4A|Q8C).mp4', re.UNICODE)  # "Q4A.mp4" for lowquality or "Q8C.mp4" for highquality
 
     # C112345678901EUR20150930001.pdf -> 2015-09-30 Bank Austria Kontoauszug 2015-001 12345678901.pdf
-#    BANKAUSTRIA_BANK_STATEMENT_REGEX = re.compile('^C1(?P<>\d{11})EUR(\d{4})(\d{2})(\d{2})(\d{3}).pdf$', re.UNICODE)
     BANKAUSTRIA_BANK_STATEMENT_REGEX = re.compile('^C1(?P<number>\d{11})EUR' + DATESTAMP_REGEX + '(?P<issue>\d{3}).pdf$', re.UNICODE)
-#    BANKAUSTRIA_BANK_STATEMENT_INDEXGROUPS = [2, '-', 3, '-', 4, ' Bank Austria Kontoauszug ', 2, '-', 5, ' ', 1, '.pdf']
 
     # 2017-11-05T10.56.11_IKS-00000000512345678901234567890.csv -> 2017-11-05T10.56.11 Bank Austria Umsatzliste IKS-00000000512345678901234567890.csv
     BANKAUSTRIA_BANK_TRANSACTIONS_REGEX = re.compile('^' + DATETIMESTAMP_REGEX + '_IKS-(?P<iks>\d{29}).csv$', re.UNICODE)
-#    BANKAUSTRIA_BANK_TRANSACTIONS_INDEXGROUPS = [1, ' Bank Austria Umsatzliste IKS-', 4, '.csv']
 
     RECORDER_REGEX = re.compile('rec_' + DATESTAMP_REGEX + '-' + TIMESTAMP_REGEX + '(?P<description>.+?)?\.(?P<extension>wav|mp3)')
 
@@ -285,7 +282,6 @@ class GuessFilename(object):
         self.logger = logger
         self.config = config
 
-
     def derive_new_filename_from_old_filename(self, oldfilename):
         """
         Analyses the old filename and returns a new one if feasible.
@@ -301,8 +297,6 @@ class GuessFilename(object):
         # C110014365208EUR20150930001.pdf -> 2015-09-30 Bank Austria Kontoauszug 2015-001 10014365208.pdf
         regex_match = re.match(self.BANKAUSTRIA_BANK_STATEMENT_REGEX, oldfilename)
         if regex_match:
-#            import pdb; pdb.set_trace()
-#            return self.build_string_via_indexgroups(regex_match, self.BANKAUSTRIA_BANK_STATEMENT_INDEXGROUPS)
             return self.get_date_string_from_named_groups(regex_match) + ' Bank Austria Kontoauszug ' + \
                 regex_match.group('year') + '-' + regex_match.group('issue') + ' ' + \
                 regex_match.group('number') + '.pdf'
@@ -310,7 +304,6 @@ class GuessFilename(object):
         # 2017-11-05T10.56.11_IKS-00000000512345678901234567890.csv -> 2017-11-05T10.56.11 Bank Austria Umsatzliste IKS-00000000512345678901234567890.csv
         regex_match = re.match(self.BANKAUSTRIA_BANK_TRANSACTIONS_REGEX, oldfilename)
         if regex_match:
-#            return self.build_string_via_indexgroups(regex_match, self.BANKAUSTRIA_BANK_TRANSACTIONS_INDEXGROUPS)
             return self.get_datetime_string_from_named_groups(regex_match) + ' Bank Austria Umsatzliste IKS-' + \
                 regex_match.group('iks') + '.csv'
 
@@ -335,10 +328,9 @@ class GuessFilename(object):
         regex_match = re.match(self.MEDIATHEKVIEW_LONG_WITH_DETAILED_TIMESTAMPS_REGEX, oldfilename)
         if regex_match:
 
-            logging.debug('Filename did contain detailed start- and end-timestamps. Using the full-blown time-stamp '
-                          + 'information of the chunk itself: MEDIATHEKVIEW_LONG_WITH_DETAILED_TIMESTAMPS_REGEX')
+            logging.debug('Filename did contain detailed start- and end-timestamps. Using the full-blown time-stamp ' + \
+                          'information of the chunk itself: MEDIATHEKVIEW_LONG_WITH_DETAILED_TIMESTAMPS_REGEX')
 
-#            qualityindicator = regex_match.group(len(regex_match.groups())).upper()
             start_hrs = regex_match.group('hour2')
             start_min = regex_match.group('minute2')
             start_sec = regex_match.group('second2')
@@ -346,13 +338,6 @@ class GuessFilename(object):
             end_min = regex_match.group('minute3')
             end_sec = regex_match.group('second3')
             qualitytag = self.translate_ORF_quality_string_to_tag(regex_match.group('qualityindicator'))
-#            assert(regex_match.group(16) == regex_match.group('hour2'))
-#            assert(regex_match.group(17) == regex_match.group('minute2'))
-#            assert(regex_match.group(18) == regex_match.group('second2'))
-#            assert(regex_match.group(21) == regex_match.group('hour3'))
-#            assert(regex_match.group(22) == regex_match.group('minute3'))
-#            assert(regex_match.group(23) == regex_match.group('second3'))
-
             self.warn_if_ORF_file_seems_to_small_according_to_duration_and_quality_indicator(oldfilename,
                                                                                              regex_match.group('qualityindicator'),
                                                                                              start_hrs, start_min, start_sec,
@@ -360,26 +345,16 @@ class GuessFilename(object):
 
             if regex_match.group('sexpression'):
                 # the file name contained the optional chunk time-stamp(s)
-#                MEDIATHEKVIEW_LONG_INDEXGROUPS = [1, '-', 2, '-', 3, 'T',
-#                                                  16, '.', 17, '.', 18, ' ',
-#                                                  8, ' - ', 9, ' - ', 10, ' -- ', qualitytag, '.mp4']
                 newname = self.get_date_string_from_named_groups(regex_match) + 'T' + \
                     regex_match.group('hour2') + '.' + regex_match.group('minute2') + '.' + regex_match.group('second2') + ' ' + \
                     regex_match.group('channel') + ' - ' + regex_match.group('show') + ' - ' + regex_match.group('title') + ' -- ' + \
                     qualitytag + '.mp4'
-                return newname.replace('_', ' ')
             else:
                 # the file name did NOT contain the optional chunk time-stamp(s), so we have to use the main time-stamp
-#                MEDIATHEKVIEW_LONG_INDEXGROUPS = [1, '-', 2, '-', 3, 'T',
-#                                                  4, '.', 5, '.', 6, ' ',
-#                                                  8, ' - ', 9, ' - ', 10, ' -- ', qualitytag, '.mp4']
                 newname = self.get_datetime_string_from_named_groups(regex_match) + \
                     regex_match.group('channel') + ' - ' + regex_match.group('show') + ' - ' + regex_match.group('title') + ' -- ' + \
                     qualitytag + '.mp4'
-                return newname.replace('_', ' ')
-#                assert(self.build_string_via_indexgroups(regex_match, MEDIATHEKVIEW_LONG_INDEXGROUPS).replace('_', ' ') ==
-#                       newname)
-                return newname
+            return newname.replace('_', ' ')
 
         # MEDIATHEKVIEW_RAW_REGEX_STRING:
         #             MediathekView ORF raw file name
@@ -389,15 +364,6 @@ class GuessFilename(object):
 
             logging.debug('Filename looks like ORF raw file name: MEDIATHEKVIEW_RAW_REGEX_STRING')
 
-#            qualityindicator = regex_match.group(len(regex_match.groups())).upper()
-#            qualitytag = self.translate_ORF_quality_string_to_tag(qualityindicator)
-#            start_hrs = regex_match.group(9)
-#            start_min = regex_match.group(10)
-#            start_sec = regex_match.group(11)
-#            end_hrs = regex_match.group(13)
-#            end_min = regex_match.group(14)
-#            end_sec = regex_match.group(15)
-
             start_hrs = regex_match.group('hour2')
             start_min = regex_match.group('minute2')
             start_sec = regex_match.group('second2')
@@ -405,14 +371,6 @@ class GuessFilename(object):
             end_min = regex_match.group('minute3')
             end_sec = regex_match.group('second3')
             qualitytag = self.translate_ORF_quality_string_to_tag(regex_match.group('qualityindicator'))
-
-#            assert(regex_match.group(9) == regex_match.group('hour2'))
-#            assert(regex_match.group(10) == regex_match.group('minute2'))
-#            assert(regex_match.group(11) == regex_match.group('second2'))
-#            assert(regex_match.group(13) == regex_match.group('hour3'))
-#            assert(regex_match.group(14) == regex_match.group('minute3'))
-#            assert(regex_match.group(15) == regex_match.group('second3'))
-
             self.warn_if_ORF_file_seems_to_small_according_to_duration_and_quality_indicator(oldfilename,
                                                                                              regex_match.group('qualityindicator'),
                                                                                              start_hrs, start_min, start_sec,
@@ -421,15 +379,11 @@ class GuessFilename(object):
             # 'Am-Schauplatz_-_Alles f\xc3\xbcr die Katz-____'
             # ... into ...
             # 'Am Schauplatz - Alles f\xc3\xbcr die Katz'
-            title = regex_match.group('description').replace('-',' ').replace('_ _',' - ').replace('   ',' - ').replace('_','').strip()
+            title = regex_match.group('description').replace('-', ' ').replace('_ _', ' - ').replace('   ', ' - ').replace('_', '').strip()
 
-#            MEDIATHEKVIEW_RAW_INDEXGROUPS = [1, '-', 2, '-', 3, 'T',
-#                                             start_hrs, '.', start_min, '.', start_sec, ' ',
-#                                             title, ' -- ', qualitytag, '.mp4']
             newname = self.get_date_string_from_named_groups(regex_match) + 'T' + \
                 regex_match.group('hour2') + '.' + regex_match.group('minute2') + '.' + regex_match.group('second2') + ' ' + \
                 title + ' -- ' + qualitytag + '.mp4'
-#            assert(self.build_string_via_indexgroups(regex_match, MEDIATHEKVIEW_RAW_INDEXGROUPS) == newname)
             return newname.replace('_', ' ')
 
 
@@ -442,23 +396,14 @@ class GuessFilename(object):
         # example: 20180608T193000 ORF - Österreich Heute HD 10min - Das Magazin - Österreich Heute - Das Magazin -ORIGINAL- 13979231_0007_Q8C.mp4
         regex_match = re.match(self.MEDIATHEKVIEW_LONG_WITHOUT_DETAILED_TIMESTAMPS_REGEX, oldfilename)
         if regex_match:
-            logging.debug('Filename did not contain detailed start- and end-timestamps. Using the time-stamp '
-                          + 'of the chunk itself as a fall-back: MEDIATHEKVIEW_LONG_WITHOUT_DETAILED_TIMESTAMPS_REGEX')
-#            qualitytag = self.translate_ORF_quality_string_to_tag(regex_match.group(len(regex_match.groups())).upper())
+            logging.debug('Filename did not contain detailed start- and end-timestamps. Using the time-stamp ' + \
+                          'of the chunk itself as a fall-back: MEDIATHEKVIEW_LONG_WITHOUT_DETAILED_TIMESTAMPS_REGEX')
             qualitytag = self.translate_ORF_quality_string_to_tag(regex_match.group('qualityindicator'))
 
             newname = self.get_datetime_string_from_named_groups(regex_match) + ' ' + \
                 regex_match.group('channel') + ' - ' + regex_match.group('show') + ' - ' + regex_match.group('title') + ' -- ' + \
                 qualitytag + '.mp4'
-            newname = newname.replace('_', ' ')
-
-#            MEDIATHEKVIEW_LONG_INDEXGROUPS = [1, '-', 2, '-', 3, 'T',
-#                                              4, '.', 5, '.', 6, ' ',
-#                                              8, ' - ', 9, ' - ', 10, ' -- ', qualitytag, '.mp4']
-#
-#            import pdb; pdb.set_trace()
-#            assert(self.build_string_via_indexgroups(regex_match, MEDIATHEKVIEW_LONG_INDEXGROUPS).replace('_', ' ') == newname)
-            return newname
+            return newname.replace('_', ' ')
 
         # SHORT_REGEX: if MediathekView is NOT able to generate the full length file name because
         #              of file name length restrictions, this RegEx is a fall-back in order to
@@ -720,7 +665,6 @@ class GuessFilename(object):
         if regex_match:
             return self.get_date_description_extension_filename(regex_match, replace_description_underscores=True)
 
-
         # 20200224-0914_Foo_bar.wav
         regex_match = re.match(self.SMARTREC_REGEX, oldfilename)
         if regex_match:
@@ -906,7 +850,7 @@ class GuessFilename(object):
         @param return: False or new filename
         """
 
-        json_data=open(os.path.join(dirname, json_metadata_file))
+        json_data = open(os.path.join(dirname, json_metadata_file))
         data = json.load(json_data)
 
         if "upload_date" in data.keys() and \
@@ -949,8 +893,6 @@ class GuessFilename(object):
                 # "ext": "mp4",
 
                 regex_match = re.match(self.MEDIATHEKVIEW_RAW_REGEX_STRING, data['url'].split('/')[-2:-1][0])
-#                import pdb; pdb.set_trace()
-#                qualityindicator = self.translate_ORF_quality_string_to_tag(match.group(17))  # e.g., 'Q8C'
                 qualitytag = self.translate_ORF_quality_string_to_tag(regex_match.group('qualityindicator'))
 
                 newname = self.get_date_string_from_named_groups(regex_match) + 'T' + \
@@ -958,10 +900,6 @@ class GuessFilename(object):
                     regex_match.group('description').split('_')[0].replace('-', ' ') + ' - ' + data['fulltitle'] + ' -- ' + \
                     qualitytag + '.' + data['ext']
                 return newname.replace('_', ' ')
-
-#                return self.build_string_via_indexgroups(match, [1, '-', 2, '-', 3, 'T', 9, '.', 10, '.', 11, ' ORF - ']) + \
-#                    match.group(8).split('_')[0].replace('-', ' ') + ' - ' + data['fulltitle'] + ' -- ' + qualitytag + '.' + data['ext']
-
             else:
                 logging.debug('derive_new_filename_from_json_metadata: found all required meta data ' +
                               'for ORF TVthek download file style but extractor_key does ' +
@@ -1314,68 +1252,6 @@ class GuessFilename(object):
         else:
             return self.get_date_string_from_named_groups(regex_match) + '.' + regex_match.group('extension')
 
-#    def build_string_via_indexgroups(self, regex_match, indexgroups):
-#        """This function takes a regex_match object and concatenates its
-#        groups. It does this by traversing the list of indexgroups. If
-#        the list item is an integer, the corresponding
-#        regex_match.group() is appended to the result string. If the
-#        list item is a string, the string is appended to the result
-#        string.
-#
-#        When a list item is a list, its elements are appended as well as
-#        long as all list items exist.
-#
-#        match-groups that are in the indexgroups but are None are ignored.
-#
-#        @param regex_match: a regex match object from re.match(REGEX, STRING)
-#        @param indexgroups: list of strings and integers like [1, '-', 2, '-', 3, 'T', 4, '.', 5, ' foo .png']
-#        @param return: string containing the concatenated string
-#
-#        """
-#
-#        if not regex_match:
-#            logging.error('no re.match object found; please check before calling build_string_via_indexgroups()')
-#            return "ERROR"
-#
-#        def append_element(string, indexgroups):
-#            result = string
-#            for element in indexgroups:
-#                if type(element) == str:
-#                    result += element
-#                    # print 'DEBUG: result after element [' + str(element)  + '] =  [' + str(result) + ']'
-#                elif type(element) == int:
-#                    potential_element = regex_match.group(element)
-#                    # ignore None matches
-#                    if potential_element:
-#                        result += regex_match.group(element)
-#                        # print 'DEBUG: result after element [' + str(element)  + '] =  [' + str(result) + ']'
-#                    else:
-#                        # print 'DEBUG: match-group element ' + str(element) + ' is None'
-#                        pass
-#                elif type(element) == list:
-#                    # recursive: if a list element is a list, process if all elements exists:
-#                    # print 'DEBUG: found list item = ' + str(element)
-#                    # print 'DEBUG:   result before = [' + str(result) + ']'
-#                    all_found = True
-#                    for listelement in element:
-#                        if type(listelement) == int and (regex_match.group(listelement) is None or
-#                                                         len(regex_match.group(listelement)) < 1):
-#                            all_found = False
-#                    if all_found:
-#                        result = append_element(result, element)
-#                        # print 'DEBUG:   result after =  [' + str(result) + ']'
-#                    else:
-#                        pass
-#                        # print 'DEBUG:   result after =  [' + str(result) + ']' + \
-#                        #    '   -> not changed because one or more elements of sub-list were not found'
-#            return result
-#
-#        logging.debug('build_string_via_indexgroups: FILENAME: ' + str(regex_match.group(0)))
-#        logging.debug('build_string_via_indexgroups: GROUPS: ' + str(regex_match.groups()))
-#        result = append_element('', indexgroups)
-#        logging.debug('build_string_via_indexgroups: RESULT:   ' + result)
-#        return result
-
     def NumToMonth(self, month):
 
         months = ['Dezember', 'Jaenner', 'Februar', 'Maerz', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember']
@@ -1450,8 +1326,8 @@ class GuessFilename(object):
         | Q4A = low quality       |  74992178 |           124987 |
         """
 
-        #FIXXME: 2019-08-26: disabled: correct from exception to warning #
-        #FIXXME: 2019-09-03: assigned tests also disabled because this function never raises the expected exception
+        # FIXXME: 2019-08-26: disabled: correct from exception to warning #
+        # FIXXME: 2019-09-03: assigned tests also disabled because this function never raises the expected exception
         return
 
         TOLERANCE_FACTOR = 0.95  # To cover edge cases where a reduced file size is feasible
