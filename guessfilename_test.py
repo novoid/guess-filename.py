@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8; mode: python; -*-
-# Time-stamp: <2020-02-29 22:48:30 vk>
+# Time-stamp: <2020-03-01 14:14:56 vk>
 
 import unittest
 import logging
@@ -903,6 +903,10 @@ class TestGuessFilename(unittest.TestCase):
         self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('2019-09-29_2255_sd_02_Das-Naturhistor_____14027337__o__1412900222__s14566948_8__ORF2HD_23152318P_00005522P_Q8C.mp4/playlist.m3u8'),
                          '2019-09-29T23.15.23 Das Naturhistor -- highquality.mp4')
 
+        # the file name did NOT contain the optional chunk time-stamp(s), so we have to use the main time-stamp
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('20190902T220000 ORF - ZIB 2 - Bericht über versteckte ÖVP-Wahlkampfkosten -ORIGINALlow- 2019-09-02_2200_tl_02_ZIB-2_Bericht-ueber-v__14024705__o__71528285d6__xxx_Q4A.mp4'),
+                         '2019-09-02T22.00.00 ORF - ZIB 2 - Bericht über versteckte ÖVP-Wahlkampfkosten -- lowquality.mp4')
+
         # ORF TV Mediathek as of 2018-11-01: when there is no original filename with %N, I have to use the data I've got
         # see https://github.com/mediathekview/MServer/issues/436
         self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('20181028T201400 ORF - Tatort - Tatort_ Blut -ORIGINALhd- playlist.m3u8.mp4'),
@@ -968,6 +972,15 @@ class TestGuessFilename(unittest.TestCase):
         # modet_2018-03-27_17-44-1.mkv
         self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('modet_2018-03-27_17-44-1.mkv'),
                          '2018-03-27T17.44 modet -1.mkv')
+
+        # C110014365208EUR20150930001.pdf -> 2015-09-30 Bank Austria Kontoauszug 2015-001 10014365208.pdf
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('C110014365208EUR20150930001.pdf'),
+                         '2015-09-30 Bank Austria Kontoauszug 2015-001 10014365208.pdf')
+
+        # 2017-11-05T10.56.11_IKS-00000000512345678901234567890.csv -> 2017-11-05T10.56.11 Bank Austria Umsatzliste IKS-00000000512345678901234567890.csv
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('2017-11-05T10.56.11_IKS-00000000512345678901234567890.csv'),
+                         '2017-11-05T10.56.11 Bank Austria Umsatzliste IKS-00000000512345678901234567890.csv')
+
 
 #        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename(''),
 #                         '')
