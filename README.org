@@ -31,6 +31,56 @@ enter without knowing the exact target file name) or the file content.
 Analyzing the content enables this script to recognize bills via
 customer numbers or phone numbers, amounts to pay, and so on.
 
+** Examples
+
+Here are some examples that demonstrate the purpose of this script.
+The generated file names are following [[https://www.karl-voit.at/managing-digital-photographs/][my file name convention]].
+
+For better user experience, I like to *define an abbreviation* in [[https://karl-voit.at/apps-I-am-using/][my
+shell]] which also makes the examples easier to read:
+
+: alias gf=guessfilename.py
+
+A very simple example is a *simple bill*:
+
+: gf "2016-03-05 phone 12,34 €.pdf"
+:  → "2016-03-05 COMPANY landline 12,34€ -- scan bill.pdf"
+
+Some mobile apps generate weird formatted file names. Here is some *recording*:
+
+: gf "rec_20171129-0902 A nice recording .wav"
+:  → "2017-11-29T09.02 A nice recording.wav"
+
+*Android screenshot* files tend to look like that:
+
+: gf "Screenshot_2017-11-29_10-32-12.png"
+:  → "2017-11-29T10.32.12 -- screenshots.png"
+
+*Android photographs* are handled similarily:
+
+: gf "IMG_20190118_133928.jpg"
+:  → "2019-01-18T13.39.28.jpg"
+
+*Files saved from [[https://signal.org/][Signal]]* do have strange default names as well:
+
+: gf "signal-2018-03-08-102332.jpg"
+:  → "2018-03-08T10.23.32.jpg"
+
+Many companies like to generate *really silly file names*. This is from my bank:
+
+: gf "C110014365208EUR20150930001.pdf"
+:  → "2015-09-30 Bank statement 2015-001 10014365208.pdf"
+
+This script is able to *parse content of PDF* file in order to get
+meta-data to generate the new file name. This can be applied to you
+*salary*, for example:
+
+: gf "2020-03-04 salary.pdf"
+:  → "2020-02-29 MYCOMPANY salary for February 1234,56€ -- finance.pdf"
+
+As you can see, "guessfilename" makes your digital life easier when
+you do have recurring file rename tasks.
+
 ** Usage
 
 #+BEGIN_SRC sh :results output :wrap src
