@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2020-03-01 14:20:34 vk>"
+PROG_VERSION = u"Time-stamp: <2020-03-04 16:22:37 vk>"
 
 
 # TODO:
@@ -170,6 +170,9 @@ class GuessFilename(object):
 
     # 2019-12-04: "Die Presse (31.10.2019) - Unknown.pdf" -> "2019-10-31 Die Presse.pdf"
     NEWSPAPER1_REGEX = re.compile('(?P<description>.+) \((?P<day>\d{2})\.(?P<month>\d{2})\.(?P<year>\d{4})\)(?P<misc>.*)\.(?P<extension>pdf)', re.UNICODE)
+
+    # 2020-03-04: "2020-03-04_DiePresse_Faktura-123456789.pdf" → "2020-03-04 Die Presse - Aborechnung Faktura-123456789 -- bill.pdf"
+    PRESSE_REGEX = re.compile(DATESTAMP_REGEX + '.+Presse.+Faktura-(?P<number>.+)\.pdf')
 
     # OLD # # MediathekView: Settings > modify Set > Targetfilename: "%DT%d h%i %s %t - %T - %N.mp4" (limited to 120 characters)
     # OLD # # results in files like:
@@ -669,6 +672,12 @@ class GuessFilename(object):
         regex_match = re.match(self.SMARTREC_REGEX, oldfilename)
         if regex_match:
             return self.get_datetime_description_extension_filename(regex_match, replace_description_underscores=True)
+
+        # 2020-03-04: "2020-03-04_DiePresse_Faktura-123456789.pdf" → "2020-03-04 Die Presse - Aborechnung Faktura-123456789 -- bill.pdf"
+        # PRESSE_REGEX = re.compile(DATESTAMP_REGEX + '.+Presse.+Faktura-(.+)\.pdf'
+        regex_match = re.match(self.PRESSE_REGEX, oldfilename)
+        if regex_match:
+            return self.get_date_string_from_named_groups(regex_match) + ' Die Presse - Aborechnung Faktura-' + regex_match.group('number') + " -- bill.pdf"
 
 
         # FIXXME: more cases!
