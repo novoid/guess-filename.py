@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2020-03-04 16:22:37 vk>"
+PROG_VERSION = u"Time-stamp: <2020-03-05 15:12:04 vk>"
 
 
 # TODO:
@@ -678,6 +678,10 @@ class GuessFilename(object):
         regex_match = re.match(self.PRESSE_REGEX, oldfilename)
         if regex_match:
             return self.get_date_string_from_named_groups(regex_match) + ' Die Presse - Aborechnung Faktura-' + regex_match.group('number') + " -- bill.pdf"
+
+        # 2020-03-05: "2020-03-03 Anwesenheitsbestaetigung.pdf"
+        if extension.upper() == "PDF" and datetimestr and 'Anwesenheitsbest' in oldfilename:
+            return datetimestr + ' BHAK Anwesenheitsbestaetigung -- scan.' + extension
 
 
         # FIXXME: more cases!

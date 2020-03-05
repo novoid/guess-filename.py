@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8; mode: python; -*-
-# Time-stamp: <2020-03-04 15:46:02 vk>
+# Time-stamp: <2020-03-05 15:12:07 vk>
 
 import unittest
 import logging
@@ -984,6 +984,10 @@ class TestGuessFilename(unittest.TestCase):
         # 2020-03-04: "2020-03-04_DiePresse_Faktura-123456789.pdf" → "2020-03-04 Die Presse - Aborechnung Faktura-123456789 -- bill.pdf"
         self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('2020-03-04_DiePresse_Faktura-123456789.pdf'),
                          '2020-03-04 Die Presse - Aborechnung Faktura-123456789 -- bill.pdf')
+
+        # 2020-03-05: "2020-03-03 Anwesenheitsbestaetigung.pdf" → "2020-03-03 BHAK Anwesenheitsbestaetigung -- scan.pdf"
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('2020-03-03 Anwesenheitsbestaetigung.pdf'),
+                         '2020-03-03 BHAK Anwesenheitsbestaetigung -- scan.pdf')
 
 #        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename(''),
 #                         '')
