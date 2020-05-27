@@ -299,6 +299,12 @@ However, it could be a future user-friendly part of a workflow that
 watches folders for file changes and applies processes like
 guessfilename.
 
+* Alternatives
+
+I you don't need the full power of a programming language,
+[[https://github.com/tfeldmann/organize][organize]] might do the trick for you.
+Instead of coding Python, you define your rules within a text file.
+
 * Contribute!
 
 I am looking for your ideas!
