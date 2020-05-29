@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2020-03-05 15:12:04 vk>"
+PROG_VERSION = u"Time-stamp: <2020-05-29 16:28:30 vk>"
 
 
 # TODO:
@@ -167,6 +167,10 @@ class GuessFilename(object):
                            '(?P<bokeh>_Bokeh)?(?P<description>.+)?\.jpg', re.UNICODE)
     VID_REGEX = re.compile('VID_' + DATESTAMP_REGEX + '_' + TIMESTAMP_REGEX + \
                            '(?P<description>.+)?\.(?P<extension>mp4)', re.UNICODE)
+
+    # Konica Minolta scan file-names: YYMMDDHHmmx
+    KonicaMinolta_TIME_REGEX = re.compile('(?P<truncatedyear>\d{2})(?P<month>[01]\d)(?P<day>[0123]\d)(?P<hour>[012]\d)(?P<minute>[012345]\d)(?P<index>\d).pdf')
+
 
     # 2019-12-04: "Die Presse (31.10.2019) - Unknown.pdf" -> "2019-10-31 Die Presse.pdf"
     NEWSPAPER1_REGEX = re.compile('(?P<description>.+) \((?P<day>\d{2})\.(?P<month>\d{2})\.(?P<year>\d{4})\)(?P<misc>.*)\.(?P<extension>pdf)', re.UNICODE)
@@ -682,6 +686,14 @@ class GuessFilename(object):
         # 2020-03-05: "2020-03-03 Anwesenheitsbestaetigung.pdf"
         if extension.upper() == "PDF" and datetimestr and 'Anwesenheitsbest' in oldfilename:
             return datetimestr + ' BHAK Anwesenheitsbestaetigung -- scan.' + extension
+
+        # 2020-05-29: Konica Minolta scan file-names: YYMMDDHHmmx
+        # KonicaMinolta_TIME_REGEX = re.compile('(?P<truncatedyear>\d{2})(?P<month>[01]\d)(?P<day>[0123]\d)(?P<hour>[012]\d)(?P<minute>[012345]\d)(?P<index>\d).pdf')
+        regex_match = re.match(self.KonicaMinolta_TIME_REGEX, oldfilename)
+        if regex_match:
+            ## re-use index number at the end as first digit of seconds and hope that not more than 5 documents are scanned within a minute:
+            return '20' + regex_match.group('truncatedyear') + '-' + regex_match.group('month') + '-' + regex_match.group('day') + 'T' + \
+                regex_match.group('hour') + '.' + regex_match.group('minute') + '.' + regex_match.group('index') + "0 -- scan.pdf"
 
 
         # FIXXME: more cases!
