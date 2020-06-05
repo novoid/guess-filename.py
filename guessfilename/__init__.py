@@ -178,7 +178,7 @@ class GuessFilename(object):
     NEWSPAPER1_REGEX = re.compile('(?P<description>.+) \((?P<day>\d{2})\.(?P<month>\d{2})\.(?P<year>\d{4})\)(?P<misc>.*)\.(?P<extension>pdf)', re.UNICODE)
 
     # 2020-03-04: "2020-03-04_DiePresse_Faktura-123456789.pdf" → "2020-03-04 Die Presse - Aborechnung Faktura-123456789 -- bill.pdf"
-    PRESSE_REGEX = re.compile(DATESTAMP_REGEX + '.+Presse.+Faktura-(?P<number>.+)\.pdf')
+    PRESSE_REGEX = re.compile(DATESTAMP_REGEX + '.+Faktura-(?P<number>.+)\.pdf')
 
     # OLD # # MediathekView: Settings > modify Set > Targetfilename: "%DT%d h%i %s %t - %T - %N.mp4" (limited to 120 characters)
     # OLD # # results in files like:
