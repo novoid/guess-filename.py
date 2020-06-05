@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2020-05-29 16:28:30 vk>"
+PROG_VERSION = u"Time-stamp: <2020-06-05 11:43:35 vk>"
 
 
 # TODO:
@@ -586,7 +586,7 @@ class GuessFilename(object):
         if self.contains_all_of(oldfilename, [" FH ", "Abrechnungsbeleg"]) and self.has_euro_charge(oldfilename) and datetimestr:
             return datetimestr + \
                 " FH St.Poelten - Abrechnungsbeleg " + self.get_euro_charge(oldfilename) + \
-                "€ Honorar -- " + ' '.join(self.adding_tags(tags, ['scan', 'fhstp'])) + \
+                "€ Honorar -- " + ' '.join(self.adding_tags(tags, ['fhstp'])) + \
                 ".pdf"
 
         # 2016-02-26 Gehaltszettel Februar 12,34 EUR -- scan infonova.pdf
