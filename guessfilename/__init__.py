@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2020-06-17 18:25:00 vk>"
+PROG_VERSION = u"Time-stamp: <2020-06-17 19:22:41 vk>"
 
 
 # TODO:
@@ -124,61 +124,61 @@ class GuessFilename(object):
     TIMESTAMP_DELIMITERS = '[.;:-]?'
     DATETIMESTAMP_DELIMITERS = '[T.;:-_]?'
 
-    DATESTAMP_REGEX = '(?P<year>[12]\d{3})' + TIMESTAMP_DELIMITERS + '(?P<month>[01]\d)' + TIMESTAMP_DELIMITERS + '(?P<day>[0123]\d)'
-    TIMESTAMP_REGEX = '(?P<hour>[012]\d)' + TIMESTAMP_DELIMITERS + '(?P<minute>[012345]\d)(' + TIMESTAMP_DELIMITERS + '(?P<second>[012345]\d))?'
+    DATESTAMP_REGEX = r'(?P<year>[12]\d{3})' + TIMESTAMP_DELIMITERS + r'(?P<month>[01]\d)' + TIMESTAMP_DELIMITERS + r'(?P<day>[0123]\d)'
+    TIMESTAMP_REGEX = r'(?P<hour>[012]\d)' + TIMESTAMP_DELIMITERS + r'(?P<minute>[012345]\d)(' + TIMESTAMP_DELIMITERS + r'(?P<second>[012345]\d))?'
 
-    DATESTAMP2_REGEX = '(?P<year2>[12]\d{3})' + TIMESTAMP_DELIMITERS + '(?P<month2>[01]\d)' + TIMESTAMP_DELIMITERS + '(?P<day2>[0123]\d)'
-    TIMESTAMP2_REGEX = '(?P<hour2>[012]\d)' + TIMESTAMP_DELIMITERS + '(?P<minute2>[012345]\d)(' + TIMESTAMP_DELIMITERS + '(?P<second2>[012345]\d))?'
+    DATESTAMP2_REGEX = r'(?P<year2>[12]\d{3})' + TIMESTAMP_DELIMITERS + r'(?P<month2>[01]\d)' + TIMESTAMP_DELIMITERS + r'(?P<day2>[0123]\d)'
+    TIMESTAMP2_REGEX = r'(?P<hour2>[012]\d)' + TIMESTAMP_DELIMITERS + r'(?P<minute2>[012345]\d)(' + TIMESTAMP_DELIMITERS + r'(?P<second2>[012345]\d))?'
 
-    TIMESTAMP3_REGEX = '(?P<hour3>[012]\d)' + TIMESTAMP_DELIMITERS + '(?P<minute3>[012345]\d)(' + TIMESTAMP_DELIMITERS + '(?P<second3>[012345]\d))?'
+    TIMESTAMP3_REGEX = r'(?P<hour3>[012]\d)' + TIMESTAMP_DELIMITERS + r'(?P<minute3>[012345]\d)(' + TIMESTAMP_DELIMITERS + r'(?P<second3>[012345]\d))?'
 
     DATETIMESTAMP_REGEX = DATESTAMP_REGEX + '(' + DATETIMESTAMP_DELIMITERS + TIMESTAMP_REGEX + ')?'
     DATETIMESTAMP2_REGEX = DATESTAMP2_REGEX + '(' + DATETIMESTAMP_DELIMITERS + TIMESTAMP2_REGEX + ')?'
 
-    WEEKDAYS_TLA_REGEX = '(Mon|Tue|Wed|Thu|Fri|Sat|Sun)'
+    WEEKDAYS_TLA_REGEX = r'(Mon|Tue|Wed|Thu|Fri|Sat|Sun)'
 
-    DATETIME_DURATION_REGEX = DATETIMESTAMP_REGEX + '(--?' + DATETIMESTAMP2_REGEX + ')?'
+    DATETIME_DURATION_REGEX = DATETIMESTAMP_REGEX + r'(--?' + DATETIMESTAMP2_REGEX + ')?'
 
-    ISO_NAME_TAGS_EXTENSION_REGEX = re.compile('((?P<daytimeduration>' + DATETIME_DURATION_REGEX + \
-                                               ')[ -_])?(?P<description>.+?)(' + FILENAME_TAG_SEPARATOR + \
-                                               '(?P<tags>(\w+[' + BETWEEN_TAG_SEPARATOR + \
-                                               ']?)+))?(\.(?P<extension>\w+))?$', re.UNICODE)
+    ISO_NAME_TAGS_EXTENSION_REGEX = re.compile(r'((?P<daytimeduration>' + DATETIME_DURATION_REGEX + \
+                                               r')[ -_])?(?P<description>.+?)(' + FILENAME_TAG_SEPARATOR + \
+                                               r'(?P<tags>(\w+[' + BETWEEN_TAG_SEPARATOR + \
+                                               r']?)+))?(\.(?P<extension>\w+))?$', re.UNICODE)
 
-    RAW_EURO_CHARGE_REGEX = '(?P<charge>\d+([,.]\d+)?)[-_ ]?(EUR|€)'
-    EURO_CHARGE_REGEX = re.compile('^(.+[-_ ])?' + RAW_EURO_CHARGE_REGEX + '([-_ .].+)?$', re.UNICODE)
+    RAW_EURO_CHARGE_REGEX = r'(?P<charge>\d+([,.]\d+)?)[-_ ]?(EUR|€)'
+    EURO_CHARGE_REGEX = re.compile(r'^(.+[-_ ])?' + RAW_EURO_CHARGE_REGEX + r'([-_ .].+)?$', re.UNICODE)
 
     # Screenshot_2017-11-29_10-32-12.png
     # Screenshot_2017-11-07_07-52-59 my description.png
-    MISC_SCREENSHOT_REGEX = re.compile('Screenshot_' + DATESTAMP_REGEX + '[-_T]' + TIMESTAMP_REGEX + \
-                                       '(?P<description>.*)?\.(?P<extension>png|jpg)', re.UNICODE)
+    MISC_SCREENSHOT_REGEX = re.compile(r'Screenshot_' + DATESTAMP_REGEX + r'[-_T]' + TIMESTAMP_REGEX + \
+                                       r'(?P<description>.*)?\.(?P<extension>png|jpg)', re.UNICODE)
 
     # Firefox_Screenshot_2018-05-03T20-07-14.972Z.png
-    EASY_SCREENSHOT_REGEX = re.compile('Firefox_Screenshot_' + DATESTAMP_REGEX + '[-_T]' + \
-                                       TIMESTAMP_REGEX + '\.\d{3}Z(.*)\.(?P<extension>png|jpg)', re.UNICODE)
+    EASY_SCREENSHOT_REGEX = re.compile(r'Firefox_Screenshot_' + DATESTAMP_REGEX + r'[-_T]' + \
+                                       TIMESTAMP_REGEX + r'\.\d{3}Z(.*)\.(?P<extension>png|jpg)', re.UNICODE)
 
     # 2017-12-07_09-23_Thu Went for a walk .gpx
-    OSMTRACK_REGEX = re.compile(DATESTAMP_REGEX + '[T_]?' + TIMESTAMP_REGEX + '(_' + \
-                                WEEKDAYS_TLA_REGEX + ')?([ _](?P<description>.*))?\.(?P<extension>.+)', re.UNICODE)
+    OSMTRACK_REGEX = re.compile(DATESTAMP_REGEX + r'[T_]?' + TIMESTAMP_REGEX + '(_' + \
+                                WEEKDAYS_TLA_REGEX + r')?([ _](?P<description>.*))?\.(?P<extension>.+)', re.UNICODE)
 
-    SIGNAL_REGEX = re.compile('signal-(attachment-)?' + DATESTAMP_REGEX + '-' + \
-                              TIMESTAMP_REGEX + '(?P<description>.+)?(\.(?P<extension>.+))', re.UNICODE)
+    SIGNAL_REGEX = re.compile(r'signal-(attachment-)?' + DATESTAMP_REGEX + '-' + \
+                              TIMESTAMP_REGEX + r'(?P<description>.+)?(\.(?P<extension>.+))', re.UNICODE)
 
-    IMG_REGEX = re.compile('IMG_' + DATESTAMP_REGEX + '_' + TIMESTAMP_REGEX + \
-                           '(?P<bokeh>_Bokeh)?(?P<description>.+)?\.jpg', re.UNICODE)
+    IMG_REGEX = re.compile(r'IMG_' + DATESTAMP_REGEX + '_' + TIMESTAMP_REGEX + \
+                           r'(?P<bokeh>_Bokeh)?(?P<description>.+)?\.jpg', re.UNICODE)
     VID_REGEX = re.compile('VID_' + DATESTAMP_REGEX + '_' + TIMESTAMP_REGEX + \
-                           '(?P<description>.+)?\.(?P<extension>mp4)', re.UNICODE)
+                           r'(?P<description>.+)?\.(?P<extension>mp4)', re.UNICODE)
 
     # Konica Minolta scan file-names: YYMMDDHHmmx
-    KonicaMinolta_TIME_REGEX = re.compile('(?P<truncatedyear>\d{2})(?P<month>[01]\d)(?P<day>[0123]\d)(?P<hour>[012]\d)(?P<minute>[012345]\d)(?P<index>\d)(_(?P<subindex>\d\d\d\d))?.pdf')
+    KonicaMinolta_TIME_REGEX = re.compile(r'(?P<truncatedyear>\d{2})(?P<month>[01]\d)(?P<day>[0123]\d)(?P<hour>[012]\d)(?P<minute>[012345]\d)(?P<index>\d)(_(?P<subindex>\d\d\d\d))?.pdf')
 
     # Emacs gif-screencast: output-2020-06-05-11:28:16.gif
     GIF_SCREENCAST_REGEX = re.compile('output-' + DATESTAMP_REGEX + '-' + TIMESTAMP_REGEX + '.gif')
 
     # 2019-12-04: "Die Presse (31.10.2019) - Unknown.pdf" -> "2019-10-31 Die Presse.pdf"
-    NEWSPAPER1_REGEX = re.compile('(?P<description>.+) \((?P<day>\d{2})\.(?P<month>\d{2})\.(?P<year>\d{4})\)(?P<misc>.*)\.(?P<extension>pdf)', re.UNICODE)
+    NEWSPAPER1_REGEX = re.compile(r'(?P<description>.+) \((?P<day>\d{2})\.(?P<month>\d{2})\.(?P<year>\d{4})\)(?P<misc>.*)\.(?P<extension>pdf)', re.UNICODE)
 
     # 2020-03-04: "2020-03-04_DiePresse_Faktura-123456789.pdf" → "2020-03-04 Die Presse - Aborechnung Faktura-123456789 -- bill.pdf"
-    PRESSE_REGEX = re.compile(DATESTAMP_REGEX + '.+Faktura-(?P<number>.+)\.pdf')
+    PRESSE_REGEX = re.compile(DATESTAMP_REGEX + r'.+Faktura-(?P<number>.+)\.pdf')
 
     # OLD # # MediathekView: Settings > modify Set > Targetfilename: "%DT%d h%i %s %t - %T - %N.mp4" (limited to 120 characters)
     # OLD # # results in files like:
@@ -222,9 +222,9 @@ class GuessFilename(object):
     #   2018-06-14_2155_sd_06_Kottan-ermittelt - Wien Mitte_____13979903__o__1460660672__s14316392_2__ORF3HD_21570716P_23260915P_Q8C.mp4
     #   2018-06-14_2330_sd_06_Sommerkabarett - Lukas Resetarits: Schmäh (1 von 2)_____13979992__o__1310584704__s14316464_4__ORF3HD_23301620P_00302415P_Q8C.mp4
     MEDIATHEKVIEW_RAW_DATETIME = DATESTAMP_REGEX + '_' + TIMESTAMP_REGEX  # e.g., "2018-06-14_2105"
-    MEDIATHEKVIEW_RAW_TITLE = '_[a-z]{2}_\d{2}_(?P<description>.+)'  # e.g., "_sd_02_Am-Schauplatz_-_Alles für die Katz"
-    MEDIATHEKVIEW_RAW_NUMBERS = '_+\d+__o__.+_'  # e.g., "_____13979879__o__1907287074__s14316407_7__WEB03HD_"
-    MEDIATHEKVIEW_RAW_ENDING = TIMESTAMP2_REGEX + '\d\dP_' + TIMESTAMP3_REGEX + '\d\dP_(?P<qualityindicator>Q4A|Q6A|Q8C).mp4'  # e.g., "21050604P_21533212P_Q8C.mp4"
+    MEDIATHEKVIEW_RAW_TITLE = r'_[a-z]{2}_\d{2}_(?P<description>.+)'  # e.g., "_sd_02_Am-Schauplatz_-_Alles für die Katz"
+    MEDIATHEKVIEW_RAW_NUMBERS = r'_+\d+__o__.+_'  # e.g., "_____13979879__o__1907287074__s14316407_7__WEB03HD_"
+    MEDIATHEKVIEW_RAW_ENDING = TIMESTAMP2_REGEX + r'\d\dP_' + TIMESTAMP3_REGEX + r'\d\dP_(?P<qualityindicator>Q4A|Q6A|Q8C).mp4'  # e.g., "21050604P_21533212P_Q8C.mp4"
     MEDIATHEKVIEW_RAW_REGEX_STRING = MEDIATHEKVIEW_RAW_DATETIME + MEDIATHEKVIEW_RAW_TITLE + \
                                      MEDIATHEKVIEW_RAW_NUMBERS + MEDIATHEKVIEW_RAW_ENDING
 
@@ -247,11 +247,11 @@ class GuessFilename(object):
     #   02_ZIB-2_Wetter__14026467__o__698276635d__s14562567_7__ORF2HD
     #   _22241720P_22245804P_
     #   Q4A.mp4/playlist.m3u8
-    FILM_URL_REGEX = re.compile('https?://apasfiis.sf.apa.at/(ipad/)?cms-.+/' +
-                                DATESTAMP_REGEX + '_' + TIMESTAMP_REGEX + '_(tl|sd)_' +  # e.g., 2019-09-20_2200_tl_
-                                '.+' +  # e.g., 02_ZIB-2_Wetter__14026467__o__698276635d__s14562567_7__ORF2HD
-                                '_' + TIMESTAMP2_REGEX + '\d\dP_' + TIMESTAMP3_REGEX + '\d\dP_' +  # e.g., _22241720P_22245804P_
-                                '(?P<qualityindicator>Q4A|Q6A|Q8C).mp4/playlist.m3u8')  # e.g., Q4A.mp4/playlist.m3u8
+    FILM_URL_REGEX = re.compile(r'https?://apasfiis.sf.apa.at/(ipad/)?cms-.+/' +
+                                DATESTAMP_REGEX + '_' + TIMESTAMP_REGEX + r'_(tl|sd)_' +  # e.g., 2019-09-20_2200_tl_
+                                r'.+' +  # e.g., 02_ZIB-2_Wetter__14026467__o__698276635d__s14562567_7__ORF2HD
+                                r'_' + TIMESTAMP2_REGEX + r'\d\dP_' + TIMESTAMP3_REGEX + r'\d\dP_' +  # e.g., _22241720P_22245804P_
+                                r'(?P<qualityindicator>Q4A|Q6A|Q8C).mp4/playlist.m3u8')  # e.g., Q4A.mp4/playlist.m3u8
     FILM_URL_EXAMPLE = 'https://apasfiis.sf.apa.at/cms-worldwide/2019-09-20_2200_tl_02_ZIB-2_Wetter__14026467__o__698276635d__s14562567_7__ORF2HD_22241720P_22245804P_Q4A.mp4/playlist.m3u8'
     FILM_URL_REGEX_MISMATCH_HELP_TEXT = 'You did not enter a valid Film-URL which looks like: \n' + FILM_URL_EXAMPLE + '\n' + \
                                         'matching the hard-coded regular expression: \n' + str(FILM_URL_REGEX).replace('re.compile(', '') + '\''
@@ -264,24 +264,24 @@ class GuessFilename(object):
     #   20180510T090000 ORF - ZIB - Signation -ORIGINAL- 2018-05-10_0900_tl_02_ZIB-9-00_Signation__13976423__o__1368225677__s14297692_2__WEB03HD_09000305P_09001400P_Q4A.mp4
     #   20190902T220000 ORF - ZIB 2 - Bericht über versteckte ÖVP-Wahlkampfkosten -ORIGINALlow- 2019-09-02_2200_tl_02_ZIB-2_Bericht-ueber-v__14024705__o__71528285d6__s14552793_3__ORF2HD_22033714P_22074303P_Q4A.mp4
     MEDIATHEKVIEW_LONG_WITH_DETAILED_TIMESTAMPS_REGEX = re.compile(MEDIATHEKVIEW_SHORT_REGEX_STRING +
-                                                                   '.+__o__([a-z0-9]+)__s(?P<sexpression>[a-z0-9]+)_' +   # e.g., "2018-05-10_0900_tl_02_ZIB-9-00_Signation__13976423__o__1368225677__s14297692"
-                                                                   '(.+_(' + TIMESTAMP2_REGEX + ').+P_(' + TIMESTAMP3_REGEX + ').+P_)' +  # OPTIONAL: time-stamps of chunks: "_2__WEB03HD_09000305P_09001400P"
-                                                                   '(?P<qualityindicator>Q4A|Q8C).mp4', re.UNICODE)  # "Q4A.mp4" for lowquality or "Q8C.mp4" for highquality
+                                                                   r'.+__o__([a-z0-9]+)__s(?P<sexpression>[a-z0-9]+)_' +   # e.g., "2018-05-10_0900_tl_02_ZIB-9-00_Signation__13976423__o__1368225677__s14297692"
+                                                                   r'(.+_(' + TIMESTAMP2_REGEX + r').+P_(' + TIMESTAMP3_REGEX + r').+P_)' +  # OPTIONAL: time-stamps of chunks: "_2__WEB03HD_09000305P_09001400P"
+                                                                   r'(?P<qualityindicator>Q4A|Q8C).mp4', re.UNICODE)  # "Q4A.mp4" for lowquality or "Q8C.mp4" for highquality
 
     # C112345678901EUR20150930001.pdf -> 2015-09-30 Bank Austria Kontoauszug 2015-001 12345678901.pdf
-    BANKAUSTRIA_BANK_STATEMENT_REGEX = re.compile('^C1(?P<number>\d{11})EUR' + DATESTAMP_REGEX + '(?P<issue>\d{3}).pdf$', re.UNICODE)
+    BANKAUSTRIA_BANK_STATEMENT_REGEX = re.compile(r'^C1(?P<number>\d{11})EUR' + DATESTAMP_REGEX + r'(?P<issue>\d{3}).pdf$', re.UNICODE)
 
     # 2017-11-05T10.56.11_IKS-00000000512345678901234567890.csv -> 2017-11-05T10.56.11 Bank Austria Umsatzliste IKS-00000000512345678901234567890.csv
-    BANKAUSTRIA_BANK_TRANSACTIONS_REGEX = re.compile('^' + DATETIMESTAMP_REGEX + '_IKS-(?P<iks>\d{29}).csv$', re.UNICODE)
+    BANKAUSTRIA_BANK_TRANSACTIONS_REGEX = re.compile('^' + DATETIMESTAMP_REGEX + r'_IKS-(?P<iks>\d{29}).csv$', re.UNICODE)
 
-    RECORDER_REGEX = re.compile('rec_' + DATESTAMP_REGEX + '-' + TIMESTAMP_REGEX + '(?P<description>.+?)?\.(?P<extension>wav|mp3)')
+    RECORDER_REGEX = re.compile('rec_' + DATESTAMP_REGEX + '-' + TIMESTAMP_REGEX + r'(?P<description>.+?)?\.(?P<extension>wav|mp3)')
 
     # modet_2018-03-27_16-10.mkv
     # modet_2018-03-27_17-44-1.mkv
-    MODET_REGEX = re.compile('modet_(' + DATESTAMP_REGEX + ')_' + TIMESTAMP_REGEX + '(?P<description>.*).mkv')
+    MODET_REGEX = re.compile('modet_(' + DATESTAMP_REGEX + ')_' + TIMESTAMP_REGEX + r'(?P<description>.*).mkv')
 
     # 20200224-0914_Foo_bar.wav
-    SMARTREC_REGEX = re.compile('(?P<DAY>' + DATESTAMP_REGEX + ')-' + TIMESTAMP_REGEX + '(_(?P<description>.+))?.(?P<extension>wav|mp3)')
+    SMARTREC_REGEX = re.compile(r'(?P<DAY>' + DATESTAMP_REGEX + ')-' + TIMESTAMP_REGEX + r'(_(?P<description>.+))?.(?P<extension>wav|mp3)')
 
     logger = None
     config = None
@@ -1188,7 +1188,7 @@ class GuessFilename(object):
         context_range = '5'  # range of characters where before/after is valid
 
         # for testing: re.search(".*" + before + r"\D{0,6}(\d{1,6}[,.]\d{2})\D{0,6}" + after + ".*", string).groups()
-        components = re.search(".*" + before + r"\D{0," + context_range + "}((\d{1,6})[,.](\d{2}))\D{0," + context_range + "}" + after + ".*", string)
+        components = re.search(".*" + before + r"\D{0," + context_range + r"}((\d{1,6})[,.](\d{2}))\D{0," + context_range + "}" + after + ".*", string)
 
         if components:
             floatstring = components.group(2) + ',' + components.group(3)
