@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8; mode: python; -*-
-# Time-stamp: <2020-06-05 11:42:16 vk>
+# Time-stamp: <2020-06-17 18:13:56 vk>
 
 import unittest
 import logging
@@ -992,6 +992,8 @@ class TestGuessFilename(unittest.TestCase):
         # 2020-05-29: Konica Minolta scan file-names: YYMMDDHHmmx
         self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('20052915100.pdf'),
                          '2020-05-29T15.10.00 -- scan.pdf')
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('20052915100_0002.pdf'),
+                         '2020-05-29T15.10.00 0002 -- scan.pdf')
 
         self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('output-2020-06-05-11:28:16.gif'),
                          '2020-06-05T11.28.16 -- emacs screencasts.gif')

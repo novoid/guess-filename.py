@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2020-06-05 11:43:35 vk>"
+PROG_VERSION = u"Time-stamp: <2020-06-17 18:25:00 vk>"
 
 
 # TODO:
@@ -169,7 +169,7 @@ class GuessFilename(object):
                            '(?P<description>.+)?\.(?P<extension>mp4)', re.UNICODE)
 
     # Konica Minolta scan file-names: YYMMDDHHmmx
-    KonicaMinolta_TIME_REGEX = re.compile('(?P<truncatedyear>\d{2})(?P<month>[01]\d)(?P<day>[0123]\d)(?P<hour>[012]\d)(?P<minute>[012345]\d)(?P<index>\d).pdf')
+    KonicaMinolta_TIME_REGEX = re.compile('(?P<truncatedyear>\d{2})(?P<month>[01]\d)(?P<day>[0123]\d)(?P<hour>[012]\d)(?P<minute>[012345]\d)(?P<index>\d)(_(?P<subindex>\d\d\d\d))?.pdf')
 
     # Emacs gif-screencast: output-2020-06-05-11:28:16.gif
     GIF_SCREENCAST_REGEX = re.compile('output-' + DATESTAMP_REGEX + '-' + TIMESTAMP_REGEX + '.gif')
@@ -690,12 +690,16 @@ class GuessFilename(object):
             return datetimestr + ' BHAK Anwesenheitsbestaetigung -- scan.' + extension
 
         # 2020-05-29: Konica Minolta scan file-names: YYMMDDHHmmx
-        # KonicaMinolta_TIME_REGEX = re.compile('(?P<truncatedyear>\d{2})(?P<month>[01]\d)(?P<day>[0123]\d)(?P<hour>[012]\d)(?P<minute>[012345]\d)(?P<index>\d).pdf')
+        # KonicaMinolta_TIME_REGEX = re.compile('(?P<truncatedyear>\d{2})(?P<month>[01]\d)(?P<day>[0123]\d)(?P<hour>[012]\d)(?P<minute>[012345]\d)(?P<index>\d)(_(?P<subindex>\d\d\d\d))?.pdf')
         regex_match = re.match(self.KonicaMinolta_TIME_REGEX, oldfilename)
         if regex_match:
+            if regex_match.group('subindex'):
+                subindex_str = ' ' + regex_match.group('subindex')
+            else:
+                subindex_str = ''
             ## re-use index number at the end as first digit of seconds and hope that not more than 5 documents are scanned within a minute:
             return '20' + regex_match.group('truncatedyear') + '-' + regex_match.group('month') + '-' + regex_match.group('day') + 'T' + \
-                regex_match.group('hour') + '.' + regex_match.group('minute') + '.' + regex_match.group('index') + "0 -- scan.pdf"
+                regex_match.group('hour') + '.' + regex_match.group('minute') + '.' + regex_match.group('index') + '0' + subindex_str +' -- scan.pdf'
 
         # 2020-06-05: Emacs gif-screencast: output-2020-06-05-11:28:16.gif
         regex_match = re.match(self.GIF_SCREENCAST_REGEX, oldfilename)
