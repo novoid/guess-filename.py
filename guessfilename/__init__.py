@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2020-06-17 19:22:41 vk>"
+PROG_VERSION = u"Time-stamp: <2020-07-12 13:59:48 vk>"
 
 
 # TODO:
@@ -451,8 +451,8 @@ class GuessFilename(object):
 
             else:
                 # we got the ability to derive starting time from "original filename"
-                logging.warn('I recognized a MediathekView file which has a cut-off time-stamp because ' +
-                             'of file name length restrictions.\nYou can fix it manually:')
+                logging.warning('I recognized a MediathekView file which has a cut-off time-stamp because ' +
+                                'of file name length restrictions.\nYou can fix it manually:')
 
                 url_valid = False
                 while not url_valid:
@@ -474,18 +474,18 @@ class GuessFilename(object):
 
                     if not film_regex_match:
                         print()
-                        logging.warn(self.FILM_URL_REGEX_MISMATCH_HELP_TEXT)
+                        logging.warning(self.FILM_URL_REGEX_MISMATCH_HELP_TEXT)
                         logging.debug('entered film_url:\n' + film_url)
                     elif not compare_YMDhm(regex_match, film_regex_match):
                         # example: ('2020', '02', '29', '19', '30')
                         logging.debug('plausibility check fails: date and time of the chunks differ: \nselected regex_match.groups is   "' +
                                       self.get_datetime_string_from_named_groups(regex_match) + '" which does not match\nselected film_regex_match.groups "' +
                                       self.get_datetime_string_from_named_groups(film_regex_match) + '". Maybe adapt the potentially changed index group numbers due to changed RegEx?')
-                        logging.warn('Sorry, there is a mismatch of the date and time contained between the filename (' +
-                                     self.get_datetime_string_from_named_groups(regex_match) +
-                                     ') and the URL pasted (' +
-                                     self.get_datetime_string_from_named_groups(film_regex_match) +
-                                     '). Please try again with the correct URL ...')
+                        logging.warning('Sorry, there is a mismatch of the date and time contained between the filename (' +
+                                        self.get_datetime_string_from_named_groups(regex_match) +
+                                        ') and the URL pasted (' +
+                                        self.get_datetime_string_from_named_groups(film_regex_match) +
+                                        '). Please try again with the correct URL ...')
                     else:
                         url_valid = True
 
@@ -1390,7 +1390,7 @@ class GuessFilename(object):
         elif qualityindicator == 'Q4A':
             minimum_expected_file_size = 125000 * duration_in_seconds * TOLERANCE_FACTOR
         else:
-            logging.warn('Unknown quality indicator prevents file size check: ' + qualityindicator)
+            logging.warning('Unknown quality indicator prevents file size check: ' + qualityindicator)
             return
 
         ## additional check for minimum duration because small videos often produced wrong error messages:
