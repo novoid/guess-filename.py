@@ -117,6 +117,26 @@ Options:
   --version      display version and exit
 #+END_src
 
+** Pixel Images and Videos
+:PROPERTIES:
+:CREATED:  [2020-11-15 Sun 17:07]
+:END:
+
+I added handling for my [[https://en.wikipedia.org/wiki/Pixel_4a][Pixel 4a]] camera results: JPEG images and MP4 videos.
+
+Due to [[https://www.reddit.com/r/Pixel4a/comments/jubshe/fixing_the_messy_timestamps_of_pixel_4a_camera/][a somewhat messy meta data situation]] I had to use the
+=File:FileModifyDate= [[https://en.wikipedia.org/wiki/Exif][Exif]] meta-data in order to get time-stamps from
+the local time zone. If you happen to apply guessfilename after
+modifying the file due to copying or editing, you will get wrong
+time-stamps. Therefore, use [[https://syncthing.net/][Syncthing]] or similar synchronzation tools
+that preserve file modification time to get the files from the mobile
+to your computer. Apply guessfilename before modifying the files any
+further.
+
+Furthermore, you will need to install [[https://exiftool.org/][ExifTool]] as an external
+dependency. I was not able to find a Python-only Exif library that
+provided me read access to advanced Exif values the Pixel is using.
+
 ** MediathekView
 :PROPERTIES:
 :CREATED:  [2018-05-10 Thu 17:03]

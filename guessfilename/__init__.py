@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2020-07-12 13:59:48 vk>"
+PROG_VERSION = u"Time-stamp: <2020-11-15 17:17:00 vk>"
 
 
 # TODO:
@@ -132,8 +132,8 @@ class GuessFilename(object):
 
     TIMESTAMP3_REGEX = r'(?P<hour3>[012]\d)' + TIMESTAMP_DELIMITERS + r'(?P<minute3>[012345]\d)(' + TIMESTAMP_DELIMITERS + r'(?P<second3>[012345]\d))?'
 
-    DATETIMESTAMP_REGEX = DATESTAMP_REGEX + '(' + DATETIMESTAMP_DELIMITERS + TIMESTAMP_REGEX + ')?'
-    DATETIMESTAMP2_REGEX = DATESTAMP2_REGEX + '(' + DATETIMESTAMP_DELIMITERS + TIMESTAMP2_REGEX + ')?'
+    DATETIMESTAMP_REGEX = DATESTAMP_REGEX + r'(' + DATETIMESTAMP_DELIMITERS + TIMESTAMP_REGEX + r')?'
+    DATETIMESTAMP2_REGEX = DATESTAMP2_REGEX + r'(' + DATETIMESTAMP_DELIMITERS + TIMESTAMP2_REGEX + r')?'
 
     WEEKDAYS_TLA_REGEX = r'(Mon|Tue|Wed|Thu|Fri|Sat|Sun)'
 
@@ -146,6 +146,18 @@ class GuessFilename(object):
 
     RAW_EURO_CHARGE_REGEX = r'(?P<charge>\d+([,.]\d+)?)[-_ ]?(EUR|€)'
     EURO_CHARGE_REGEX = re.compile(r'^(.+[-_ ])?' + RAW_EURO_CHARGE_REGEX + r'([-_ .].+)?$', re.UNICODE)
+
+    # PXL_20201111_191250000.jpg
+    # PXL_20201112_133940000 panorama -- austria environment.jpg
+    # PXL_20201114_150536413 test slow motion video.mp4
+    PXL_REGEX = re.compile(r'PXL_' + DATESTAMP_REGEX + r'_' + TIMESTAMP_REGEX + r'(?P<miliseconds>\d\d\d)' + \
+                           r'(?P<phototype>.PANO|.PORTRAIT-01.COVER|.PORTRAIT-02.ORIGINAL|.NIGHT|.PHOTOSPHERE)?'
+                           r'(?P<unstrippeddescriptionandtags>.+?)?' + \
+                           r'(\.(?P<extension>\w+))$', re.UNICODE)
+
+    # Create Date: 2020:11:14 16:04:04
+    # Create Date: 2020:11:14 16:04:04.220428+01:00
+    PXL_TIMESTAMP_REGEX = re.compile(DATESTAMP_REGEX + r' ' + TIMESTAMP_REGEX + r'.*$')
 
     # Screenshot_2017-11-29_10-32-12.png
     # Screenshot_2017-11-07_07-52-59 my description.png
@@ -950,6 +962,147 @@ class GuessFilename(object):
 
         json_data.close()
 
+    def derive_new_filename_for_pixel_files(self, dirname, basename, pxl_match):
+        """
+        Analyzes the content of Pixel 4a camera files using the exif meta data and returns a new file name if feasible.
+        If not, False is returned instead.
+
+        @param dirname: string containing the directory of file within basename
+        @param basename: string containing one file name
+        @param return: False or new filename
+        """
+
+        try:
+            import exiftool  # for reading image/video Exif meta-data
+        except ImportError:
+            print("Could not find Python module \"exiftool\".\nPlease install it, e.g., with \"sudo pip install exiftool\".")
+            sys.exit(1)
+
+        myexiftool = exiftool.ExifTool()
+        myexiftool.start()
+        metadata = myexiftool.get_metadata(filename = os.path.join(dirname, basename))
+        myexiftool.terminate()
+
+        extension = os.path.splitext(basename)[1]
+
+        if not metadata:
+            return False
+
+        # These are the metadata criteria that should result in a unique result (only one is true):
+
+        is_normal_photo = metadata['File:FileType'] == 'JPEG' and \
+            'EXIF:FocalLength' in metadata.keys() and \
+            'XMP:HasExtendedXMP' not in metadata.keys()
+
+        is_nightsight_photo = metadata['File:FileType'] == 'JPEG' and \
+            'XMP:SpecialTypeID' in metadata.keys() and \
+            metadata['XMP:SpecialTypeID'] == 'com.google.android.apps.camera.gallery.specialtype.SpecialType-NIGHT'
+
+        is_pano_photo = metadata['File:FileType'] == 'JPEG' and \
+            'XMP:FullPanoWidthPixels' in metadata.keys() and \
+            'XMP:IsPhotosphere' not in metadata.keys()
+
+        is_sphere_photo = metadata['File:FileType'] == 'JPEG' and \
+            'XMP:FullPanoWidthPixels' in metadata.keys() and \
+            'XMP:IsPhotosphere' in metadata.keys()
+
+        is_portraitoriginal_photo = metadata['File:FileType'] == 'JPEG' and \
+            'XMP:SpecialTypeID' in metadata.keys() and \
+            metadata['XMP:SpecialTypeID'] == 'com.google.android.apps.camera.gallery.specialtype.SpecialType-PORTRAIT' and \
+            'XMP:CamerasDepthMapNear' not in metadata.keys()
+
+        is_portraitcover_photo = metadata['File:FileType'] == 'JPEG' and \
+            'XMP:ProfilesType' in metadata.keys() and \
+            metadata['XMP:ProfilesType'] == 'DepthPhoto' and \
+            'XMP:SpecialTypeID' in metadata.keys() and \
+            metadata['XMP:SpecialTypeID'] == 'com.google.android.apps.camera.gallery.specialtype.SpecialType-PORTRAIT' and \
+            'XMP:CamerasDepthMapNear' in metadata.keys()
+
+        is_normal_video = metadata['File:FileType'] == 'MP4' and \
+            'QuickTime:MatrixStructure' in metadata.keys() and \
+            'QuickTime:AudioChannels' in metadata.keys() and \
+            'QuickTime:ComAndroidCaptureFps' in metadata.keys() and \
+            metadata['QuickTime:ComAndroidCaptureFps'] == 30
+
+        is_timelapse_video = metadata['File:FileType'] == 'MP4' and \
+            'QuickTime:MatrixStructure' in metadata.keys() and \
+            'QuickTime:AudioChannels' not in metadata.keys() and \
+            'QuickTime:ComAndroidCaptureFps' in metadata.keys() and \
+            metadata['QuickTime:ComAndroidCaptureFps'] == 30
+
+        is_slowmotion_video = metadata['File:FileType'] == 'MP4' and \
+            'QuickTime:ComAndroidCaptureFps' in metadata.keys() and \
+            metadata['QuickTime:ComAndroidCaptureFps'] > 30
+
+        if sum([is_normal_photo, is_nightsight_photo, is_pano_photo, is_sphere_photo,
+                is_portraitoriginal_photo, is_portraitcover_photo,
+                is_normal_video, is_timelapse_video, is_slowmotion_video]) != 1:
+               logging.debug('derive_new_filename_for_pixel_files: Media type match code: ' +
+                             str([is_normal_photo, is_nightsight_photo, is_pano_photo, is_sphere_photo,
+                                  is_portraitoriginal_photo, is_portraitcover_photo,
+                                  is_normal_video, is_timelapse_video, is_slowmotion_video]))
+               error_exit(2, 'Internal error: Exif metadata criteria is not unique. ' +
+                          'Therefore, new criteria to distinquish media files is necessary.')
+
+        # need to duplicate parts of self.split_filename_entities() because this format differs slightly:
+        unstrippeddescriptionandtags = pxl_match['unstrippeddescriptionandtags']
+        if unstrippeddescriptionandtags:
+            # split up the description+tags part in optional description and optional tags
+            if self.FILENAME_TAG_SEPARATOR in unstrippeddescriptionandtags:
+                description, tags = unstrippeddescriptionandtags.split(self.FILENAME_TAG_SEPARATOR)
+                tags = tags.strip().split(self.BETWEEN_TAG_SEPARATOR)
+            else:
+                description = unstrippeddescriptionandtags
+                tags = []
+            description = description.strip()
+        else:
+            description = ''
+            tags = []
+        logging.debug('derive_new_filename_for_pixel_files: description==[' + str(description) + ']  tags==[' + str(tags) + ']')
+
+        rawtimestamp = metadata['File:FileModifyDate']  # this is the only time-stamp that reflects the time of creation for both, images and videos
+        ts_match = self.PXL_TIMESTAMP_REGEX.match(rawtimestamp)
+        if not ts_match:
+            error_exit(3, 'Could not parse "EXIF:CreateDate" which indicates a major change of the metadata format.')
+        timestamp = ts_match['year'] + '-' + ts_match['month'] + '-' + ts_match['day'] + 'T' + \
+            ts_match['hour'] + '.' + ts_match['minute'] + '.' + ts_match['second']
+
+        if is_normal_photo:
+            logging.debug('derive_new_filename_for_pixel_files: is_normal_photo')
+        elif is_nightsight_photo:
+            logging.debug('derive_new_filename_for_pixel_files: is_nightsight_photo')
+            tags = self.adding_tags(tags, ['nightsight'])
+        elif is_pano_photo:
+            logging.debug('derive_new_filename_for_pixel_files: is_pano_photo')
+            tags = self.adding_tags(tags, ['panorama'])
+        elif is_sphere_photo:
+            logging.debug('derive_new_filename_for_pixel_files: is_sphere_photo')
+            tags = self.adding_tags(tags, ['photosphere'])
+        elif is_portraitoriginal_photo:
+            logging.debug('derive_new_filename_for_pixel_files: is_portraitoriginal_photo')
+            tags = self.adding_tags(tags, ['selfie'])
+        elif is_portraitcover_photo:
+            logging.debug('derive_new_filename_for_pixel_files: is_portraitcover_photo')
+            tags = self.adding_tags(tags, ['selfie', 'blurred'])
+        elif is_normal_video:
+            logging.debug('derive_new_filename_for_pixel_files: is_normal_video')
+        elif is_timelapse_video:
+            logging.debug('derive_new_filename_for_pixel_files: is_timelapse_video')
+            tags = self.adding_tags(tags, ['timelapse'])
+        elif is_slowmotion_video:
+            logging.debug('derive_new_filename_for_pixel_files: is_slowmotion_video')
+            tags = self.adding_tags(tags, ['slowmotion'])
+
+        tagpart = ''
+        if tags:
+            # only generate the tagpart with separator and all tags if tags are defined at all
+            tagpart = self.FILENAME_TAG_SEPARATOR + self.BETWEEN_TAG_SEPARATOR.join(tags)
+        if description:
+            description = ' ' + description  # add space as separator between timestamp and description
+        new_filename = timestamp + description + tagpart + extension
+        logging.debug('derive_new_filename_for_pixel_files: new filename [' + new_filename + ']')
+        return new_filename
+
     def handle_file(self, oldfilename, dryrun):
         """
         @param oldfilename: string containing one file name
@@ -975,16 +1128,26 @@ class GuessFilename(object):
         dirname = os.path.abspath(os.path.dirname(oldfilename))
         logging.debug("————→ dirname  [%s]" % dirname)
         basename = os.path.basename(oldfilename)
+        extension = os.path.splitext(basename)[1].lower()
         logging.debug("————→ basename [%s]" % basename)
+        newfilename = ''
 
-        newfilename = self.derive_new_filename_from_old_filename(basename)
-        if newfilename:
-            logging.debug("handle_file: derive_new_filename_from_old_filename returned new filename: %s" % newfilename)
-        else:
-            logging.debug("handle_file: derive_new_filename_from_old_filename could not derive a new filename for %s" % basename)
+        pxl_match = self.PXL_REGEX.match(basename)
+        if extension in ['.jpg', '.mp4'] and basename.startswith('PXL_') and pxl_match:
+            logging.debug('I recognized the file name pattern of a Google Pixel (4a?) camera image or video, extracting from Exif data and file name')
+            newfilename = self.derive_new_filename_for_pixel_files(dirname, basename, pxl_match)
+            if not newfilename:
+                logging.debug('I failed to derive a new file name from the Exif meta-data. Continue trying with the other methods.')
 
         if not newfilename:
-            if os.path.splitext(basename)[1].lower() == '.pdf':
+            newfilename = self.derive_new_filename_from_old_filename(basename)
+            if newfilename:
+                logging.debug("handle_file: derive_new_filename_from_old_filename returned new filename: %s" % newfilename)
+            else:
+                logging.debug("handle_file: derive_new_filename_from_old_filename could not derive a new filename for %s" % basename)
+
+        if not newfilename:
+            if extension == '.pdf':
                 newfilename = self.derive_new_filename_from_content(dirname, basename)
                 logging.debug("handle_file: derive_new_filename_from_content returned new filename: %s" % newfilename)
             else:
