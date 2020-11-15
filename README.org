@@ -122,7 +122,7 @@ Options:
 :CREATED:  [2020-11-15 Sun 17:07]
 :END:
 
-I added handling for my [[https://en.wikipedia.org/wiki/Pixel_4a][Pixel 4a]] camera results: JPEG images and MP4 videos.
+I added handling for [[https://karl-voit.at/2020/11/15/pixel4a-migration/][my Pixel 4a]] camera results: JPEG images and MP4 videos.
 
 Due to [[https://www.reddit.com/r/Pixel4a/comments/jubshe/fixing_the_messy_timestamps_of_pixel_4a_camera/][a somewhat messy meta data situation]] I had to use the
 =File:FileModifyDate= [[https://en.wikipedia.org/wiki/Exif][Exif]] meta-data in order to get time-stamps from
