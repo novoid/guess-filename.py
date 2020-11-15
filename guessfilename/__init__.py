@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2020-11-15 17:17:00 vk>"
+PROG_VERSION = u"Time-stamp: <2020-11-15 22:53:32 vk>"
 
 
 # TODO:
@@ -975,7 +975,7 @@ class GuessFilename(object):
         try:
             import exiftool  # for reading image/video Exif meta-data
         except ImportError:
-            print("Could not find Python module \"exiftool\".\nPlease install it, e.g., with \"sudo pip install exiftool\".")
+            print("Could not find Python module \"exiftool\".\nPlease install it, e.g., with \"sudo pip install pyexiftool\".")
             sys.exit(1)
 
         myexiftool = exiftool.ExifTool()
