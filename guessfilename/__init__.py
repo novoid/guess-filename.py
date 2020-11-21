@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2020-11-15 22:53:32 vk>"
+PROG_VERSION = u"Time-stamp: <2020-11-21 19:13:55 vk>"
 
 
 # TODO:
@@ -990,10 +990,6 @@ class GuessFilename(object):
 
         # These are the metadata criteria that should result in a unique result (only one is true):
 
-        is_normal_photo = metadata['File:FileType'] == 'JPEG' and \
-            'EXIF:FocalLength' in metadata.keys() and \
-            'XMP:HasExtendedXMP' not in metadata.keys()
-
         is_nightsight_photo = metadata['File:FileType'] == 'JPEG' and \
             'XMP:SpecialTypeID' in metadata.keys() and \
             metadata['XMP:SpecialTypeID'] == 'com.google.android.apps.camera.gallery.specialtype.SpecialType-NIGHT'
@@ -1017,6 +1013,19 @@ class GuessFilename(object):
             'XMP:SpecialTypeID' in metadata.keys() and \
             metadata['XMP:SpecialTypeID'] == 'com.google.android.apps.camera.gallery.specialtype.SpecialType-PORTRAIT' and \
             'XMP:CamerasDepthMapNear' in metadata.keys()
+
+        # as of 2020-11-21 I recognized that exif keys vary between
+        # different photo files. Therefore I had to use this as a
+        # fall-back for all photo images instead of defining distinct
+        # exif key/value criteria. This way, any JPEG which is not
+        # recognized as a specific type above is a normal photo by
+        # definition.
+        is_normal_photo = metadata['File:FileType'] == 'JPEG' and \
+            not is_nightsight_photo and \
+            not is_pano_photo and \
+            not is_sphere_photo and \
+            not is_portraitoriginal_photo and \
+            not is_portraitcover_photo
 
         is_normal_video = metadata['File:FileType'] == 'MP4' and \
             'QuickTime:MatrixStructure' in metadata.keys() and \
