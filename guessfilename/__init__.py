@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2020-11-21 19:13:55 vk>"
+PROG_VERSION = u"Time-stamp: <2021-05-30 17:16:29 vk>"
 
 
 # TODO:
@@ -606,6 +606,13 @@ class GuessFilename(object):
             return datetimestr + \
                 " Gehaltszettel " + self.get_euro_charge(oldfilename) + \
                 "€ -- " + ' '.join(self.adding_tags(tags, ['scan', 'infonova'])) + \
+                ".pdf"
+
+        # 2021-05-30 Lohn- Gehaltsabrechnung Februar 12,34 EUR -- scan rise.pdf
+        if self.contains_all_of(oldfilename, ["Gehalt", "rise"]) and self.has_euro_charge(oldfilename) and datetimestr:
+            return datetimestr + \
+                " Lohn- Gehaltsabrechnung " + self.get_euro_charge(oldfilename) + \
+                "€ -- " + ' '.join(self.adding_tags(tags, ['scan', 'rise'])) + \
                 ".pdf"
 
         # 2012-05-26T22.25.12_IMAG0861 Rage Ergebnis - MITSPIELER -- games.jpg
