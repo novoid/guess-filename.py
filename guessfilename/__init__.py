@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2021-05-30 17:16:29 vk>"
+PROG_VERSION = u"Time-stamp: <2021-07-04 11:19:04 vk>"
 
 
 # TODO:
@@ -726,6 +726,12 @@ class GuessFilename(object):
             ## re-use index number at the end as first digit of seconds and hope that not more than 5 documents are scanned within a minute:
             return regex_match.group('year') + '-' + regex_match.group('month') + '-' + regex_match.group('day') + 'T' + \
                 regex_match.group('hour') + '.' + regex_match.group('minute') + '.' + regex_match.group('second') + " -- emacs screencasts.gif"
+
+        # 2021-07-04 Stromrechnung Voltino
+        if datetimestr and self.contains_all_of(oldfilename, ["TZ-Vorschreibung", self.config.VOLTINO_Kundennummer]):
+            return datetimestr + \
+                " Voltino Vorschreibung Teilbetrag " + self.config.VOLTINO_Teilbetrag + " -- " + ' '.join(self.adding_tags(tags, ['bill'])) + \
+                ".pdf"
 
 
         # FIXXME: more cases!
