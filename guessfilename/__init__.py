@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2021-07-04 11:19:04 vk>"
+PROG_VERSION = u"Time-stamp: <2021-08-27 15:10:05 vk>"
 
 
 # TODO:
@@ -72,6 +72,9 @@ parser.add_option("-v", "--verbose", dest="verbose", action="store_true",
 
 parser.add_option("-q", "--quiet", dest="quiet", action="store_true",
                   help="enable quiet mode")
+
+parser.add_option("--debug", dest="debug", action="store_true",
+                  help="enable debug mode, printing debug information on selected file formats. Currently: just PXL files.")
 
 parser.add_option("--version", dest="version", action="store_true",
                   help="display version and exit")
@@ -1003,6 +1006,22 @@ class GuessFilename(object):
 
         # These are the metadata criteria that should result in a unique result (only one is true):
 
+        ## Helper function for debug output of file format meta data:
+        def print_metadata_table_line(value):
+            if value in metadata.keys():
+                print("| " + str(value) + " | " + str(metadata[value]) + " |")
+            else:
+                print("| " + str(value) + " | KeyError |")
+        
+        if options.debug and metadata['File:FileType'] == 'JPEG':
+            print("|| " + basename + "|")
+            print("| metadata['File:FileType'] | JPEG |\n|-")
+            print_metadata_table_line('XMP:SpecialTypeID')
+            print_metadata_table_line('XMP:FullPanoWidthPixels')
+            print_metadata_table_line('XMP:IsPhotopshere')
+            print_metadata_table_line('XMP:CameraDepthMapNear')
+            print_metadata_table_line('XMP:ProfilesType')
+
         is_nightsight_photo = metadata['File:FileType'] == 'JPEG' and \
             'XMP:SpecialTypeID' in metadata.keys() and \
             metadata['XMP:SpecialTypeID'] == 'com.google.android.apps.camera.gallery.specialtype.SpecialType-NIGHT'
@@ -1040,14 +1059,19 @@ class GuessFilename(object):
             not is_portraitoriginal_photo and \
             not is_portraitcover_photo
 
+        if options.debug and metadata['File:FileType'] == 'MP4':
+            print("|| " + basename + "|")
+            print("| metadata['File:FileType'] | MP4 |\n|-")
+            print_metadata_table_line('QuickTime:MatrixStructure')
+            print_metadata_table_line('QuickTime:AudioChannels')
+            print_metadata_table_line('QuickTime:ComAndroidCaptureFps')
+
         is_normal_video = metadata['File:FileType'] == 'MP4' and \
-            'QuickTime:MatrixStructure' in metadata.keys() and \
             'QuickTime:AudioChannels' in metadata.keys() and \
             'QuickTime:ComAndroidCaptureFps' in metadata.keys() and \
             metadata['QuickTime:ComAndroidCaptureFps'] == 30
 
         is_timelapse_video = metadata['File:FileType'] == 'MP4' and \
-            'QuickTime:MatrixStructure' in metadata.keys() and \
             'QuickTime:AudioChannels' not in metadata.keys() and \
             'QuickTime:ComAndroidCaptureFps' in metadata.keys() and \
             metadata['QuickTime:ComAndroidCaptureFps'] == 30
@@ -1056,13 +1080,23 @@ class GuessFilename(object):
             'QuickTime:ComAndroidCaptureFps' in metadata.keys() and \
             metadata['QuickTime:ComAndroidCaptureFps'] > 30
 
+        ## as of 2021-08-27, I did not find out what "LS" stands for:
+        is_ls_video = metadata['File:FileType'] == 'MP4' and \
+            'QuickTime:AudioChannels' in metadata.keys() and \
+            'QuickTime:ComAndroidCaptureFps' not in metadata.keys()
+
+        is_night_video = metadata['File:FileType'] == 'MP4' and \
+            'QuickTime:AudioChannels' not in metadata.keys() and \
+            'QuickTime:ComAndroidCaptureFps' not in metadata.keys()
+
+        ## It *has* to be one of the following; else → print error message and exit:
         if sum([is_normal_photo, is_nightsight_photo, is_pano_photo, is_sphere_photo,
                 is_portraitoriginal_photo, is_portraitcover_photo,
-                is_normal_video, is_timelapse_video, is_slowmotion_video]) != 1:
+                is_normal_video, is_timelapse_video, is_slowmotion_video, is_ls_video, is_night_video]) != 1:
                logging.debug('derive_new_filename_for_pixel_files: Media type match code: ' +
                              str([is_normal_photo, is_nightsight_photo, is_pano_photo, is_sphere_photo,
                                   is_portraitoriginal_photo, is_portraitcover_photo,
-                                  is_normal_video, is_timelapse_video, is_slowmotion_video]))
+                                  is_normal_video, is_timelapse_video, is_slowmotion_video, is_night_video, is_ls_video]))
                error_exit(2, 'Internal error: Exif metadata criteria is not unique. ' +
                           'Therefore, new criteria to distinquish media files is necessary.')
 
@@ -1114,6 +1148,12 @@ class GuessFilename(object):
         elif is_slowmotion_video:
             logging.debug('derive_new_filename_for_pixel_files: is_slowmotion_video')
             tags = self.adding_tags(tags, ['slowmotion'])
+        elif is_ls_video:
+            logging.debug('derive_new_filename_for_pixel_files: is_ls_video')
+            tags = self.adding_tags(tags, ['lsvideo'])
+        elif is_night_video:
+            logging.debug('derive_new_filename_for_pixel_files: is_night_video')
+            tags = self.adding_tags(tags, ['nightsight'])
 
         tagpart = ''
         if tags:
@@ -1121,6 +1161,8 @@ class GuessFilename(object):
             tagpart = self.FILENAME_TAG_SEPARATOR + self.BETWEEN_TAG_SEPARATOR.join(tags)
         if description:
             description = ' ' + description  # add space as separator between timestamp and description
+            if description == ' .LS':  ## remove .LS for LS videos: I've got lsvideo tag instead (whatever that stands for)
+                description = ''
         new_filename = timestamp + description + tagpart + extension
         logging.debug('derive_new_filename_for_pixel_files: new filename [' + new_filename + ']')
         return new_filename
