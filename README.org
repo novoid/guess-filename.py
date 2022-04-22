@@ -15,7 +15,7 @@ possible length limitations).
 
 - *Target group*: users who are able to use command line tools and who
   are using tags in file names.
-- Hosted on github: https://github.com/novoid/guess-filename.py
+- Hosted on github: https://github.com/novoid/guess-filename.py and https://pypi.org/project/guessfilename/
 
 ** Why
 
