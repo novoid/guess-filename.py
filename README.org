@@ -39,7 +39,7 @@ The generated file names are following [[https://www.karl-voit.at/managing-digit
 For better user experience, I like to *define an abbreviation* in [[https://karl-voit.at/apps-I-am-using/][my
 shell]] which also makes the examples easier to read:
 
-: alias gf=guessfilename.py
+: alias gf=guessfilename
 
 A very simple example is a *simple bill*:
 
