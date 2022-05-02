@@ -15,7 +15,7 @@ possible length limitations).
 
 - *Target group*: users who are able to use command line tools and who
   are using tags in file names.
-- Hosted on github: https://github.com/novoid/guess-filename.py
+- Hosted on github: [[https://github.com/novoid/guess-filename.py]] and PyPi: [[https://pypi.org/project/guessfilename/]]
 
 ** Why
 
@@ -56,7 +56,7 @@ Some mobile apps generate weird formatted file names. Here is some *recording*:
 : gf "Screenshot_2017-11-29_10-32-12.png"
 :  → "2017-11-29T10.32.12 -- screenshots.png"
 
-*Android photographs* are handled similarily:
+*Android photographs* are handled similarly:
 
 : gf "IMG_20190118_133928.jpg"
 :  → "2019-01-18T13.39.28.jpg"
