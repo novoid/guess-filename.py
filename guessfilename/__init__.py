@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2021-08-27 15:10:05 vk>"
+PROG_VERSION = u"Time-stamp: <2022-06-17 11:04:18 vk>"
 
 
 # TODO:
@@ -736,7 +736,12 @@ class GuessFilename(object):
                 " Voltino Vorschreibung Teilbetrag " + self.config.VOLTINO_Teilbetrag + " -- " + ' '.join(self.adding_tags(tags, ['bill'])) + \
                 ".pdf"
 
+        # 2022-06-17 Rechtschutzversicherung
+        if self.config.RECHTSCHUTZVERSICHERUNG in oldfilename and 'Wertanpassung' in oldfilename and datetimestr and self.has_euro_charge(oldfilename):
+            return datetimestr + ' ' + self.config.RECHTSCHUTZVERSICHERUNG + ' ' + self.config.RECHTSCHUTZPOLIZZE + \
+                ' - Wertanpassung monatliche Versicherungspraemie auf ' + self.get_euro_charge(oldfilename) + '€ -- scan.pdf'
 
+        
         # FIXXME: more cases!
 
         return False  # no new filename found
