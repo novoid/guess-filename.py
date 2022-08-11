@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2022-06-17 11:04:18 vk>"
+PROG_VERSION = u"Time-stamp: <2022-08-11 17:26:57 vk>"
 
 
 # TODO:
@@ -298,6 +298,9 @@ class GuessFilename(object):
     # 20200224-0914_Foo_bar.wav
     SMARTREC_REGEX = re.compile(r'(?P<DAY>' + DATESTAMP_REGEX + ')-' + TIMESTAMP_REGEX + r'(_(?P<description>.+))?.(?P<extension>wav|mp3)')
 
+    # KVR-2022-08-09-14-00-16.txt -> 2022-08-09T14.00.16.mp4
+    KVR_REGEX = re.compile(r'KVR-' + DATESTAMP_REGEX + '-' + TIMESTAMP_REGEX + r'(?P<description>.+?)?\.(?P<extension>wav|mp3|mp4|txt)')
+    
     logger = None
     config = None
 
@@ -741,7 +744,11 @@ class GuessFilename(object):
             return datetimestr + ' ' + self.config.RECHTSCHUTZVERSICHERUNG + ' ' + self.config.RECHTSCHUTZPOLIZZE + \
                 ' - Wertanpassung monatliche Versicherungspraemie auf ' + self.get_euro_charge(oldfilename) + '€ -- scan.pdf'
 
-        
+        # KVR-2022-08-09-14-00-16.txt -> 2022-08-09T14.00.16.mp4
+        regex_match = re.match(self.KVR_REGEX, oldfilename)
+        if regex_match:
+            return self.get_datetime_description_extension_filename(regex_match, replace_description_underscores=True)
+
         # FIXXME: more cases!
 
         return False  # no new filename found
