@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8; mode: python; -*-
-# Time-stamp: <2020-06-17 18:13:56 vk>
+# Time-stamp: <2023-01-04 21:50:47 vk>
 
 import unittest
 import logging
@@ -442,6 +442,7 @@ class TestGuessFilename(unittest.TestCase):
   "acodec": "mp4a.40.2",
   "dislike_count": 3,
   "abr": 96,
+  "duration_string": "42:42:42",
   "creator": null,
   "filesize": 26294671,
   "id": "Ahg8OBYixL0",
@@ -458,8 +459,10 @@ class TestGuessFilename(unittest.TestCase):
   "tbr": 355.714
 }""")
 
-        new_mediafilename_generated = os.path.join(tmpdir, self.guess_filename.handle_file(mediafile, False))
-        new_mediafilename_comparison = os.path.join(tmpdir, "2007-09-13 youtube - The Star7 PDA Prototype - Ahg8OBYixL0.mp4")
+        new_mediafilename = self.guess_filename.handle_file(mediafile, False)
+        assert(type(new_mediafilename) == str)
+        new_mediafilename_generated = os.path.join(tmpdir, new_mediafilename)
+        new_mediafilename_comparison = os.path.join(tmpdir, "2007-09-13 youtube - The Star7 PDA Prototype - Ahg8OBYixL0 42:42:42.mp4")
         self.assertEqual(new_mediafilename_generated, new_mediafilename_comparison)
 
         os.remove(new_mediafilename_generated)
@@ -860,7 +863,7 @@ class TestGuessFilename(unittest.TestCase):
         self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename("20180510T090000 ORF - ZIB - Weitere Signale der Entspannung -ORIGINAL- 2018-05-10_0900_tl_02_ZIB-9-00_Weitere-Signale__13976423__o__5968792755__s14297694_4__WEB03HD_09011813P_09020710P_Q4A.mp4"),
                          "2018-05-10T09.01.18 ORF - ZIB - Weitere Signale der Entspannung -- lowquality.mp4")
         self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename("20180520T201500 ORF - Tatort - Tatort_ Aus der Tiefe der Zeit -ORIGINAL- 2018-05-20_2015_in_02_Tatort--Aus-der_____13977411__o__1151703583__s14303062_Q8C.mp4"),
-                         "2018-05-20T20.15.00 ORF - Tatort - Tatort  Aus der Tiefe der Zeit -- highquality.mp4")
+                         "2018-05-20T20.15.00 ORF - Tatort  Aus der Tiefe der Zeit -- highquality.mp4")
         self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename("20180521T193000 ORF - ZIB 1 - Parlament bereitet sich auf EU-Vorsitz vor -ORIGINAL- 2018-05-21_1930_tl_02_ZIB-1_Parlament-berei__13977453__o__277886215b__s14303762_2__WEB03HD_19350304P_19371319P_Q4A.mp4"),
                          "2018-05-21T19.35.03 ORF - ZIB 1 - Parlament bereitet sich auf EU-Vorsitz vor -- lowquality.mp4")
         self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('20190902T220000 ORF - ZIB 2 - Bericht über versteckte ÖVP-Wahlkampfkosten -ORIGINALlow- 2019-09-02_2200_tl_02_ZIB-2_Bericht-ueber-v__14024705__o__71528285d6__s14552793_3__ORF2HD_22033714P_22074303P_Q4A.mp4'),
@@ -909,18 +912,20 @@ class TestGuessFilename(unittest.TestCase):
 
         # ORF TV Mediathek as of 2018-11-01: when there is no original filename with %N, I have to use the data I've got
         # see https://github.com/mediathekview/MServer/issues/436
-        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('20181028T201400 ORF - Tatort - Tatort_ Blut -ORIGINALhd- playlist.m3u8.mp4'),
-                         '2018-10-28T20.14.00 ORF - Tatort - Tatort_ Blut -- highquality.mp4')
-        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('20181028T201400 ORF - Tatort - Tatort_ Blut -ORIGINALlow- playlist.m3u8.mp4'),
-                         '2018-10-28T20.14.00 ORF - Tatort - Tatort_ Blut -- lowquality.mp4')
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('20181028T201400 ORF - Tatort - Tatort Blut -ORIGINALhd- playlist.m3u8.mp4'),
+                         '2018-10-28T20.14.00 ORF - Tatort Blut -- highquality.mp4')
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('20181028T201400 ORF - Tatort - Tatort Blut -ORIGINALlow- playlist.m3u8.mp4'),
+                         '2018-10-28T20.14.00 ORF - Tatort Blut -- lowquality.mp4')
         self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('20181022T211100 ORF - Thema - Das Essen der Zukunft -ORIGINALhd- playlist.m3u8.mp4'),
                          '2018-10-22T21.11.00 ORF - Thema - Das Essen der Zukunft -- highquality.mp4')
         self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('20181022T211100 ORF - Thema - Das Essen der Zukunft -ORIGINALlow- playlist.m3u8.mp4'),
                          '2018-10-22T21.11.00 ORF - Thema - Das Essen der Zukunft -- lowquality.mp4')
-        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('20181025T210500 ORF - Am Schauplatz - Am Schauplatz_ Wenn alles zusammenbricht -ORIGINALhd- playlist.m3u8.mp4'),
-                         '2018-10-25T21.05.00 ORF - Am Schauplatz - Am Schauplatz_ Wenn alles zusammenbricht -- highquality.mp4')
-        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('20181025T210500 ORF - Am Schauplatz - Am Schauplatz_ Wenn alles zusammenbricht -ORIGINALlow- playlist.m3u8.mp4'),
-                         '2018-10-25T21.05.00 ORF - Am Schauplatz - Am Schauplatz_ Wenn alles zusammenbricht -- lowquality.mp4')
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('20181025T210500 ORF - Am Schauplatz - Am Schauplatz Wenn alles zusammenbricht -ORIGINALhd- playlist.m3u8.mp4'),
+                         '2018-10-25T21.05.00 ORF - Am Schauplatz Wenn alles zusammenbricht -- highquality.mp4')
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('20181025T210500 ORF - Am Schauplatz - Am Schauplatz Wenn alles zusammenbricht -ORIGINALlow- playlist.m3u8.mp4'),
+                         '2018-10-25T21.05.00 ORF - Am Schauplatz Wenn alles zusammenbricht -- lowquality.mp4')
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('20181025T210500 ORF - Am Schauplatz Wenn alles zusammenbricht - Am Schauplatz -ORIGINALlow- playlist.m3u8.mp4'),
+                         '2018-10-25T21.05.00 ORF - Am Schauplatz Wenn alles zusammenbricht -- lowquality.mp4')
 
         # Digital camera from Android
         self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('IMG_20190118_133928.jpg'),

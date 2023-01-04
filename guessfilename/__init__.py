@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2023-01-02 12:45:43 vk>"
+PROG_VERSION = u"Time-stamp: <2023-01-04 21:39:14 vk>"
 
 
 # TODO:
@@ -309,6 +309,20 @@ class GuessFilename(object):
         self.logger = logger
         self.config = config
 
+    def get_unique_show_and_title(self, show, title):
+        """If show starts with title (or vice versa), omit the redundant one and use the longer string"""
+    
+        ## if show in contained in title (or vice versa), omit the redundant one:
+        if show.startswith(title) and len(show) > len(title):
+            logging.debug('get_unique_show_and_title: reduced show/title to show')
+            return show
+        elif title.startswith(show) and len(show) <= len(title):
+            logging.debug('get_unique_show_and_title: reduced show/title to title')
+            return title
+        else:
+            return show + ' - ' + title
+        
+        
     def derive_new_filename_from_old_filename(self, oldfilename):
         """
         Analyses the old filename and returns a new one if feasible.
@@ -374,12 +388,12 @@ class GuessFilename(object):
                 # the file name contained the optional chunk time-stamp(s)
                 newname = self.get_date_string_from_named_groups(regex_match) + 'T' + \
                     regex_match.group('hour2') + '.' + regex_match.group('minute2') + '.' + regex_match.group('second2') + ' ' + \
-                    regex_match.group('channel') + ' - ' + regex_match.group('show') + ' - ' + regex_match.group('title') + ' -- ' + \
+                    regex_match.group('channel') + ' - ' + self.get_unique_show_and_title(regex_match.group('show'), regex_match.group('title')) + ' -- ' + \
                     qualitytag + '.mp4'
             else:
                 # the file name did NOT contain the optional chunk time-stamp(s), so we have to use the main time-stamp
                 newname = self.get_datetime_string_from_named_groups(regex_match) + \
-                    regex_match.group('channel') + ' - ' + regex_match.group('show') + ' - ' + regex_match.group('title') + ' -- ' + \
+                    regex_match.group('channel') + ' - ' + self.get_unique_show_and_title(regex_match.group('show'), regex_match.group('title')) + ' -- ' + \
                     qualitytag + '.mp4'
             return newname.replace('_', ' ')
 
@@ -428,7 +442,7 @@ class GuessFilename(object):
             qualitytag = self.translate_ORF_quality_string_to_tag(regex_match.group('qualityindicator'))
 
             newname = self.get_datetime_string_from_named_groups(regex_match) + ' ' + \
-                regex_match.group('channel') + ' - ' + regex_match.group('show') + ' - ' + regex_match.group('title') + ' -- ' + \
+                regex_match.group('channel') + ' - ' + self.get_unique_show_and_title(regex_match.group('show'), regex_match.group('title')) + ' -- ' + \
                 qualitytag + '.mp4'
             return newname.replace('_', ' ')
 
@@ -465,7 +479,7 @@ class GuessFilename(object):
                 qualitytag = self.translate_ORF_quality_string_to_tag(regex_match.group('qualityshort').upper())
 
                 return self.get_datetime_string_from_named_groups(regex_match) + ' ' + regex_match.group('channel') + \
-                    ' - ' + regex_match.group('show') + ' - ' + regex_match.group('title') + ' -- ' + qualitytag + '.mp4'
+                    ' - ' + self.get_unique_show_and_title(regex_match.group('show'), regex_match.group('title')) + ' -- ' + qualitytag + '.mp4'
 
             else:
                 # we got the ability to derive starting time from "original filename"
