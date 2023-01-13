@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2023-01-04 21:39:14 vk>"
+PROG_VERSION = u"Time-stamp: <2023-01-13 19:02:41 vk>"
 
 
 # TODO:
@@ -1021,10 +1021,8 @@ class GuessFilename(object):
             print("Could not find Python module \"exiftool\".\nPlease install it, e.g., with \"sudo pip install pyexiftool\".")
             sys.exit(1)
 
-        myexiftool = exiftool.ExifTool()
-        myexiftool.start()
-        metadata = myexiftool.get_metadata(filename = os.path.join(dirname, basename))
-        myexiftool.terminate()
+        myexiftool = exiftool.ExifToolHelper()
+        metadata = myexiftool.get_metadata(files = [os.path.join(dirname, basename)])[0]
 
         extension = os.path.splitext(basename)[1]
 
