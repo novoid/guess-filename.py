@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2023-01-13 19:02:41 vk>"
+PROG_VERSION = u"Time-stamp: <2023-03-05 22:13:16 vk>"
 
 
 # TODO:
@@ -31,9 +31,9 @@ except ImportError:
     sys.exit(1)
 
 try:
-    import PyPDF2
+    import pypdf
 except ImportError:
-    print("Could not find Python module \"PyPDF2\".\nPlease install it, e.g., with \"sudo pip install PyPDF2\".")
+    print("Could not find Python module \"pypdf\".\nPlease install it, e.g., with \"sudo pip install pypdf\".")
     sys.exit(1)
 
 PROG_VERSION_DATE = PROG_VERSION[13:23]
