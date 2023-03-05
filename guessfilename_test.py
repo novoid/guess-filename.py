@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8; mode: python; -*-
-# Time-stamp: <2023-01-04 21:50:47 vk>
+# Time-stamp: <2023-03-05 22:19:14 vk>
 
 import unittest
 import logging
@@ -927,6 +927,14 @@ class TestGuessFilename(unittest.TestCase):
         self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('20181025T210500 ORF - Am Schauplatz Wenn alles zusammenbricht - Am Schauplatz -ORIGINALlow- playlist.m3u8.mp4'),
                          '2018-10-25T21.05.00 ORF - Am Schauplatz Wenn alles zusammenbricht -- lowquality.mp4')
 
+        ## ORF TV Mediathek as of 2023-03-05:
+        ## 20230303T232946 ORF - Gute Nacht Österreich mit Peter Klien - Wirtschaftliche Probleme in Großbritannien -ORIGINALlow- 2023-03-03_2329_tl_01_Gute-Nacht-Oest_Wirtschaftliche__14170146__o__3365936366__s15349885_5__ORF1HD_00005621P_00105414P_Q4A.mp4
+        ## 2023-03-04T00.00.56 ORF - Gute Nacht Österreich mit Peter Klien - Wirtschaftliche Probleme in Großbritannien -- lowquality.mp4
+        ## ... the day should be incremented because this did start shortly before midnight but this part was started after midnight
+        ## When the actual start time (2nd timestamp in filename) is older than 10 hours compared to the file name start time, assume it is actually started after midnight.
+        self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('20230303T232946 ORF - Gute Nacht Österreich mit Peter Klien - Wirtschaftliche Probleme in Großbritannien -ORIGINALlow- 2023-03-03_2329_tl_01_Gute-Nacht-Oest_Wirtschaftliche__14170146__o__3365936366__s15349885_5__ORF1HD_00005621P_00105414P_Q4A.mp4'),
+                         '2023-03-04T00.00.56 ORF - Gute Nacht Österreich mit Peter Klien - Wirtschaftliche Probleme in Großbritannien -- lowquality.mp4')
+        
         # Digital camera from Android
         self.assertEqual(self.guess_filename.derive_new_filename_from_old_filename('IMG_20190118_133928.jpg'),
                          '2019-01-18T13.39.28.jpg')

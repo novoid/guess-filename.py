@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2023-03-05 22:13:16 vk>"
+PROG_VERSION = u"Time-stamp: <2023-03-05 22:44:21 vk>"
 
 
 # TODO:
@@ -386,7 +386,22 @@ class GuessFilename(object):
 
             if regex_match.group('sexpression'):
                 # the file name contained the optional chunk time-stamp(s)
-                newname = self.get_date_string_from_named_groups(regex_match) + 'T' + \
+
+                ## Extra handling of this case:
+                ##     20230303T232946 ORF - Gute Nacht Österreich mit Peter Klien - Wirtschaftliche Probleme in Großbritannien -ORIGINALlow- 2023-03-03_2329_tl_01_Gute-Nacht-Oest_Wirtschaftliche__14170146__o__3365936366__s15349885_5__ORF1HD_00005621P_00105414P_Q4A.mp4
+                ##     2023-03-04T00.00.56 ORF - Gute Nacht Österreich mit Peter Klien - Wirtschaftliche Probleme in Großbritannien -- lowquality.mp4
+                ## ... the day should be incremented because this did start shortly before midnight but this part was started after midnight
+                ## -> When the actual start time (2nd timestamp in filename) is older than 10 hours compared to the file name start time, assume it is actually started after midnight.
+                ## exception: first time-stamp is "00:00:00" which stands for "unknown".
+                if (regex_match.group('hour') != '00' and regex_match.group('minute') != '00') and \
+                   int(regex_match.group('hour')) > int(regex_match.group('hour2')) and \
+                   int(regex_match.group('hour')) > int(regex_match.group('hour2')) + 10:
+                    logging.debug('Correcting day of MediathekView file: file started after midnight, so I increment the day here.')
+                    new_datestamp = self.get_incremented_date_string_from_named_groups(regex_match)
+                else:
+                    new_datestamp = self.get_date_string_from_named_groups(regex_match)
+                
+                newname = new_datestamp + 'T' + \
                     regex_match.group('hour2') + '.' + regex_match.group('minute2') + '.' + regex_match.group('second2') + ' ' + \
                     regex_match.group('channel') + ' - ' + self.get_unique_show_and_title(regex_match.group('show'), regex_match.group('title')) + ' -- ' + \
                     qualitytag + '.mp4'
@@ -1509,6 +1524,17 @@ class GuessFilename(object):
         assert(regex_match.group('month'))
         assert(regex_match.group('year'))
         return regex_match.group('year') + '-' + regex_match.group('month') + '-' + regex_match.group('day')
+
+    def get_incremented_date_string_from_named_groups(self, regex_match):
+        """Extracts YMDHM(S) from match groups and returns YYYY.MM.DDTHH.MM(.SS) from the following day
+        """
+        assert(regex_match)
+        assert(regex_match.group('day'))
+        assert(regex_match.group('month'))
+        assert(regex_match.group('year'))
+        mydatetime = datetime.datetime(int(regex_match.group('year')), int(regex_match.group('month')), int(regex_match.group('day')), 0, 0, 0)
+        the_next_day = mydatetime + datetime.timedelta(days=1)
+        return the_next_day.strftime('%Y-%m-%d')
 
     def get_datetime_description_extension_filename(self, regex_match, replace_description_underscores=False):
         """
