@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8; mode: python; -*-
-# Time-stamp: <2023-03-05 22:19:14 vk>
+# Time-stamp: <2023-03-15 10:52:15 vk>
 
 import unittest
 import logging
@@ -442,7 +442,7 @@ class TestGuessFilename(unittest.TestCase):
   "acodec": "mp4a.40.2",
   "dislike_count": 3,
   "abr": 96,
-  "duration_string": "42:42:42",
+  "duration_string": "12:34:56",
   "creator": null,
   "filesize": 26294671,
   "id": "Ahg8OBYixL0",
@@ -462,7 +462,7 @@ class TestGuessFilename(unittest.TestCase):
         new_mediafilename = self.guess_filename.handle_file(mediafile, False)
         assert(type(new_mediafilename) == str)
         new_mediafilename_generated = os.path.join(tmpdir, new_mediafilename)
-        new_mediafilename_comparison = os.path.join(tmpdir, "2007-09-13 youtube - The Star7 PDA Prototype - Ahg8OBYixL0 42:42:42.mp4")
+        new_mediafilename_comparison = os.path.join(tmpdir, "2007-09-13 youtube - The Star7 PDA Prototype - Ahg8OBYixL0 12;34;56.mp4")
         self.assertEqual(new_mediafilename_generated, new_mediafilename_comparison)
 
         os.remove(new_mediafilename_generated)

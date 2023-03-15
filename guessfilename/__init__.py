@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2023-03-05 22:44:21 vk>"
+PROG_VERSION = u"Time-stamp: <2023-03-15 10:52:13 vk>"
 
 
 # TODO:
@@ -972,7 +972,7 @@ class GuessFilename(object):
                 logging.debug('derive_new_filename_from_json_metadata: found all ' +
                               'required meta data for YouTube download file style')
                 # example from unit tests: "2007-09-13 youtube - The Star7 PDA Prototype - Ahg8OBYixL0.mp4"
-                return data['upload_date'][:4] + '-' + data['upload_date'][4:6] + '-' + data['upload_date'][6:] + ' ' + data["extractor"] + ' - ' + data["fulltitle"] + ' - ' + data["display_id"] + ' ' + data["duration_string"] + '.' + data["ext"]
+                return data['upload_date'][:4] + '-' + data['upload_date'][4:6] + '-' + data['upload_date'][6:] + ' ' + data["extractor"] + ' - ' + data["fulltitle"] + ' - ' + data["display_id"] + ' ' + data["duration_string"].replace(':', ';') + '.' + data["ext"]
             else:
                 logging.debug('derive_new_filename_from_json_metadata: found all required meta data ' +
                               'for YouTube download file style but upload_date or extractor_key do ' +
