@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2023-03-15 10:52:13 vk>"
+PROG_VERSION = u"Time-stamp: <2023-05-16 16:25:50 vk>"
 
 
 # TODO:
@@ -695,15 +695,6 @@ class GuessFilename(object):
         if regex_match:
             return self.get_datetime_description_extension_filename(regex_match, replace_description_underscores=True)
 
-        # 2019-05-24: this is a workaround until PDF file decryption in PyPDF2 is fixed for parsing the content id:2019-05-24-guessfilename-salary
-        if extension.upper() == "PDF" and self.config.SALARY_STARTSTRING in oldfilename and datetimestr:
-            # print out password to stdout in order to give the user a
-            # hint when he wants to open the PDF in a PDF viewer
-            print(' ' * 7 + colorama.Style.DIM + '→  PDF file password: ' + self.config.SALARY_PDF_PASSWORD +
-                  colorama.Style.RESET_ALL)
-            return datetimestr + ' ' + self.config.SALARY_DESCRIPTION + ' MONTH - SALARY' + \
-                '€ -- detego private.pdf'
-
         # 2019-10-10: '2019-10-10 a file exported by Boox Max 2-Exported.pdf' or
         #             '2019-10-10 a file exported by Boox Max 2 -- notes-Exported.pdf' become
         #         ->  '2019-10-10 a file exported by Boox Max 2 -- notes.pdf'
@@ -802,32 +793,34 @@ class GuessFilename(object):
             logging.debug("File is not a PDF file and thus can't be parsed by this script: %s" % filename)
             return False
 
-        try:
-            pdffile = PyPDF2.PdfFileReader(open(filename, "rb"))
+#        try:
+        pdffile = pypdf.PdfReader(open(filename, "rb"))
+        #pdffile = PyPDF2.PdfFileReader(open(filename, "rb"))
 
-            # if PDF is encryped, try password stored in config file
-            # or quit this function if decryption is not successful
-            if pdffile.isEncrypted:
-                returncode = pdffile.decrypt(self.config.SALARY_PDF_PASSWORD)
-                if returncode < 1:
-                    logging.error('PDF file is encrypted and could NOT be decrypted using ' +
-                                  'config.SALARY_PDF_PASSWORD. Skipping content analysis.')
-                    return False
-                else:
-                    logging.debug('PDF file is encrypted and could be decrypted using ' +
-                                  'config.SALARY_PDF_PASSWORD. Return code = ' + str(returncode))
+        if pdffile.is_encrypted:
+            logging.debug("derive_new_filename_from_content: if PDF is encryped, try password stored in config file or quit this function if decryption is not successful")
+            returncode = pdffile.decrypt(self.config.DEFAULT_PDF_PASSWORD)
+            if returncode < 1:
+                logging.error('PDF file is encrypted and could NOT be decrypted using ' +
+                              'config.DEFAULT_PDF_PASSWORD. Skipping content analysis.')
+                return False
+            else:
+                logging.debug('PDF file is encrypted and could be decrypted using ' +
+                              'config.DEFAULT_PDF_PASSWORD. Return code = ' + str(returncode))
+        else:
+            logging.debug("derive_new_filename_from_content: PDF is not encryped")
 
             # use first and second page of content only:
-            if pdffile.getNumPages() > 1:
-                content = pdffile.pages[0].extractText() + pdffile.pages[1].extractText()
-            elif pdffile.getNumPages() == 1:
-                content = pdffile.pages[0].extractText()
+            if len(pdffile.pages) > 1:
+                content = pdffile.pages[0].extract_text() + pdffile.pages[1].extract_text()
+            elif len(pdffile.pages) == 1:
+                content = pdffile.pages[0].extract_text()
             else:
                 logging.error('Could not determine number of pages of PDF content! (skipping content analysis)')
                 return False
-        except:
-            logging.error('Could not read PDF file content. Skipping its content.')
-            return False
+#        except:
+#            logging.error('Could not read PDF file content. Skipping its content.')
+#            return False
 
         if len(content) == 0:
             logging.info('Could read PDF file content but it is empty (skipping content analysis)')
@@ -837,43 +830,21 @@ class GuessFilename(object):
         # structure of the author's salary processing software.
         # Therefore, this most likely does not work for your salary
         # PDF file.
-        if extension.upper() == "PDF" and self.config.SALARY_STARTSTRING in filename:
-            #content = content.replace('\n', '')  # there is a '\n' after each character
-            # 2019-05-24: new file format for salary PDF can not be parsed by PyPDF2: id:2019-05-24-guessfilename-salary
-            ##   File "/home/vk/bin/guessfilename", line 1055, in derive_new_filename_from_content
-            ##     returncode = pdffile.decrypt(self.config.SALARY_PDF_PASSWORD)
-            ##   File "/usr/lib/python3/dist-packages/PyPDF2/pdf.py", line 1987, in decrypt
-            ##     return self._decrypt(password)
-            ##   File "/usr/lib/python3/dist-packages/PyPDF2/pdf.py", line 1996, in _decrypt
-            ##     raise NotImplementedError("only algorithm code 1 and 2 are supported")
-            ## NotImplementedError: only algorithm code 1 and 2 are supported
-            ##
-            ## producer of PDF file: "wPDF4 by WPCubed GmbH" "PDF v. 1.7"
-            ## might relate to: https://github.com/mstamy2/PyPDF2/issues/378
+        if extension == "PDF" and \
+           self.config.SALARY_IDSTRING in filename:
+            #logging.debug('PARSING SALARY FILE ...')
+            content = content.replace('\n', '•')  # to simplify regex match below
 
             try:
-                # should parse starting sequence of
-                # "^.LOHN/GEHALTSABRECHNUNG JÄNNER 2018Klien..." and
-                # return "Jaenner"
-                month_of_salary = re.match(r'.LOHN.*/.*GEHALTSABRECHNUNG (.+) .+', content).group(1).capitalize().replace('ä', 'ae')
-            except:
-                logging.error('derive_new_filename_from_content(' + filename + '): I recognized pattern ' +
-                              'for salary file but content format for extracting month must have changed.')
-                month_of_salary = 'FIXXME'
-            try:
-                # should extract "2.345,67" from following sequence
-                # ".+SZAbzüge1.234,56Netto2.345,67IBAN:.+"
-                net_salary = re.match(r'.+Netto(\d\.\d{3},\d{2})IBAN.+', content).group(1)
+                net_salary = re.match(r'.+•Netto (?P<salary>\d\.\d{3},\d{2})•=+.+', content).group('salary')
+                logging.debug('found salary: ' + str(net_salary))
             except:
                 logging.error('derive_new_filename_from_content(' + filename + '): I recognized pattern ' +
                               'for salary file but content format for extracting net salary must have changed.')
                 net_salary = 'FIXXME'
-            # print out password to stdout in order to give the user a
-            # hint when he wants to open the PDF in a PDF viewer
-            print(' ' * 7 + colorama.Style.DIM + '→  PDF file password: ' + self.config.SALARY_PDF_PASSWORD +
-                  colorama.Style.RESET_ALL)
-            return datetimestr + ' ' + self.config.SALARY_DESCRIPTION + ' ' + month_of_salary + ' - ' + \
-                net_salary + '€ -- detego private.pdf'
+
+            return filename[:-4] + ' - ' + \
+                net_salary + '€ -- ' + self.config.SALARY_COMPANY_NAME + ' private.pdf'
 
         # 2010-06-08 easybank - neue TAN-Liste -- scan private.pdf
         if self.fuzzy_contains_all_of(content, ["Transaktionsnummern (TANs)", "Ihre TAN-Liste in Verlust geraten"]) and \
