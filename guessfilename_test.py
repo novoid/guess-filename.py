@@ -2,6 +2,11 @@
 # -*- coding: utf-8; mode: python; -*-
 # Time-stamp: <2023-03-15 10:52:15 vk>
 
+# This script checks the functionality provided by guessfilename.
+# Its execution depends on pytest (see https://docs.pytest.org/en/
+# for additional details).  Depending on your local installation,
+# the tests are launched by either command `pytest`, or `pytest-3`.
+
 import unittest
 import logging
 import tempfile
