@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2023-05-16 16:25:50 vk>"
+PROG_VERSION = u"Time-stamp: <2023-09-30 10:35:59 vk>"
 
 
 # TODO:
@@ -300,6 +300,9 @@ class GuessFilename(object):
 
     # KVR-2022-08-09-14-00-16.txt -> 2022-08-09T14.00.16.mp4
     KVR_REGEX = re.compile(r'KVR-' + DATESTAMP_REGEX + '-' + TIMESTAMP_REGEX + r'(?P<description>.+?)?\.(?P<extension>wav|mp3|mp4|txt)')
+    
+    # ÖMAG "2023-09-27_OeMAG_Einspeisentgelt Nr. 0004313038.PDF" → "2023-09-27 OeMAG Einspeisentgelt Nr. 0004313038 15,70€ -- bill.pdf"
+    OEMAG_REGEX = re.compile('' + DATESTAMP_REGEX + '.*Einspeisentgelt Nr. 0004313038.PDF')
     
     logger = None
     config = None
@@ -769,6 +772,13 @@ class GuessFilename(object):
         if regex_match:
             return self.get_datetime_description_extension_filename(regex_match, replace_description_underscores=True)
 
+        # ÖMAG "2023-09-27_OeMAG_Einspeisentgelt Nr. 0004313038.PDF" → "2023-09-27 OeMAG Einspeisentgelt Nr. 0004313038 15,70€ -- bill.pdf"
+        regex_match = re.match(self.OEMAG_REGEX, oldfilename)
+        if regex_match:
+            return regex_match.group('year') + '-' + regex_match.group('month') + '-' + regex_match.group('day') + \
+                ' OeMAG Einspeisentgelt Nr. 0004313038 € -- bill.pdf'
+
+        
         # FIXXME: more cases!
 
         return False  # no new filename found
