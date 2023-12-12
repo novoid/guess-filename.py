@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2023-12-12 18:20:13 vk>"
+PROG_VERSION = u"Time-stamp: <2023-12-12 18:26:55 vk>"
 
 
 # TODO:
@@ -865,7 +865,7 @@ class GuessFilename(object):
                               'for salary file but content format for extracting net salary must have changed.')
                 net_salary = 'FIXXME'
 
-            return datestring + ' ' + self.config.SALARY_IDSTRING + ' ' + year_str + '-' +  month_str + ' - ' + \
+            return datestring + ' ' + self.config.SALARY_IDSTRING + ' ' + year_str + '-' +  month_str + ' ' + \
                 net_salary + '€ -- ' + self.config.SALARY_COMPANY_NAME + ' private.pdf'
 
         # 2010-06-08 easybank - neue TAN-Liste -- scan private.pdf
