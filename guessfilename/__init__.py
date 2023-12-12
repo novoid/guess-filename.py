@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2023-09-30 10:35:59 vk>"
+PROG_VERSION = u"Time-stamp: <2023-12-12 18:20:13 vk>"
 
 
 # TODO:
@@ -303,7 +303,7 @@ class GuessFilename(object):
     
     # ÖMAG "2023-09-27_OeMAG_Einspeisentgelt Nr. 0004313038.PDF" → "2023-09-27 OeMAG Einspeisentgelt Nr. 0004313038 15,70€ -- bill.pdf"
     OEMAG_REGEX = re.compile('' + DATESTAMP_REGEX + '.*Einspeisentgelt Nr. 0004313038.PDF')
-    
+
     logger = None
     config = None
 
@@ -632,26 +632,26 @@ class GuessFilename(object):
                 " -- " + ' '.join(self.adding_tags(tags, ['scan', 'bill'])) + \
                 ".pdf"
 
-        # 2015-04-30 FH St.Poelten - Abrechnungsbeleg 12,34 EUR - Honorar -- scan fhstp.pdf
-        if self.contains_all_of(oldfilename, [" FH ", "Abrechnungsbeleg"]) and self.has_euro_charge(oldfilename) and datetimestr:
-            return datetimestr + \
-                " FH St.Poelten - Abrechnungsbeleg " + self.get_euro_charge(oldfilename) + \
-                "€ Honorar -- " + ' '.join(self.adding_tags(tags, ['fhstp'])) + \
-                ".pdf"
+#        # 2015-04-30 FH St.Poelten - Abrechnungsbeleg 12,34 EUR - Honorar -- scan fhstp.pdf
+#        if self.contains_all_of(oldfilename, [" FH ", "Abrechnungsbeleg"]) and self.has_euro_charge(oldfilename) and datetimestr:
+#            return datetimestr + \
+#                " FH St.Poelten - Abrechnungsbeleg " + self.get_euro_charge(oldfilename) + \
+#                "€ Honorar -- " + ' '.join(self.adding_tags(tags, ['fhstp'])) + \
+#                ".pdf"
 
-        # 2016-02-26 Gehaltszettel Februar 12,34 EUR -- scan infonova.pdf
-        if self.contains_all_of(oldfilename, ["Gehalt", "infonova"]) and self.has_euro_charge(oldfilename) and datetimestr:
-            return datetimestr + \
-                " Gehaltszettel " + self.get_euro_charge(oldfilename) + \
-                "€ -- " + ' '.join(self.adding_tags(tags, ['scan', 'infonova'])) + \
-                ".pdf"
+#        # 2016-02-26 Gehaltszettel Februar 12,34 EUR -- scan infonova.pdf
+#        if self.contains_all_of(oldfilename, ["Gehalt", "infonova"]) and self.has_euro_charge(oldfilename) and datetimestr:
+#            return datetimestr + \
+#                " Gehaltszettel " + self.get_euro_charge(oldfilename) + \
+#                "€ -- " + ' '.join(self.adding_tags(tags, ['scan', 'infonova'])) + \
+#                ".pdf"
 
-        # 2021-05-30 Lohn- Gehaltsabrechnung Februar 12,34 EUR -- scan rise.pdf
-        if self.contains_all_of(oldfilename, ["Gehalt", "rise"]) and self.has_euro_charge(oldfilename) and datetimestr:
-            return datetimestr + \
-                " Lohn- Gehaltsabrechnung " + self.get_euro_charge(oldfilename) + \
-                "€ -- " + ' '.join(self.adding_tags(tags, ['scan', 'rise'])) + \
-                ".pdf"
+#        # 2021-05-30 Lohn- Gehaltsabrechnung Februar 12,34 EUR -- scan rise.pdf
+#        if self.contains_all_of(oldfilename, ["Karl-Voit-Gehaltszettel-"]) and self.has_euro_charge(oldfilename) and datetimestr:
+#            return datetimestr + \
+#                " Lohn- Gehaltsabrechnung " + self.get_euro_charge(oldfilename) + \
+#                "€ -- " + ' '.join(self.adding_tags(tags, ['scan', 'rise'])) + \
+#                ".pdf"
 
         # 2012-05-26T22.25.12_IMAG0861 Rage Ergebnis - MITSPIELER -- games.jpg
         if self.contains_one_of(basefilename, ["Hive", "Rage", "Stratego"]) and \
@@ -840,20 +840,32 @@ class GuessFilename(object):
         # structure of the author's salary processing software.
         # Therefore, this most likely does not work for your salary
         # PDF file.
-        if extension == "PDF" and \
-           self.config.SALARY_IDSTRING in filename:
-            #logging.debug('PARSING SALARY FILE ...')
+        # example:  SALARY_IDSTRING-09-2023.PDF  →  2023-10-01 SALARY_IDSTRING 2023-09 - 1.234,56€ -- COMPANY private.pdf
+        regex_match = re.match(self.config.SALARY_IDSTRING + r'-(?P<sal_month>\d{2})-(?P<sal_year>\d{4}).PDF', basename)
+        if regex_match:
+            logging.debug('PARSING SALARY FILE ...')
             content = content.replace('\n', '•')  # to simplify regex match below
 
+            # determine datestamp which should be the 1st of the followup month: 2023-12 → 2024-01-01
+            month_str = regex_match.group('sal_month')
+            year_str = regex_match.group('sal_year')
+            month = int(month_str)
+            year = int(year_str)
+            if month < 12:
+                datestring = str(year) + '-' + str(month + 1) + '-01'
+            else:
+                datestring = str(year + 1) + '-01-01'
+
+            # trying to extract the net salary value:
             try:
-                net_salary = re.match(r'.+•Netto (?P<salary>\d\.\d{3},\d{2})•=+.+', content).group('salary')
+                net_salary = re.match(r'.+•Netto (?P<salary>\d\.\d{3},\d{2})•+.+', content).group('salary')
                 logging.debug('found salary: ' + str(net_salary))
             except:
                 logging.error('derive_new_filename_from_content(' + filename + '): I recognized pattern ' +
                               'for salary file but content format for extracting net salary must have changed.')
                 net_salary = 'FIXXME'
 
-            return filename[:-4] + ' - ' + \
+            return datestring + ' ' + self.config.SALARY_IDSTRING + ' ' + year_str + '-' +  month_str + ' - ' + \
                 net_salary + '€ -- ' + self.config.SALARY_COMPANY_NAME + ' private.pdf'
 
         # 2010-06-08 easybank - neue TAN-Liste -- scan private.pdf
