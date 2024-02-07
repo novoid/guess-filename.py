@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2023-12-12 18:26:55 vk>"
+PROG_VERSION = u"Time-stamp: <2024-02-07 18:57:42 vk>"
 
 
 # TODO:
@@ -933,6 +933,19 @@ class GuessFilename(object):
                 "€ -- " + ' '.join(self.adding_tags(tags, ['scan', 'bill'])) + \
                 ".pdf"
 
+
+        # 2023-11-28_Einspeisentgelt Nr. 0001234567.PDF → 2023-11-28 OeMAG Einspeisentgelt Nr. 0001234567 - 12,34€ -- bill.pdf
+        # basename[11:-4] == "Einspeisentgelt Nr. 0001234567"
+        if self.config and "Einspeisentgelt" in basename:
+
+            floatstr = self.get_euro_charge_from_context_or_basename(content, "Entgelt Brutto              ", "GUTSCHRIFT", basename)
+            return datetimestr + \
+                ' OeMAG ' + basename[11:-4] + ' - ' + floatstr + \
+                "€ -- " + ' '.join(self.adding_tags(tags, ['bill'])) + \
+                ".pdf"
+
+
+            
         # FIXXME: more file documents
 
         return False
