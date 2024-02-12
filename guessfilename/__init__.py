@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2024-02-12 18:18:30 vk>"
+PROG_VERSION = u"Time-stamp: <2024-02-12 18:22:16 vk>"
 
 
 # TODO:
@@ -948,7 +948,6 @@ class GuessFilename(object):
         if self.config and datetimestr and "VSt-Bescheinigung_OEBB-Ticket" in basename:
             ticketnumber = re.match(r".*VSt-Bescheinigung_OEBB-Ticket_(\d+).pdf", basename).group(1)
             floatstr = self.get_euro_charge_from_context_or_basename(content, "endet, mit € ", "belastet.", basename)
-            import pudb; pu.db
             return datetimestr + \
                 ' ÖBB Ticket ' + ticketnumber + ' ' + floatstr + \
                 "€ -- " + ' '.join(self.adding_tags(tags, ['bill'])) + \
