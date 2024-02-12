@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2024-02-07 18:57:42 vk>"
+PROG_VERSION = u"Time-stamp: <2024-02-12 18:18:30 vk>"
 
 
 # TODO:
@@ -944,8 +944,18 @@ class GuessFilename(object):
                 "€ -- " + ' '.join(self.adding_tags(tags, ['bill'])) + \
                 ".pdf"
 
+        # VSt-Bescheinigung_OEBB-Ticket_0396161939296598.pdf → 2024-02-12 ÖBB Ticket 0396161939296598 12,34€ -- bill.pdf
+        if self.config and datetimestr and "VSt-Bescheinigung_OEBB-Ticket" in basename:
+            ticketnumber = re.match(r".*VSt-Bescheinigung_OEBB-Ticket_(\d+).pdf", basename).group(1)
+            floatstr = self.get_euro_charge_from_context_or_basename(content, "endet, mit € ", "belastet.", basename)
+            import pudb; pu.db
+            return datetimestr + \
+                ' ÖBB Ticket ' + ticketnumber + ' ' + floatstr + \
+                "€ -- " + ' '.join(self.adding_tags(tags, ['bill'])) + \
+                ".pdf"
 
-            
+        
+        
         # FIXXME: more file documents
 
         return False
