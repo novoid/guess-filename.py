@@ -852,7 +852,10 @@ class GuessFilename(object):
             month = int(month_str)
             year = int(year_str)
             if month < 12:
-                datestring = str(year) + '-' + str(month + 1) + '-01'
+                if month < 9:
+                    datestring = str(year) + '-0' + str(month + 1) + '-01'
+                else:
+                    datestring = str(year) + '-' + str(month + 1) + '-01'
             else:
                 datestring = str(year + 1) + '-01-01'
 
