@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2024-02-12 18:22:16 vk>"
+PROG_VERSION = u"Time-stamp: <2024-05-29 11:32:39 vk>"
 
 
 # TODO:
@@ -953,6 +953,14 @@ class GuessFilename(object):
                 "€ -- " + ' '.join(self.adding_tags(tags, ['bill'])) + \
                 ".pdf"
 
+        # 2024-05-29: 2024-05-28_Rechnung-nc-3584729.pdf
+        if self.config and datetimestr and "Rechnung-nc-" in basename:
+            billnumber = re.match(r".*nc-(\d+).pdf", basename).group(1)
+            floatstr = self.get_euro_charge_from_context_or_basename(content, "Rechnungsbetrag ", "EUR", basename)
+            return datetimestr + \
+                ' netcup Rechnung ' + billnumber + ' ' + floatstr + \
+                "€ -- " + ' '.join(self.adding_tags(tags, ['bill'])) + \
+                ".pdf"
         
         
         # FIXXME: more file documents
