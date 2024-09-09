@@ -304,6 +304,11 @@ class GuessFilename(object):
     # ÖMAG "2023-09-27_OeMAG_Einspeisentgelt Nr. 0004313038.PDF" → "2023-09-27 OeMAG Einspeisentgelt Nr. 0004313038 15,70€ -- bill.pdf"
     OEMAG_REGEX = re.compile('' + DATESTAMP_REGEX + '.*Einspeisentgelt Nr. 0004313038.PDF')
 
+    # 20240901-123_7Energy_Karl-Voit_Rechnung-02-2024.pdf
+    SEVENENERGY_REGEX = re.compile(DATESTAMP_REGEX + r'-(?P<billnumber>\d\d\d)_7Energy_Karl-Voit_Rechnung-' + \
+                                   r'(?P<billmonth>\d\d)-'
+                                   r'(?P<billyear>\d\d\d\d).pdf$', re.UNICODE)
+    
     logger = None
     config = None
 
@@ -836,6 +841,8 @@ class GuessFilename(object):
             logging.info('Could read PDF file content but it is empty (skipping content analysis)')
             return False
 
+        # import pudb; pu.db
+        
         # Salary - NOTE: this is highly specific to the PDF file
         # structure of the author's salary processing software.
         # Therefore, this most likely does not work for your salary
@@ -965,7 +972,24 @@ class GuessFilename(object):
                 "€ -- " + ' '.join(self.adding_tags(tags, ['bill'])) + \
                 ".pdf"
         
-        
+        # 2024-09-09: 20240901-123_7Energy_Karl-Voit_Rechnung-02-2024.pdf → 2024-09-01 7Energy Verbrauch Rechnung für 2024-02 - 1,23€ - Re-Nr. 20240904-123 -- bill.pdf
+        if self.config and datetimestr and "_7Energy_" in basename:
+            regex_match = re.match(self.SEVENENERGY_REGEX, basename)
+            if regex_match:
+                billamount = self.get_euro_charge_from_context_or_basename(content, "GESAMTSUMME ", " €", basename)
+                billtypeindicator = self.get_string_from_context(content,
+                                                                 "du hast in der 7Energy - BEG momentan folgende Zählpunkte angemeldet:\n",
+                                                                 ":\nAT")
+                if billtypeindicator == 'Verbrauchszählpunkt':
+                    billtype = 'Verbrauch'
+                elif billtypeindicator == 'Einspeisezählpunkt':
+                    billtype = 'Einspeisung'
+                else:
+                    billtype = 'FIXXME nicht erkannt (Verbrauch oder Einspeisung)'
+                return f"{self.get_date_string_short_date_string(datetimestr)} 7Energy {billtype} Rechnung für {regex_match.group('billyear')}-{regex_match.group('billmonth')} - {billamount}€ - Re-Nr. {basename[:12]} -- bill.pdf"
+
+
+            
         # FIXXME: more file documents
 
         return False
