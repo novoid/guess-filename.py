@@ -1492,6 +1492,27 @@ class GuessFilename(object):
             logging.debug("get_euro_charge_from_context was not able to extract a float: between [%s] and [%s] within [%s]" % (before, after, string[:30] + "..."))
             return False
 
+    def get_string_from_context(self, string, before, after):
+        """
+        Returns the included string which is between before and after strings or False.
+        This is a special case which is similar to get_euro_charge_from_context() but it doesn't check for floats or context range.
+        """
+
+        assert(type(string) == str or type(string) == str)
+        assert(type(before) == str or type(before) == str)
+        assert(type(after) == str or type(after) == str)
+        assert(len(string) > 0)
+
+        components = re.search(".*" + before + r"(.*)" + after + ".*", string)
+
+        if components:
+            mystring = components.group(1)
+            return mystring
+        else:
+            logging.warning("Sorry, I was not able to extract a string for this file, please fix manually")
+            logging.debug("get_string_from_context was not able to extract a string: between [%s] and [%s] within [%s]" % (before, after, string[:30] + "..."))
+            return False
+
     def rename_file(self, dirname, oldbasename, newbasename, dryrun=False, quiet=False):
         """
         Renames a file from oldbasename to newbasename in dirname.
