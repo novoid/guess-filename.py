@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2024-05-29 11:32:39 vk>"
+PROG_VERSION = u"Time-stamp: <2024-09-09 18:58:15 vk>"
 
 
 # TODO:
@@ -1543,13 +1543,34 @@ class GuessFilename(object):
             regex_match.group('hour') + '.' + regex_match.group('minute') + second
 
     def get_date_string_from_named_groups(self, regex_match):
-        """Extracts YMDHM(S) from match groups and returns YYYY.MM.DDTHH.MM(.SS)
+        """Extracts YMDHM(S) from match groups and returns YYYY.MM.DD
         """
         assert(regex_match)
         assert(regex_match.group('day'))
         assert(regex_match.group('month'))
         assert(regex_match.group('year'))
         return regex_match.group('year') + '-' + regex_match.group('month') + '-' + regex_match.group('day')
+
+    def is_int(self, string):
+        """
+        Checks if a given string can be casted to an integer without an error.
+    
+        @param string: string that potentially contains an integer number as text
+        @param return: boolean that reflects if the string contains an integer
+        """
+        try:
+            val = int(string)
+            return val
+        except ValueError:
+            return False
+
+    def get_date_string_short_date_string(self, shortstring):
+        """Converts YYYYMMDD to YYYY-MM-DD
+        """
+        assert(shortstring)
+        assert(self.is_int(shortstring))
+        assert(len(shortstring)==8)
+        return f"{shortstring[:4]}-{shortstring[4:6]}-{shortstring[6:8]}"
 
     def get_incremented_date_string_from_named_groups(self, regex_match):
         """Extracts YMDHM(S) from match groups and returns YYYY.MM.DDTHH.MM(.SS) from the following day
