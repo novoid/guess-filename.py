@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2024-09-09 18:58:15 vk>"
+PROG_VERSION = u"Time-stamp: <2024-09-26 12:41:19 vk>"
 
 
 # TODO:
@@ -308,6 +308,9 @@ class GuessFilename(object):
     SEVENENERGY_REGEX = re.compile(DATESTAMP_REGEX + r'-(?P<billnumber>\d\d\d)_7Energy_Karl-Voit_Rechnung-' + \
                                    r'(?P<billmonth>\d\d)-'
                                    r'(?P<billyear>\d\d\d\d).pdf$', re.UNICODE)
+
+    # CallRecord_20240925-225756_+4366012345678.abc=
+    CALLRECORD_REGEX = re.compile(r'CallRecord_' + DATESTAMP_REGEX + r'-' + TIMESTAMP_REGEX + r'_(?P<number>\+\d+)\.(?P<extension>.+)')
     
     logger = None
     config = None
@@ -782,6 +785,15 @@ class GuessFilename(object):
         if regex_match:
             return regex_match.group('year') + '-' + regex_match.group('month') + '-' + regex_match.group('day') + \
                 ' OeMAG Einspeisentgelt Nr. 0004313038 € -- bill.pdf'
+
+        # CallRecord_20240925-225756_+4366012345678.abc → 2024-09-25T22.57.56 Call record - +4366012345678.abc
+        if oldfilename.startswith('CallRecord_'):
+            regex_match = re.match(self.CALLRECORD_REGEX, oldfilename)
+            if regex_match:
+                return regex_match.group('year') + '-' + regex_match.group('month') + '-' + regex_match.group('day') + 'T' + \
+                    regex_match.group('hour') + '.' + regex_match.group('minute') + '.' + regex_match.group('second') + f" Call record - {regex_match.group('number')}.{regex_match.group('extension')}"
+            else:
+                logging.warning('File name starts with "CallRecord_" but CALLRECORD_REGEX did not match: ' + oldfilename)
 
         
         # FIXXME: more cases!
