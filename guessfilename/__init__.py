@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2024-09-26 12:41:19 vk>"
+PROG_VERSION = u"Time-stamp: <2024-10-08 18:20:16 vk>"
 
 
 # TODO:
@@ -305,7 +305,8 @@ class GuessFilename(object):
     OEMAG_REGEX = re.compile('' + DATESTAMP_REGEX + '.*Einspeisentgelt Nr. 0004313038.PDF')
 
     # 20240901-123_7Energy_Karl-Voit_Rechnung-02-2024.pdf
-    SEVENENERGY_REGEX = re.compile(DATESTAMP_REGEX + r'-(?P<billnumber>\d\d\d)_7Energy_Karl-Voit_Rechnung-' + \
+    # 20241001-123_7Energy---BEG_Karl-Voit_Rechnung-05-2024.pdf
+    SEVENENERGY_REGEX = re.compile(DATESTAMP_REGEX + r'-(?P<billnumber>\d\d\d)_7Energy(---BEG)?_Karl-Voit_Rechnung-' + \
                                    r'(?P<billmonth>\d\d)-'
                                    r'(?P<billyear>\d\d\d\d).pdf$', re.UNICODE)
 
@@ -985,7 +986,7 @@ class GuessFilename(object):
                 ".pdf"
         
         # 2024-09-09: 20240901-123_7Energy_Karl-Voit_Rechnung-02-2024.pdf → 2024-09-01 7Energy Verbrauch Rechnung für 2024-02 - 1,23€ - Re-Nr. 20240904-123 -- bill.pdf
-        if self.config and datetimestr and "_7Energy_" in basename:
+        if self.config and datetimestr and "_7Energy" in basename:
             regex_match = re.match(self.SEVENENERGY_REGEX, basename)
             if regex_match:
                 billamount = self.get_euro_charge_from_context_or_basename(content, "GESAMTSUMME ", " €", basename)
