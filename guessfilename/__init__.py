@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2024-11-17 16:07:55 vk>"
+PROG_VERSION = u"Time-stamp: <2025-09-09 15:51:29 rise>"
 
 
 # TODO:
@@ -164,7 +164,7 @@ class GuessFilename(object):
 
     # Screenshot_2017-11-29_10-32-12.png
     # Screenshot_2017-11-07_07-52-59 my description.png
-    MISC_SCREENSHOT_REGEX = re.compile(r'Screenshot_' + DATESTAMP_REGEX + r'[-_T]' + TIMESTAMP_REGEX + \
+    MISC_SCREENSHOT_REGEX = re.compile(r'Screenshot(_)?( From )?' + DATESTAMP_REGEX + r'[-_T ]' + TIMESTAMP_REGEX + \
                                        r'(?P<description>.*)?\.(?P<extension>png|jpg)', re.UNICODE)
 
     # Firefox_Screenshot_2018-05-03T20-07-14.972Z.png
