@@ -16,3 +16,5 @@ venv/
 .mypy_cache
 *.PDF
 *.pdf
+.python-version
+uv.lock

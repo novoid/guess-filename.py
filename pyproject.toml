@@ -1,0 +1,13 @@
+[project]
+name = "guess-filename-py"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "colorama>=0.4.6",
+    "fuzzywuzzy>=0.18.0",
+    "levenshtein>=0.27.1",
+    "pudb>=2025.1",
+    "pypdf>=6.0.0",
+]
