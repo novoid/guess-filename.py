@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
+
 PROG_VERSION = u"Time-stamp: <2026-02-28 15:25:42 vk>"
 
 
@@ -23,6 +25,7 @@ from optparse import OptionParser
 import colorama
 import datetime  # for calculating duration of chunks
 import json  # to parse JSON meta-data files
+from typing import Any, NoReturn
 
 try:
     from fuzzywuzzy import fuzz  # for fuzzy comparison of strings
@@ -82,7 +85,7 @@ parser.add_option("--version", dest="version", action="store_true",
 (options, args) = parser.parse_args()
 
 
-def handle_logging():
+def handle_logging() -> None:
     """Log handling and configuration"""
 
     if options.verbose:
@@ -96,7 +99,7 @@ def handle_logging():
         logging.basicConfig(level=logging.INFO, format=FORMAT)
 
 
-def error_exit(errorcode, text):
+def error_exit(errorcode: int, text: str) -> NoReturn:
     """exits with return value of errorcode and prints to stderr"""
 
     sys.stdout.flush()
@@ -110,10 +113,10 @@ class FileSizePlausibilityException(Exception):
     Exception for file sizes being to small according to their duration and quality indicator
     """
 
-    def __init__(self, message):
+    def __init__(self, message: str) -> None:
         self.value = message
 
-    def __str__(self):
+    def __str__(self) -> str:
         return repr(self.value)
 
 
@@ -313,15 +316,15 @@ class GuessFilename(object):
     # CallRecord_20240925-225756_+4366012345678.abc=
     CALLRECORD_REGEX = re.compile(r'CallRecord_' + DATESTAMP_REGEX + r'-' + TIMESTAMP_REGEX + r'_(?P<number>\+\d+)\.(?P<extension>.+)')
     
-    logger = None
-    config = None
+    logger: logging.Logger | None = None
+    config: Any = None
 
 
-    def __init__(self, config, logger):
+    def __init__(self, config: Any, logger: logging.Logger) -> None:
         self.logger = logger
         self.config = config
 
-    def get_unique_show_and_title(self, show, title):
+    def get_unique_show_and_title(self, show: str, title: str) -> str:
         """If show starts with title (or vice versa), omit the redundant one and use the longer string"""
     
         ## if show in contained in title (or vice versa), omit the redundant one:
@@ -335,7 +338,7 @@ class GuessFilename(object):
             return show + ' - ' + title
         
         
-    def derive_new_filename_from_old_filename(self, oldfilename):
+    def derive_new_filename_from_old_filename(self, oldfilename: str) -> str | bool:
         """
         Analyses the old filename and returns a new one if feasible.
         If not, False is returned instead.
@@ -523,7 +526,7 @@ class GuessFilename(object):
                     # but with varying quality indicator: Q4A (low), Q6A (high), Q8C (HD)
                     film_regex_match = re.match(self.FILM_URL_REGEX, film_url)
 
-                    def compare_YMDhm(regex_match, film_regex_match):
+                    def compare_YMDhm(regex_match: re.Match[str], film_regex_match: re.Match[str]) -> bool:
                         "Compare, if date and time are same in both regex_match"
                         return regex_match.group('year') == film_regex_match.group('year') and \
                             regex_match.group('month') == film_regex_match.group('month') and \
@@ -549,6 +552,7 @@ class GuessFilename(object):
                         url_valid = True
 
                 # "lowquality" or "highquality" or "UNKNOWNQUALITY"
+                assert film_regex_match
                 qualitytag = self.translate_ORF_quality_string_to_tag(film_regex_match.group(len(film_regex_match.groups())).upper())
 
                 # e.g., "2018-06-08T"
@@ -614,16 +618,20 @@ class GuessFilename(object):
         if 'teilbetragsrechnung' in oldfilename.lower() and \
            'oekostrom' in oldfilename.lower() and \
            datetimestr and self.has_euro_charge(oldfilename):
+            euro_charge = self.get_euro_charge(oldfilename)
+            assert isinstance(euro_charge, str)
             return datetimestr + \
                 " oekostrom AG - Teilbetragsrechnung Stromverbrauch " + \
-                self.get_euro_charge(oldfilename) + \
+                euro_charge + \
                 "€ -- " + ' '.join(self.adding_tags(tags, ['scan', 'bill'])) + \
                 ".pdf"
 
         # 2015-11-24 Rechnung A1 Festnetz-Internet 12,34€ -- scan bill.pdf
         if self.contains_one_of(oldfilename, [" A1 ", " a1 "]) and self.has_euro_charge(oldfilename) and datetimestr:
+            euro_charge = self.get_euro_charge(oldfilename)
+            assert isinstance(euro_charge, str)
             return datetimestr + \
-                " A1 Festnetz-Internet " + self.get_euro_charge(oldfilename) + \
+                " A1 Festnetz-Internet " + euro_charge + \
                 "€ -- " + ' '.join(self.adding_tags(tags, ['scan', 'bill'])) + \
                 ".pdf"
 
@@ -664,15 +672,18 @@ class GuessFilename(object):
 
         # 2012-05-26T22.25.12_IMAG0861 Rage Ergebnis - MITSPIELER -- games.jpg
         if self.contains_one_of(basefilename, ["Hive", "Rage", "Stratego"]) and \
-           extension.lower() == 'jpg' and not self.has_euro_charge(oldfilename):
+           extension is not None and extension.lower() == 'jpg' and not self.has_euro_charge(oldfilename):
+            assert datetimestr is not None
             return datetimestr + basefilename + \
                 " - Ergebnis -- games" + \
                 ".jpg"
 
         # 2015-03-11 VBV Kontoinformation 123 EUR -- scan finance infonova.pdf
         if self.contains_all_of(oldfilename, ["VBV", "Kontoinformation"]) and self.has_euro_charge(oldfilename) and datetimestr:
+            euro_charge = self.get_euro_charge(oldfilename)
+            assert isinstance(euro_charge, str)
             return datetimestr + \
-                " VBV Kontoinformation " + self.get_euro_charge(oldfilename) + \
+                " VBV Kontoinformation " + euro_charge + \
                 "€ -- " + ' '.join(self.adding_tags(tags, ['scan', 'finance', 'infonova'])) + \
                 ".pdf"
 
@@ -685,6 +696,7 @@ class GuessFilename(object):
 
         # 2017-09-23 Hipster-PDA file: 2017-08-16-2017-09-23 Hipster-PDA vollgeschrieben -- scan notes.(png|pdf)
         if datetimestr and self.contains_one_of(oldfilename, ["hipster", "Hipster"]):
+            assert extension is not None
             return datetimestr + ' Hipster-PDA vollgeschrieben -- scan notes.' + extension
 
         # Screenshot_2013-03-05-08-14-09.png -> 2013-03-05T08.14.09 -- android screenshots.png
@@ -710,7 +722,7 @@ class GuessFilename(object):
         # 2019-10-10: '2019-10-10 a file exported by Boox Max 2-Exported.pdf' or
         #             '2019-10-10 a file exported by Boox Max 2 -- notes-Exported.pdf' become
         #         ->  '2019-10-10 a file exported by Boox Max 2 -- notes.pdf'
-        if extension.upper() == "PDF" and oldfilename.upper().endswith('-EXPORTED.PDF'):
+        if extension is not None and extension.upper() == "PDF" and oldfilename.upper().endswith('-EXPORTED.PDF'):
             if self.contains_all_of(oldfilename, [" -- ", " notes"]):
                 # FIXXME: assumption is that "notes" is within the
                 #         filetags and not anywhere else:
@@ -743,7 +755,7 @@ class GuessFilename(object):
             return self.get_date_string_from_named_groups(regex_match) + ' Die Presse - Aborechnung Faktura-' + regex_match.group('number') + " -- bill.pdf"
 
         # 2020-03-05: "2020-03-03 Anwesenheitsbestaetigung.pdf"
-        if extension.upper() == "PDF" and datetimestr and 'Anwesenheitsbest' in oldfilename:
+        if extension is not None and extension.upper() == "PDF" and datetimestr and 'Anwesenheitsbest' in oldfilename:
             return datetimestr + ' BHAK Anwesenheitsbestaetigung -- scan.' + extension
 
         # 2020-05-29: Konica Minolta scan file-names: YYMMDDHHmmx
@@ -767,14 +779,18 @@ class GuessFilename(object):
 
         # 2021-07-04 Stromrechnung Voltino
         if datetimestr and self.contains_all_of(oldfilename, ["TZ-Vorschreibung", self.config.VOLTINO_Kundennummer]):
-            return datetimestr + \
+            result: str = datetimestr + \
                 " Voltino Vorschreibung Teilbetrag " + self.config.VOLTINO_Teilbetrag + " -- " + ' '.join(self.adding_tags(tags, ['bill'])) + \
                 ".pdf"
+            return result
 
         # 2022-06-17 Rechtschutzversicherung
         if self.config.RECHTSCHUTZVERSICHERUNG in oldfilename and 'Wertanpassung' in oldfilename and datetimestr and self.has_euro_charge(oldfilename):
-            return datetimestr + ' ' + self.config.RECHTSCHUTZVERSICHERUNG + ' ' + self.config.RECHTSCHUTZPOLIZZE + \
-                ' - Wertanpassung monatliche Versicherungspraemie auf ' + self.get_euro_charge(oldfilename) + '€ -- scan.pdf'
+            euro_charge = self.get_euro_charge(oldfilename)
+            assert isinstance(euro_charge, str)
+            result2: str = datetimestr + ' ' + self.config.RECHTSCHUTZVERSICHERUNG + ' ' + self.config.RECHTSCHUTZPOLIZZE + \
+                ' - Wertanpassung monatliche Versicherungspraemie auf ' + euro_charge + '€ -- scan.pdf'
+            return result2
 
         # KVR-2022-08-09-14-00-16.txt -> 2022-08-09T14.00.16.mp4
         regex_match = re.match(self.KVR_REGEX, oldfilename)
@@ -801,7 +817,7 @@ class GuessFilename(object):
 
         return False  # no new filename found
 
-    def derive_new_filename_from_content(self, dirname, basename):
+    def derive_new_filename_from_content(self, dirname: str, basename: str) -> str | bool:
         """
         Analyses the content of basename and returns a new file name if feasible.
         If not, False is returned instead.
@@ -817,7 +833,7 @@ class GuessFilename(object):
 
         datetimestr, basefilename, tags, extension = self.split_filename_entities(basename)
 
-        if extension.lower() != 'pdf':
+        if extension is None or extension.lower() != 'pdf':
             logging.debug("File is not a PDF file and thus can't be parsed by this script: %s" % filename)
             return False
 
@@ -882,15 +898,18 @@ class GuessFilename(object):
             # trying to extract the net salary value:
             try:
                 #import pudb; pu.db
-                net_salary = re.match(r'.+•Auszahlung  (?P<salary>\d\.\d{3},\d{2})•.+', content).group('salary')
+                salary_match = re.match(r'.+•Auszahlung  (?P<salary>\d\.\d{3},\d{2})•.+', content)
+                assert salary_match
+                net_salary = salary_match.group('salary')
                 logging.debug('found salary: ' + str(net_salary))
             except:
                 logging.error('derive_new_filename_from_content(' + filename + '): I recognized pattern ' +
                               'for salary file but content format for extracting net salary must have changed.')
                 net_salary = 'FIXXME'
 
-            return datestring + ' ' + self.config.SALARY_IDSTRING + ' ' + year_str + '-' +  month_str + ' ' + \
+            salary_result: str = datestring + ' ' + self.config.SALARY_IDSTRING + ' ' + year_str + '-' +  month_str + ' ' + \
                 net_salary + '€ -- ' + self.config.SALARY_COMPANY_NAME + ' private.pdf'
+            return salary_result
 
         # 2010-06-08 easybank - neue TAN-Liste -- scan private.pdf
         if self.fuzzy_contains_all_of(content, ["Transaktionsnummern (TANs)", "Ihre TAN-Liste in Verlust geraten"]) and \
@@ -918,11 +937,12 @@ class GuessFilename(object):
                                                                      "IndiesemBetragistauchdiegesetzlicheVersicherungssteuerenthalten.EUR",
                                                                      "Wird",
                                                                      basename)
-            return datetimestr + \
+            generali_result: str = datetimestr + \
                 " Generali Erhoehung Dynamikklausel - Praemie nun " + floatstr + \
                 "€ - Polizze " + self.config.GENERALI1_POLIZZE_NUMBER + " -- " + \
                 ' '.join(self.adding_tags(tags, ['scan', 'bill'])) + \
                 ".pdf"
+            return generali_result
 
         # 2015-11-30 Merkur Lebensversicherung 123456 - Praemienzahlungsaufforderung 12,34€ -- scan bill.pdf
         if self.config and self.config.MERKUR_GESUNDHEITSVORSORGE_NUMBER in content and \
@@ -932,19 +952,21 @@ class GuessFilename(object):
                                                                      "EUR",
                                                                      "Gesundheit ist ein kostbares Gut",
                                                                      basename)
-            return datetimestr + \
+            merkur_result: str = datetimestr + \
                 " Merkur Lebensversicherung " + self.config.MERKUR_GESUNDHEITSVORSORGE_NUMBER + \
                 " - Praemienzahlungsaufforderung " + floatstr + \
                 "€ -- " + \
                 ' '.join(self.adding_tags(tags, ['scan', 'bill'])) + \
                 ".pdf"
+            return merkur_result
 
         # 2016-02-22 BANK - Darlehnen - Kontomitteilung -- scan taxes.pdf
         if self.config and self.fuzzy_contains_all_of(content, [self.config.LOAN_INSTITUTE, self.config.LOAN_ID]) and datetimestr:
-            return datetimestr + \
+            loan_result: str = datetimestr + \
                 " " + self.config.LOAN_INSTITUTE + " - Darlehnen - Kontomitteilung -- " + \
                 ' '.join(self.adding_tags(tags, ['scan', 'taxes'])) + \
                 ".pdf"
+            return loan_result
 
         # 2015-11-24 Rechnung A1 Festnetz-Internet 12,34€ -- scan bill.pdf
         if self.config and self.fuzzy_contains_all_of(content, [self.config.PROVIDER_CONTRACT, self.config.PROVIDER_CUE]) and datetimestr:
@@ -961,7 +983,7 @@ class GuessFilename(object):
         # 2023-11-28_Einspeisentgelt Nr. 0001234567.PDF → 2023-11-28 OeMAG Einspeisentgelt Nr. 0001234567 - 12,34€ -- bill.pdf
         # basename[11:-4] == "Einspeisentgelt Nr. 0001234567"
         if self.config and "Einspeisentgelt" in basename:
-
+            assert datetimestr is not None
             floatstr = self.get_euro_charge_from_context_or_basename(content, "Entgelt Brutto              ", "GUTSCHRIFT", basename)
             return datetimestr + \
                 ' OeMAG ' + basename[11:-4] + ' - ' + floatstr + \
@@ -970,7 +992,9 @@ class GuessFilename(object):
 
         # VSt-Bescheinigung_OEBB-Ticket_0396161939296598.pdf → 2024-02-12 ÖBB Ticket 0396161939296598 12,34€ -- bill.pdf
         if self.config and datetimestr and "VSt-Bescheinigung_OEBB-Ticket" in basename:
-            ticketnumber = re.match(r".*VSt-Bescheinigung_OEBB-Ticket_(\d+).pdf", basename).group(1)
+            ticket_match = re.match(r".*VSt-Bescheinigung_OEBB-Ticket_(\d+).pdf", basename)
+            assert ticket_match
+            ticketnumber = ticket_match.group(1)
             floatstr = self.get_euro_charge_from_context_or_basename(content, "endet, mit € ", "belastet.", basename)
             return datetimestr + \
                 ' ÖBB Ticket ' + ticketnumber + ' ' + floatstr + \
@@ -979,7 +1003,9 @@ class GuessFilename(object):
 
         # 2024-05-29: 2024-05-28_Rechnung-nc-3584729.pdf
         if self.config and datetimestr and "Rechnung-nc-" in basename:
-            billnumber = re.match(r".*nc-(\d+).pdf", basename).group(1)
+            bill_match = re.match(r".*nc-(\d+).pdf", basename)
+            assert bill_match
+            billnumber = bill_match.group(1)
             floatstr = self.get_euro_charge_from_context_or_basename(content, "Rechnungsbetrag ", "EUR", basename)
             return datetimestr + \
                 ' netcup Rechnung ' + billnumber + ' ' + floatstr + \
@@ -1008,7 +1034,7 @@ class GuessFilename(object):
 
         return False
 
-    def derive_new_filename_from_json_metadata(self, dirname, basename, json_metadata_file):
+    def derive_new_filename_from_json_metadata(self, dirname: str, basename: str, json_metadata_file: str) -> str | bool | None:
         """
         Analyses the content of a JSON metadata file which shares the same basename with the extension '.info.json' and returns a new file name if feasible.
         If not, False is returned instead.
@@ -1040,7 +1066,8 @@ class GuessFilename(object):
                 # slash / → issue with renaming since it is the folder separation characters on most file systems
                 # brackets [] → it interferes with orgdown file link with description
                 sanitized_title = data['fulltitle'].replace('/', u'∕').replace('[', u'⌜').replace(']', u'⌟')
-                return data['upload_date'][:4] + '-' + data['upload_date'][4:6] + '-' + data['upload_date'][6:] + ' ' + data["extractor"] + ' - ' + sanitized_title + ' - ' + data["display_id"] + ' ' + data["duration_string"].replace(':', ';') + '.' + data["ext"]
+                yt_result: str = data['upload_date'][:4] + '-' + data['upload_date'][4:6] + '-' + data['upload_date'][6:] + ' ' + data["extractor"] + ' - ' + sanitized_title + ' - ' + data["display_id"] + ' ' + data["duration_string"].replace(':', ';') + '.' + data["ext"]
+                return yt_result
             else:
                 logging.debug('derive_new_filename_from_json_metadata: found all required meta data ' +
                               'for YouTube download file style but upload_date or extractor_key do ' +
@@ -1069,9 +1096,10 @@ class GuessFilename(object):
                 # "ext": "mp4",
 
                 regex_match = re.match(self.MEDIATHEKVIEW_RAW_REGEX_STRING, data['url'].split('/')[-2:-1][0])
+                assert regex_match
                 qualitytag = self.translate_ORF_quality_string_to_tag(regex_match.group('qualityindicator'))
 
-                newname = self.get_date_string_from_named_groups(regex_match) + 'T' + \
+                newname: str = self.get_date_string_from_named_groups(regex_match) + 'T' + \
                     regex_match.group('hour2') + '.' + regex_match.group('minute2') + '.' + regex_match.group('second2') + ' ORF - ' + \
                     regex_match.group('description').split('_')[0].replace('-', ' ') + ' - ' + data['fulltitle'] + ' -- ' + \
                     qualitytag + '.' + data['ext']
@@ -1087,8 +1115,9 @@ class GuessFilename(object):
             return False
 
         json_data.close()
+        return None
 
-    def derive_new_filename_for_pixel_files(self, dirname, basename, pxl_match):
+    def derive_new_filename_for_pixel_files(self, dirname: str, basename: str, pxl_match: re.Match[str]) -> str | bool:
         """
         Analyzes the content of Pixel 4a camera files using the exif meta data and returns a new file name if feasible.
         If not, False is returned instead.
@@ -1115,7 +1144,7 @@ class GuessFilename(object):
         # These are the metadata criteria that should result in a unique result (only one is true):
 
         ## Helper function for debug output of file format meta data:
-        def print_metadata_table_line(value):
+        def print_metadata_table_line(value: str) -> None:
             if value in metadata.keys():
                 print("| " + str(value) + " | " + str(metadata[value]) + " |")
             else:
@@ -1275,7 +1304,7 @@ class GuessFilename(object):
         logging.debug('derive_new_filename_for_pixel_files: new filename [' + new_filename + ']')
         return new_filename
 
-    def handle_file(self, oldfilename, dryrun):
+    def handle_file(self, oldfilename: str, dryrun: bool) -> str | bool | None:
         """
         @param oldfilename: string containing one file name
         @param dryrun: boolean which defines if files should be changed (False) or not (True)
@@ -1289,12 +1318,12 @@ class GuessFilename(object):
 
         if os.path.isdir(oldfilename):
             logging.debug("handle_file: Skipping directory \"%s\" because this tool only renames file names." % oldfilename)
-            return
+            return None
         elif not os.path.isfile(oldfilename):
             logging.debug("handle_file: file type error in folder [%s]: file type: is file? %s  -  is dir? %s  -  is mount? %s" %
                           (os.getcwd(), str(os.path.isfile(oldfilename)), str(os.path.isdir(oldfilename)), str(os.path.islink(oldfilename))))
             logging.error("Skipping \"%s\" because this tool only renames existing file names." % oldfilename)
-            return
+            return None
 
         print('\n   ' + colorama.Style.BRIGHT + oldfilename + colorama.Style.RESET_ALL + '  ...')
         dirname = os.path.abspath(os.path.dirname(oldfilename))
@@ -1302,7 +1331,7 @@ class GuessFilename(object):
         basename = os.path.basename(oldfilename)
         extension = os.path.splitext(basename)[1].lower()
         logging.debug("————→ basename [%s]" % basename)
-        newfilename = ''
+        newfilename: str | bool | None = ''
 
         pxl_match = self.PXL_REGEX.match(basename)
         if extension in ['.jpg', '.mp4'] and basename.startswith('PXL_') and pxl_match:
@@ -1334,7 +1363,7 @@ class GuessFilename(object):
             else:
                 logging.debug("handle_file: No json metadata file found")
 
-        if newfilename:
+        if isinstance(newfilename, str) and newfilename:
             self.rename_file(dirname, basename, newfilename, dryrun)
             move_to_success_dir(dirname, newfilename)
             return newfilename
@@ -1343,7 +1372,7 @@ class GuessFilename(object):
             move_to_error_dir(dirname, basename)
             return False
 
-    def adding_tags(self, tagarray, newtags):
+    def adding_tags(self, tagarray: list[str], newtags: list[str]) -> list[str]:
         """
         Returns unique array of tags containing the newtag.
 
@@ -1363,7 +1392,7 @@ class GuessFilename(object):
 
         return resulting_tags
 
-    def split_filename_entities(self, filename):
+    def split_filename_entities(self, filename: str) -> tuple[str | None, str, list[str], str | None]:
         """
         Takes a filename of format ( (date(time)?)?(--date(time)?)? )? filename (tags)? (extension)?
         and returns a set of (date/time/duration, filename, array of tags, extension).
@@ -1387,7 +1416,7 @@ class GuessFilename(object):
             tags, \
             components.group('extension')
 
-    def contains_one_of(self, string, entries):
+    def contains_one_of(self, string: str, entries: list[str]) -> bool:
         """
         Returns true, if the string contains one of the strings within entries array
         """
@@ -1403,7 +1432,7 @@ class GuessFilename(object):
 
         return False
 
-    def contains_all_of(self, string, entries):
+    def contains_all_of(self, string: str, entries: list[str]) -> bool:
         """
         Returns true, if the string contains all of the strings within entries array
         """
@@ -1419,7 +1448,7 @@ class GuessFilename(object):
 
         return True
 
-    def fuzzy_contains_one_of(self, string, entries):
+    def fuzzy_contains_one_of(self, string: str, entries: list[str]) -> bool:
         """
         Returns true, if the string contains a similar one of the strings within entries array
         """
@@ -1440,7 +1469,7 @@ class GuessFilename(object):
 
         return False
 
-    def fuzzy_contains_all_of(self, string, entries):
+    def fuzzy_contains_all_of(self, string: str, entries: list[str]) -> bool:
         """
         Returns true, if the string contains all similar ones of the strings within the entries array
         """
@@ -1466,7 +1495,7 @@ class GuessFilename(object):
 
         return True
 
-    def has_euro_charge(self, string):
+    def has_euro_charge(self, string: str) -> bool:
         """
         Returns true, if the single-line string contains a number with a €-currency
         """
@@ -1481,7 +1510,7 @@ class GuessFilename(object):
         else:
             return False
 
-    def get_euro_charge(self, string):
+    def get_euro_charge(self, string: str) -> str | bool:
         """
         Returns the first included €-currency within single-line "string" or False
         """
@@ -1496,7 +1525,7 @@ class GuessFilename(object):
         else:
             return False
 
-    def get_euro_charge_from_context_or_basename(self, string, before, after, basename):
+    def get_euro_charge_from_context_or_basename(self, string: str, before: str, after: str, basename: str) -> str:
         """
         Returns the included €-currency which is between before and after
         strings or within the basename or return 'FIXXME'
@@ -1508,9 +1537,10 @@ class GuessFilename(object):
             if not charge:
                 return 'FIXXME'
 
+        assert isinstance(charge, str)
         return charge
 
-    def get_euro_charge_from_context(self, string, before, after):
+    def get_euro_charge_from_context(self, string: str, before: str, after: str) -> str | bool:
         """
         Returns the included €-currency which is between before and after strings or False
         """
@@ -1534,7 +1564,7 @@ class GuessFilename(object):
             logging.debug("get_euro_charge_from_context was not able to extract a float: between [%s] and [%s] within [%s]" % (before, after, string[:30] + "..."))
             return False
 
-    def get_string_from_context(self, string, before, after):
+    def get_string_from_context(self, string: str, before: str, after: str) -> str | bool:
         """
         Returns the included string which is between before and after strings or False.
         This is a special case which is similar to get_euro_charge_from_context() but it doesn't check for floats or context range.
@@ -1555,7 +1585,7 @@ class GuessFilename(object):
             logging.debug("get_string_from_context was not able to extract a string: between [%s] and [%s] within [%s]" % (before, after, string[:30] + "..."))
             return False
 
-    def rename_file(self, dirname, oldbasename, newbasename, dryrun=False, quiet=False):
+    def rename_file(self, dirname: str, oldbasename: str, newbasename: str, dryrun: bool = False, quiet: bool = False) -> bool:
         """
         Renames a file from oldbasename to newbasename in dirname.
 
@@ -1593,7 +1623,7 @@ class GuessFilename(object):
             os.rename(oldfile, newfile)
         return True
 
-    def get_datetime_string_from_named_groups(self, regex_match):
+    def get_datetime_string_from_named_groups(self, regex_match: re.Match[str]) -> str:
         """Extracts YMDHM(S) from match groups and returns YYYY.MM.DDTHH.MM(.SS)
         """
         assert(regex_match)
@@ -1608,7 +1638,7 @@ class GuessFilename(object):
         return regex_match.group('year') + '-' + regex_match.group('month') + '-' + regex_match.group('day') + 'T' + \
             regex_match.group('hour') + '.' + regex_match.group('minute') + second
 
-    def get_date_string_from_named_groups(self, regex_match):
+    def get_date_string_from_named_groups(self, regex_match: re.Match[str]) -> str:
         """Extracts YMDHM(S) from match groups and returns YYYY.MM.DD
         """
         assert(regex_match)
@@ -1617,7 +1647,7 @@ class GuessFilename(object):
         assert(regex_match.group('year'))
         return regex_match.group('year') + '-' + regex_match.group('month') + '-' + regex_match.group('day')
 
-    def is_int(self, string):
+    def is_int(self, string: str) -> int | bool:
         """
         Checks if a given string can be casted to an integer without an error.
     
@@ -1630,7 +1660,7 @@ class GuessFilename(object):
         except ValueError:
             return False
 
-    def get_date_string_short_date_string(self, shortstring):
+    def get_date_string_short_date_string(self, shortstring: str) -> str:
         """Converts YYYYMMDD to YYYY-MM-DD
         """
         assert(shortstring)
@@ -1638,7 +1668,7 @@ class GuessFilename(object):
         assert(len(shortstring)==8)
         return f"{shortstring[:4]}-{shortstring[4:6]}-{shortstring[6:8]}"
 
-    def get_incremented_date_string_from_named_groups(self, regex_match):
+    def get_incremented_date_string_from_named_groups(self, regex_match: re.Match[str]) -> str:
         """Extracts YMDHM(S) from match groups and returns YYYY.MM.DDTHH.MM(.SS) from the following day
         """
         assert(regex_match)
@@ -1649,7 +1679,7 @@ class GuessFilename(object):
         the_next_day = mydatetime + datetime.timedelta(days=1)
         return the_next_day.strftime('%Y-%m-%d')
 
-    def get_datetime_description_extension_filename(self, regex_match, replace_description_underscores=False):
+    def get_datetime_description_extension_filename(self, regex_match: re.Match[str], replace_description_underscores: bool = False) -> str:
         """
         When a regex_match has matching groups for datetime elements, an optional description
         and an extension, this function composes the standard file name of pattern "YYYY-MM-DDThh.mm(.ss)( description).extension"
@@ -1665,7 +1695,7 @@ class GuessFilename(object):
         else:
             return self.get_datetime_string_from_named_groups(regex_match) + '.' + regex_match.group('extension')
 
-    def get_date_description_extension_filename(self, regex_match, replace_description_underscores=False):
+    def get_date_description_extension_filename(self, regex_match: re.Match[str], replace_description_underscores: bool = False) -> str:
         """
         When a regex_match has matching groups for datetime elements, an optional description
         and an extension, this function composes the standard file name of pattern "YYYY-MM-DD( description).extension"
@@ -1681,12 +1711,12 @@ class GuessFilename(object):
         else:
             return self.get_date_string_from_named_groups(regex_match) + '.' + regex_match.group('extension')
 
-    def NumToMonth(self, month):
+    def NumToMonth(self, month: int) -> str:
 
         months = ['Dezember', 'Jaenner', 'Februar', 'Maerz', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember']
         return months[month]
 
-    def translate_ORF_quality_string_to_tag(self, quality_string):
+    def translate_ORF_quality_string_to_tag(self, quality_string: str) -> str:
         """
         Returns a filetag which is derived from a key string. The key strings are defined
         by the file names of the ORF company offering its download file names.
@@ -1699,7 +1729,7 @@ class GuessFilename(object):
         else:
             return 'UNKNOWNQUALITY'
 
-    def get_file_size(self, filename):
+    def get_file_size(self, filename: str) -> int:
         """
         A simple wrapper to determine file sizes.
 
@@ -1739,9 +1769,9 @@ class GuessFilename(object):
         except OSError:
             error_exit(10, 'get_file_size(): Could not get file size of: ' + filename)
 
-    def warn_if_ORF_file_seems_to_small_according_to_duration_and_quality_indicator(self, oldfilename, qualityindicator,
-                                                                                    start_hrs, start_min, start_sec,
-                                                                                    end_hrs, end_min, end_sec):
+    def warn_if_ORF_file_seems_to_small_according_to_duration_and_quality_indicator(self, oldfilename: str, qualityindicator: str,
+                                                                                    start_hrs: str, start_min: str, start_sec: str,
+                                                                                    end_hrs: str, end_min: str, end_sec: str) -> None:
         """
         Launches a warning if the expected size differs from the actual file size.
 
@@ -1803,7 +1833,7 @@ class GuessFilename(object):
                           ')')
 
 
-def move_to_success_dir(dirname, newfilename):
+def move_to_success_dir(dirname: str, newfilename: str) -> None:
     """
     Moves a file to SUCCESS_DIR
     """
@@ -1815,7 +1845,7 @@ def move_to_success_dir(dirname, newfilename):
         logging.info('moved file to sub-directory "' + SUCCESS_DIR + '"')
 
 
-def move_to_error_dir(dirname, basename):
+def move_to_error_dir(dirname: str, basename: str) -> None:
     """
     Moves a file to SUCCESS_DIR
     """
@@ -1827,7 +1857,7 @@ def move_to_error_dir(dirname, basename):
         logging.info('moved file to sub-directory "' + ERROR_DIR + '"')
 
 
-def main():
+def main() -> None:
     """Main function"""
 
     if options.version:

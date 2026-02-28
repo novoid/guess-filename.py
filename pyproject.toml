@@ -12,3 +12,13 @@ dependencies = [
     "pyexiftool>=0.5.6",
     "pypdf>=6.0.0",
 ]
+
+[dependency-groups]
+dev = [
+    "mypy>=1.19.1",
+    "types-colorama>=0.4.15.20250801",
+]
+
+[tool.mypy]
+strict = true
+ignore_missing_imports = true
