@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-PROG_VERSION = u"Time-stamp: <2025-09-09 15:51:29 rise>"
+PROG_VERSION = u"Time-stamp: <2026-02-28 15:25:42 vk>"
 
 
 # TODO:
@@ -854,14 +854,14 @@ class GuessFilename(object):
             logging.info('Could read PDF file content but it is empty (skipping content analysis)')
             return False
 
-        # import pudb; pu.db
+        #import pudb; pu.db
         
         # Salary - NOTE: this is highly specific to the PDF file
         # structure of the author's salary processing software.
         # Therefore, this most likely does not work for your salary
         # PDF file.
         # example:  SALARY_IDSTRING-09-2023.PDF  →  2023-10-01 SALARY_IDSTRING 2023-09 - 1.234,56€ -- COMPANY private.pdf
-        regex_match = re.match(self.config.SALARY_IDSTRING + r'-(?P<sal_month>\d{2})-(?P<sal_year>\d{4}).PDF', basename)
+        regex_match = re.match(self.config.SALARY_IDSTRING + r'-(?P<sal_month>\d{2})-(?P<sal_year>\d{4}).pdf', basename)
         if regex_match:
             logging.debug('PARSING SALARY FILE ...')
             content = content.replace('\n', '•')  # to simplify regex match below
@@ -881,7 +881,8 @@ class GuessFilename(object):
 
             # trying to extract the net salary value:
             try:
-                net_salary = re.match(r'.+•Netto (?P<salary>\d\.\d{3},\d{2})•+.+', content).group('salary')
+                #import pudb; pu.db
+                net_salary = re.match(r'.+•Auszahlung  (?P<salary>\d\.\d{3},\d{2})•.+', content).group('salary')
                 logging.debug('found salary: ' + str(net_salary))
             except:
                 logging.error('derive_new_filename_from_content(' + filename + '): I recognized pattern ' +
@@ -1585,6 +1586,9 @@ class GuessFilename(object):
             print('       →  ' + colorama.Style.BRIGHT + colorama.Fore.GREEN + newbasename + colorama.Style.RESET_ALL)
         logging.debug(" renaming \"%s\"" % oldfile)
         logging.debug("      ⤷   \"%s\"" % newfile)
+
+        if '[' in newfile or ']' in newfile:
+            logging.warning('Brackets found in filename which may cause issues when used in Orgdown links. Think of getting rid of them.')
         if not dryrun:
             os.rename(oldfile, newfile)
         return True
