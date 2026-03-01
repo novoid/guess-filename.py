@@ -1,9 +1,21 @@
 [project]
-name = "guess-filename-py"
-version = "0.1.0"
-description = "Add your description here"
-readme = "README.md"
+name = "guessfilename"
+version = "2023.02.05.2"
+description = "Derive a file name according to old file name cues and/or PDF file content"
+readme = { file = "README.org", content-type = "text/plain" }
 requires-python = ">=3.13"
+authors = [
+    { name = "Karl Voit", email = "tools@Karl-Voit.at" },
+]
+keywords = ["file managing", "file management", "files", "date", "time", "time-stamps"]
+classifiers = [
+    "Programming Language :: Python :: 3 :: Only",
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: GNU General Public License (GPL)",
+    "Operating System :: OS Independent",
+]
 dependencies = [
     "colorama>=0.4.6",
     "fuzzywuzzy>=0.18.0",
@@ -12,6 +24,13 @@ dependencies = [
     "pyexiftool>=0.5.6",
     "pypdf>=6.0.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/novoid/guess-filename.py"
+Download = "https://github.com/novoid/guess-filename.py/zipball/master"
+
+[project.scripts]
+guessfilename = "guessfilename:main"
 
 [dependency-groups]
 dev = [
