@@ -313,10 +313,13 @@ In short:
 
 - Alternative implementations of the =filetags= concept:
   - [[https://github.com/beutelma/filetags.el][GitHub - DerBeutlin/filetags.el: Emacs package to manage filetags in the filename]]
-  - With [[https://github.com/protesilaos/denote][denote]], Protesilaos
-    Stavrou implemented a conceptually related approach to manage notes
-    within an Emacs buffer.  With ~dired~, this method equally may be
-    applied on files, too.
+  - With [[https://github.com/protesilaos/denote][denote]], Protesilaos Stavrou implemented a conceptually
+    related approach to manage notes within an Emacs buffer. With
+    [[https://en.wikipedia.org/wiki/Dired][Emacs/dired]], this method equally may be applied on files, too.
+
+- Related to =date2name=:
+  - https://github.com/DerBeutlin/date2name.el Alternative implementation for [[https://en.wikipedia.org/wiki/Dired][Emacs/dired]]
+  - https://github.com/muehlburger/d2n Alternative implementation in [[https://go.dev/][Go]]
 
 - Related to =m2a=:
   - https://github.com/velvet-jones/imgfiler/
