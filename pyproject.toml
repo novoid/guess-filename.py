@@ -1,9 +1,10 @@
 [project]
 name = "guessfilename"
-version = "2023.02.05.2"
+version = "2026.03.01.1"
 description = "Derive a file name according to old file name cues and/or PDF file content"
 readme = { file = "README.org", content-type = "text/plain" }
 requires-python = ">=3.13"
+license = "GPL-3.0-or-later"
 authors = [
     { name = "Karl Voit", email = "tools@Karl-Voit.at" },
 ]
@@ -13,7 +14,6 @@ classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Environment :: Console",
     "Intended Audience :: End Users/Desktop",
-    "License :: OSI Approved :: GNU General Public License (GPL)",
     "Operating System :: OS Independent",
 ]
 dependencies = [
@@ -32,11 +32,25 @@ Download = "https://github.com/novoid/guess-filename.py/zipball/master"
 [project.scripts]
 guessfilename = "guessfilename:main"
 
+[[tool.uv.index]]
+name = "guessfilename"
+url = "https://test.pypi.org/simple/"
+publish-url = "https://test.pypi.org/legacy/"
+explicit = true
+
+
 [dependency-groups]
 dev = [
     "mypy>=1.19.1",
     "types-colorama>=0.4.15.20250801",
 ]
+
+[tool.setuptools.packages.find]
+include = ["guessfilename*"]
+
+[build-system]
+requires = ["setuptools>=78.1.0", "wheel>=0.45.1"]
+build-backend = "setuptools.build_meta"
 
 [tool.mypy]
 strict = true
