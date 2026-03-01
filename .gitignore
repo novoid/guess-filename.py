@@ -18,3 +18,5 @@ venv/
 *.pdf
 .python-version
 uv.lock
+CLAUDE.local.md
+update_mypi.sh
