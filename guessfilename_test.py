@@ -467,7 +467,7 @@ class TestGuessFilename(unittest.TestCase):
         new_mediafilename = self.guess_filename.handle_file(mediafile, False)
         assert(type(new_mediafilename) == str)
         new_mediafilename_generated = os.path.join(tmpdir, new_mediafilename)
-        new_mediafilename_comparison = os.path.join(tmpdir, "2007-09-13 youtube - The Star7 PDA Prototype - Ahg8OBYixL0 12;34;56.mp4")
+        new_mediafilename_comparison = os.path.join(tmpdir, "2007-09-13 youtube Ahg8OBYixL0 - The Star7 PDA Prototype - 12;34;56.mp4")
         self.assertEqual(new_mediafilename_generated, new_mediafilename_comparison)
 
         os.remove(new_mediafilename_generated)

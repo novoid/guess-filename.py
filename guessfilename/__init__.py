@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
-PROG_VERSION = u"Time-stamp: <2026-03-06 18:19:02 vk>"
+PROG_VERSION = u"Time-stamp: <2026-03-06 18:48:15 vk>"
 
 
 # TODO:
@@ -1057,35 +1057,30 @@ class GuessFilename(object):
            "duration_string" in data.keys() and \
            "fulltitle" in data.keys():
 
-            if data['upload_date'] and len(data['upload_date']) == 8 and \
-               data["extractor_key"] and data["extractor_key"] == "Youtube":
-                logging.debug('derive_new_filename_from_json_metadata: found all ' +
-                              'required meta data for YouTube download file style')
-                # example from unit tests: "2007-09-13 youtube - The Star7 PDA Prototype - Ahg8OBYixL0.mp4"
-                # sanitizing title since it may contain characters that are not valid or practical in a file name:
-                # slash / → issue with renaming since it is the folder separation characters on most file systems
-                # brackets [] → it interferes with orgdown file link with description
-                sanitized_title = data['fulltitle'].replace('/', u'∕').replace('[', u'⌜').replace(']', u'⌟')
-                yt_result: str = data['upload_date'][:4] + '-' + data['upload_date'][4:6] + '-' + data['upload_date'][6:] + ' ' + data["extractor"] + ' - ' + sanitized_title + ' - ' + data["display_id"] + ' ' + data["duration_string"].replace(':', ';') + '.' + data["ext"]
-                return yt_result
+            if data['upload_date'] and len(data['upload_date']) == 8 and data["extractor_key"]:
+                extractor_key = data["extractor_key"]
+                if extractor_key in ("Youtube", "PeerTube"):
+                    logging.debug('derive_new_filename_from_json_metadata: found all ' +
+                                  'required meta data for %s download file style' % extractor_key)
+                    # example from unit tests: "2007-09-13 youtube Ahg8OBYixL0 - The Star7 PDA Prototype.mp4"
+                    # sanitizing title since it may contain characters that are not valid or practical in a file name:
+                    # slash / → issue with renaming since it is the folder separation characters on most file systems
+                    # brackets [] → it interferes with orgdown file link with description
+                    sanitized_title = data['fulltitle'].replace('/', u'∕').replace('[', u'⌜').replace(']', u'⌟')
+                    date_str = data['upload_date'][:4] + '-' + data['upload_date'][4:6] + '-' + data['upload_date'][6:]
+                    duration = data["duration_string"].replace(':', ';')
+                    if extractor_key == "Youtube":
+                        source = data["extractor"]
+                    else:  # PeerTube
+                        source = data["webpage_url_domain"]
+                    yt_result: str = date_str + ' ' + source + ' ' + data["display_id"] + ' - ' + sanitized_title + ' - ' + duration + '.' + data["ext"]
+                    return yt_result
+                else:
+                    logging.debug('derive_new_filename_from_json_metadata: found all required meta data ' +
+                                  'for YouTube/PeerTube download file style but extractor_key "%s" is not supported' % extractor_key)
             else:
                 logging.debug('derive_new_filename_from_json_metadata: found all required meta data ' +
-                              'for YouTube download file style but upload_date or extractor_key do ' +
-                              'not match expected format')
-
-            if data['upload_date'] and len(data['upload_date']) == 8 and \
-               data["extractor_key"] and data["extractor_key"] == "PeerTube":
-                logging.debug('derive_new_filename_from_json_metadata: found all ' +
-                              'required meta data for PeerTube download file style')
-                # sanitizing title since it may contain characters that are not valid or practical in a file name:
-                # slash / → issue with renaming since it is the folder separation characters on most file systems
-                # brackets [] → it interferes with orgdown file link with description
-                sanitized_title = data['fulltitle'].replace('/', u'∕').replace('[', u'⌜').replace(']', u'⌟')
-                yt_result: str = data['upload_date'][:4] + '-' + data['upload_date'][4:6] + '-' + data['upload_date'][6:] + ' ' + data["webpage_url_domain"] + ' - ' + sanitized_title + ' - ' + data["display_id"] + ' ' + data["duration_string"].replace(':', ';') + '.' + data["ext"]
-                return yt_result
-            else:
-                logging.debug('derive_new_filename_from_json_metadata: found all required meta data ' +
-                              'for PeerTube download file style but upload_date or extractor_key do ' +
+                              'for YouTube/PeerTube download file style but upload_date or extractor_key do ' +
                               'not match expected format')
 
         if "extractor_key" in data.keys() and \
