@@ -1,6 +1,6 @@
 [project]
 name = "guessfilename"
-version = "2026.03.01.1"
+version = "2026.03.06.1"
 description = "Derive a file name according to old file name cues and/or PDF file content"
 readme = { file = "README.org", content-type = "text/plain" }
 requires-python = ">=3.13"
