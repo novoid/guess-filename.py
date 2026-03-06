@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
-PROG_VERSION = u"Time-stamp: <2026-02-28 15:25:42 vk>"
+PROG_VERSION = u"Time-stamp: <2026-03-06 18:19:02 vk>"
 
 
 # TODO:
@@ -1071,6 +1071,21 @@ class GuessFilename(object):
             else:
                 logging.debug('derive_new_filename_from_json_metadata: found all required meta data ' +
                               'for YouTube download file style but upload_date or extractor_key do ' +
+                              'not match expected format')
+
+            if data['upload_date'] and len(data['upload_date']) == 8 and \
+               data["extractor_key"] and data["extractor_key"] == "PeerTube":
+                logging.debug('derive_new_filename_from_json_metadata: found all ' +
+                              'required meta data for PeerTube download file style')
+                # sanitizing title since it may contain characters that are not valid or practical in a file name:
+                # slash / → issue with renaming since it is the folder separation characters on most file systems
+                # brackets [] → it interferes with orgdown file link with description
+                sanitized_title = data['fulltitle'].replace('/', u'∕').replace('[', u'⌜').replace(']', u'⌟')
+                yt_result: str = data['upload_date'][:4] + '-' + data['upload_date'][4:6] + '-' + data['upload_date'][6:] + ' ' + data["webpage_url_domain"] + ' - ' + sanitized_title + ' - ' + data["display_id"] + ' ' + data["duration_string"].replace(':', ';') + '.' + data["ext"]
+                return yt_result
+            else:
+                logging.debug('derive_new_filename_from_json_metadata: found all required meta data ' +
+                              'for PeerTube download file style but upload_date or extractor_key do ' +
                               'not match expected format')
 
         if "extractor_key" in data.keys() and \
