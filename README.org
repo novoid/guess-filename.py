@@ -361,14 +361,14 @@ In short:
   - You probably need to read a bit of French
 # --- END SHARED: filetags_tools --- see https://github.com/novoid/screencasts/
 
-* How to Thank Me and Contribute to the Poroject
+* How to Thank Me and Contribute to the Project
 # --- BEGIN SHARED: how_to_thank_me --- see https://github.com/novoid/screencasts/
 
 I'm glad if you like my tool. I've got way more projects on:
 
 - [[https://github.com/novoid/][GitHub]] (oldest projects),
 - [[https://gitlab.com/publicvoit/][GitLab.com]] (older projects), and
-- [[https://codeberg.org/publicvoit/][Codeberg]] (newest projects).
+- [[https://codefloe.com/publicvoit/][CodeFloe]] (newest projects).
 
 If you want to support me:
 
